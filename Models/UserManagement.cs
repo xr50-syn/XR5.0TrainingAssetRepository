@@ -8,4 +8,5 @@ namespace XR5_0TrainingRepo.Models
         public long UserId { get; set; }
         public string? Name { get; set; }
     }
+
 }
