@@ -9,7 +9,7 @@ namespace XR5_0TrainingRepo.Models
         public string? Name { get; set; }
         public string? Pilot { get; set; }
         public string? UseCase { get; set; }
-        public  List<Content> ContentList{ get; }
+        public  List<Asset> AssetList{ get; }
 
 
         [Key]

@@ -9,49 +9,49 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/content-management/[controller]")]
+    [Route("/xr50/training-repo/Asset-management/[controller]")]
     [ApiController]
-    public class ContentController : ControllerBase
+    public class AssetController : ControllerBase
     {
-        private readonly ContentContext _context;
+        private readonly AssetContext _context;
 
-        public ContentController(ContentContext context)
+        public AssetController(AssetContext context)
         {
             _context = context;
         }
 
-        // GET: api/Content
+        // GET: api/Asset
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Content>>> GetContent()
+        public async Task<ActionResult<IEnumerable<Asset>>> GetAsset()
         {
-            return await _context.Content.ToListAsync();
+            return await _context.Asset.ToListAsync();
         }
 
-        // GET: api/Content/5
+        // GET: api/Asset/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Content>> GetContent(long id)
+        public async Task<ActionResult<Asset>> GetAsset(long id)
         {
-            var Content = await _context.Content.FindAsync(id);
+            var Asset = await _context.Asset.FindAsync(id);
 
-            if (Content == null)
+            if (Asset == null)
             {
                 return NotFound();
             }
 
-            return Content;
+            return Asset;
         }
 
-        // PUT: api/Content/5
+        // PUT: api/Asset/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutContent(long id, Content Content)
+        public async Task<IActionResult> PutAsset(long id, Asset Asset)
         {
-            if (id != Content.ContentId)
+            if (id != Asset.AssetId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(Content).State = EntityState.Modified;
+            _context.Entry(Asset).State = EntityState.Modified;
 
             try
             {
@@ -59,7 +59,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ContentExists(id))
+                if (!AssetExists(id))
                 {
                     return NotFound();
                 }
@@ -72,36 +72,36 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 
-        // POST: api/Content
+        // POST: api/Asset
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Content>> PostContent(Content Content)
+        public async Task<ActionResult<Asset>> PostAsset(Asset Asset)
         {
-            _context.Content.Add(Content);
+            _context.Asset.Add(Asset);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetContent", new { id = Content.ContentId }, Content);
+            return CreatedAtAction("GetAsset", new { id = Asset.AssetId }, Asset);
         }
 
-        // DELETE: api/Content/5
+        // DELETE: api/Asset/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteContent(long id)
+        public async Task<IActionResult> DeleteAsset(long id)
         {
-            var Content = await _context.Content.FindAsync(id);
-            if (Content == null)
+            var Asset = await _context.Asset.FindAsync(id);
+            if (Asset == null)
             {
                 return NotFound();
             }
 
-            _context.Content.Remove(Content);
+            _context.Asset.Remove(Asset);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool ContentExists(long id)
+        private bool AssetExists(long id)
         {
-            return _context.Content.Any(e => e.ContentId == id);
+            return _context.Asset.Any(e => e.AssetId == id);
         }
     }
 }

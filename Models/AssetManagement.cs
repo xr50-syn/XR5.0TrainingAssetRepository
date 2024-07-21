@@ -2,7 +2,7 @@
 
 namespace XR5_0TrainingRepo.Models
 {
-    public class Content
+    public class Asset
     {
 
         public string? Name { get; set; }
@@ -10,6 +10,6 @@ namespace XR5_0TrainingRepo.Models
         public string? FileName { get; set; }
         public long? TrainingId { get; set; }
         [Key]
-        public long ContentId { get; set; }
+        public long AssetId { get; set; }
     }
 }
