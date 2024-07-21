@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using XR5_0TrainingRepo.Models;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 
@@ -19,7 +21,7 @@ builder.Services.AddDbContext<UserContext>(opt =>
     opt.UseInMemoryDatabase("UserList"));
 builder.Services.AddDbContext<XR50AppContext>(opt =>
     opt.UseInMemoryDatabase("AppList"));
-
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
