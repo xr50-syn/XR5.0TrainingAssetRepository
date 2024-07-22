@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using XR5_0TrainingRepo.Models;
 
@@ -15,9 +16,10 @@ namespace XR5_0TrainingRepo.Controllers
     {
         private readonly XRAIInterfaceContext _context;
         private readonly HttpClient _httpClient;
-        public AI_Interface(XRAIInterfaceContext context)
+        public AI_Interface(XRAIInterfaceContext context, HttpClient httpClient)
         {
             _context = context;
+            _httpClient = httpClient;
         }
 
         // GET: api/AIQuery

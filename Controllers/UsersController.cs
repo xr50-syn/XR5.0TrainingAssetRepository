@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using XR5_0TrainingRepo.Models;
 
@@ -15,15 +18,36 @@ namespace XR5_0TrainingRepo.Controllers
     {
         private readonly UserContext _context;
         private readonly HttpClient _httpClient;
-        public UsersController(UserContext context)
-        {
+
+        public UsersController(UserContext context, HttpClient httpClient)
+        { 
             _context = context;
+            _httpClient = httpClient;
         }
 
         // GET: api/Users
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
+            var values = new List<KeyValuePair<string, string>>();
+            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+
+            string authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
+
+            var request = new HttpRequestMessage(HttpMethod.Get, "/ocs/v1.php/cloud/users")
+            {
+                Content = messageContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080");
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var result = _httpClient.SendAsync(request).Result;
+            string resultContent = result.Content.ReadAsStringAsync().Result;
+            //Console.WriteLine($"Response content: {resultContent}");
+
             return await _context.Users.ToListAsync();
         }
 

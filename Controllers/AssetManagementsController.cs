@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using XR5_0TrainingRepo.Models;
 
@@ -15,9 +16,10 @@ namespace XR5_0TrainingRepo.Controllers
     {
         private readonly AssetContext _context;
         private readonly HttpClient _httpClient;
-        public AssetController(AssetContext context)
+        public AssetController(AssetContext context, HttpClient httpClient)
         {
             _context = context;
+            _httpClient = httpClient;
         }
 
         // GET: api/Asset

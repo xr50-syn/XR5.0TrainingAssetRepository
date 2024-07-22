@@ -9,6 +9,7 @@ namespace XR5_0TrainingRepo.Models
         public long AppId { get; set; }
         public string? AppName { get; set; }
         public string? OwncloudGroup { get; set; }
+        public string? Description { get; set; }
         public XR50App() { }
 
     }

@@ -44,10 +44,10 @@ namespace XR5_0TrainingRepo.Controllers
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
             _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080/ocs/v1.php/cloud/groups");
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+           // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            Console.WriteLine($"Response content: {resultContent}");
+            //Console.WriteLine($"Response content: {resultContent}");
             return await _context.Apps.ToListAsync();
         }
 
@@ -137,6 +137,24 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Apps.Remove(xR50App);
             await _context.SaveChangesAsync();
 
+            var values = new List<KeyValuePair<string, string>>();
+            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+
+            string authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/ocs/v1.php/cloud/groups/{xR50App.OwncloudGroup}")
+            {
+                Content = messageContent
+            };
+            Console.WriteLine(xR50App.OwncloudGroup);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080");
+            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var result = _httpClient.SendAsync(request).Result;
+            string resultContent = result.Content.ReadAsStringAsync().Result;
+            //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +16,10 @@ namespace XR5_0TrainingRepo.Controllers
     {
         private readonly ResourceContext _context;
         private readonly HttpClient _httpClient;
-        public ResourceManagementController(ResourceContext context)
+        public ResourceManagementController(ResourceContext context, HttpClient httpClient)
         {
             _context = context;
+            _httpClient = httpClient;
         }
 
         // GET: api/ResourceManagements
