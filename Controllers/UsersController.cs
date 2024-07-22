@@ -14,7 +14,7 @@ namespace XR5_0TrainingRepo.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserContext _context;
-
+        private readonly HttpClient _httpClient;
         public UsersController(UserContext context)
         {
             _context = context;

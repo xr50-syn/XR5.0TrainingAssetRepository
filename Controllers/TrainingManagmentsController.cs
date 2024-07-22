@@ -14,7 +14,7 @@ namespace XR5_0TrainingRepo.Controllers
     public class TrainingController : ControllerBase
     {
         private readonly TrainingContext _context;
-
+        private readonly HttpClient _httpClient;
         public TrainingController(TrainingContext context)
         {
             _context = context;

@@ -14,7 +14,7 @@ namespace XR5_0TrainingRepo.Controllers
     public class ResourceManagementController : ControllerBase
     {
         private readonly ResourceContext _context;
-
+        private readonly HttpClient _httpClient;
         public ResourceManagementController(ResourceContext context)
         {
             _context = context;

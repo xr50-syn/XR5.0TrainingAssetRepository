@@ -14,7 +14,7 @@ namespace XR5_0TrainingRepo.Controllers
     public class AssetController : ControllerBase
     {
         private readonly AssetContext _context;
-
+        private readonly HttpClient _httpClient;
         public AssetController(AssetContext context)
         {
             _context = context;
