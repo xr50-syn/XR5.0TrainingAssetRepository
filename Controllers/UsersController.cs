@@ -50,7 +50,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return await _context.Users.ToListAsync();
         }
-
+        /*
         // GET: api/Users/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(long id)
@@ -65,6 +65,7 @@ namespace XR5_0TrainingRepo.Controllers
             return user;
         }
 
+        
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -94,7 +95,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
 
             return NoContent();
-        }
+        }*/
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

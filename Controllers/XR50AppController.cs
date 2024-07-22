@@ -50,7 +50,7 @@ namespace XR5_0TrainingRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return await _context.Apps.ToListAsync();
         }
-
+        /*
         // GET: api/XR50App/5
         [HttpGet("{id}")]
         public async Task<ActionResult<XR50App>> GetXR50App(long id)
@@ -95,6 +95,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
+        */
 
         // POST: api/XR50App
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
