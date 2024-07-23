@@ -10,7 +10,7 @@ namespace XR5_0TrainingRepo.Models
         {
         }
 
-        public DbSet<TrainingActivity> Trainings { get; set; } = null!;
+        public DbSet<TrainingModule> Trainings { get; set; } = null!;
         public DbSet<XR5_0TrainingRepo.Models.QueryStore> QueryStore { get; set; } = default!;
     }
 }
