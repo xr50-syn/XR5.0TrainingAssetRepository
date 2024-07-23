@@ -105,7 +105,7 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var xR50App = await _xr50AppContext.Apps.FindAsync(user.AppId);
+            var xR50App = await _xr50AppContext.Apps.FindAsync(user.AppName);
             if (xR50App == null)
             {
                 return NotFound();
@@ -113,6 +113,29 @@ namespace XR5_0TrainingRepo.Controllers
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            var values = new List<KeyValuePair<string, string>>();
+            values.Add(new KeyValuePair<string, string>("userid", user.UserName));
+            values.Add(new KeyValuePair<string, string>("password", user.Password));
+            values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
+            values.Add(new KeyValuePair<string, string>("display", user.FullName));
+            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+
+            string authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
+
+            var request = new HttpRequestMessage(HttpMethod.Post, "/ocs/v1.php/cloud/users")
+            {
+                Content = messageContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080");
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var result = _httpClient.SendAsync(request).Result;
+            string resultContent = result.Content.ReadAsStringAsync().Result;
+            //Console.WriteLine($"Response content: {resultContent}");
 
             return CreatedAtAction("GetUser", new { id = user.UserName }, user);
         }
@@ -130,6 +153,28 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
+            var values = new List<KeyValuePair<string, string>>();
+            values.Add(new KeyValuePair<string, string>("userid", user.UserName));
+            values.Add(new KeyValuePair<string, string>("password", user.Password));
+            values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
+            values.Add(new KeyValuePair<string, string>("display", user.FullName));
+            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+
+            string authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
+
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/ocs/v1.php/cloud/users/{user.UserName}")
+            {
+                Content = messageContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080");
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var result = _httpClient.SendAsync(request).Result;
+            string resultContent = result.Content.ReadAsStringAsync().Result;
+            //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
 
