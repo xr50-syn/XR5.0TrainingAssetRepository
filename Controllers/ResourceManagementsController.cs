@@ -34,10 +34,10 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // GET: api/ResourceManagements/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ResourceManagement>> GetResourceManagement(long id)
+        [HttpGet("{ResourceName}")]
+        public async Task<ActionResult<ResourceManagement>> GetResourceManagement(string ResourceName)
         {
-            var resourceManagement = await _context.Resource.FindAsync(id);
+            var resourceManagement = await _context.Resource.FindAsync(ResourceName);
 
             if (resourceManagement == null)
             {
@@ -49,10 +49,10 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/ResourceManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutResourceManagement(long id, ResourceManagement resourceManagement)
+        [HttpPut("{ResourceName}")]
+        public async Task<IActionResult> PutResourceManagement(string ResourceName, ResourceManagement resourceManagement)
         {
-            if (id != resourceManagement.ResourceId)
+            if (!ResourceName.Equals(resourceManagement.ResourceName))
             {
                 return BadRequest();
             }
@@ -65,7 +65,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ResourceManagementExists(id))
+                if (!ResourceManagementExists(ResourceName))
                 {
                     return NotFound();
                 }
@@ -86,14 +86,14 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resource.Add(resourceManagement);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetResourceManagement", new { id = resourceManagement.ResourceId }, resourceManagement);
+            return CreatedAtAction("GetResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
         }
 
         // DELETE: api/ResourceManagements/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResourceManagement(long id)
+        [HttpDelete("{ResourceName}")]
+        public async Task<IActionResult> DeleteResourceManagement(string ResourceName)
         {
-            var resourceManagement = await _context.Resource.FindAsync(id);
+            var resourceManagement = await _context.Resource.FindAsync(ResourceName);
             if (resourceManagement == null)
             {
                 return NotFound();
@@ -105,9 +105,9 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 
-        private bool ResourceManagementExists(long id)
+        private bool ResourceManagementExists(string ResourceName)
         {
-            return _context.Resource.Any(e => e.ResourceId == id);
+            return _context.Resource.Any(e => e.ResourceName.Equals(ResourceName));
         }
     }
 }

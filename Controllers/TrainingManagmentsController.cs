@@ -26,16 +26,16 @@ namespace XR5_0TrainingRepo.Controllers
 
         // GET: api/Training
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TrainingActivity>>> GetTraining()
+        public async Task<ActionResult<IEnumerable<TrainingModule>>> GetTraining()
         {
             return await _context.Trainings.ToListAsync();
         }
 
         // GET: api/Training/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TrainingActivity>> GetTraining(long id)
+        [HttpGet("{TrainingName}")]
+        public async Task<ActionResult<TrainingModule>> GetTraining(long TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(id);
+            var Training = await _context.Trainings.FindAsync(TrainingName);
 
             if (Training == null)
             {
@@ -47,10 +47,10 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/Training/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTraining(long id, TrainingActivity Training)
+        [HttpPut("{TrainingName}")]
+        public async Task<IActionResult> PutTraining(string TrainingName, TrainingModule Training)
         {
-            if (id != Training.TrainingId)
+            if (!TrainingName.Equals(Training.TrainingName))
             {
                 return BadRequest();
             }
@@ -63,7 +63,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TrainingExists(id))
+                if (!TrainingExists(TrainingName))
                 {
                     return NotFound();
                 }
@@ -79,19 +79,19 @@ namespace XR5_0TrainingRepo.Controllers
         // POST: api/Training
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TrainingActivity>> PostTraining(TrainingActivity Training)
+        public async Task<ActionResult<TrainingModule>> PostTraining(TrainingModule Training)
         {
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTraining", new { id = Training.TrainingId }, Training);
+            return CreatedAtAction("GetTraining", new { Training.TrainingName });
         }
 
         // DELETE: api/Training/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTraining(long id)
+        [HttpDelete("{TrainingName}")]
+        public async Task<IActionResult> DeleteTraining(long TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(id);
+            var Training = await _context.Trainings.FindAsync(TrainingName);
             if (Training == null)
             {
                 return NotFound();
@@ -103,9 +103,9 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 
-        private bool TrainingExists(long id)
+        private bool TrainingExists(string TrainingName)
         {
-            return _context.Trainings.Any(e => e.TrainingId == id);
+            return _context.Trainings.Any(e => e.TrainingName.Equals(TrainingName));
         }
     }
 }

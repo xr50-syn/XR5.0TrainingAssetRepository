@@ -73,7 +73,7 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPut("{userName}")]
         public async Task<IActionResult> PutUser(string userName, User user)
         {
-            if  (!user.UserId.Equals(userName))
+            if  (!user.UserName.Equals(userName))
             {
                 return BadRequest();
             }
@@ -114,7 +114,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.UserId }, user);
+            return CreatedAtAction("GetUser", new { id = user.UserName }, user);
         }
 
         // DELETE: api/Users/5
@@ -135,7 +135,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         private bool UserExists(string userName)
         {
-            return _context.Users.Any(e => e.UserId.Equals(userName));
+            return _context.Users.Any(e => e.UserName.Equals(userName));
         }
     }
 }
