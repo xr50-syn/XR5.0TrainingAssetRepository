@@ -15,16 +15,19 @@ namespace XR5_0TrainingRepo.Controllers
     public class AssetController : ControllerBase
     {
         private readonly AssetContext _context;
-        private readonly XR50AppContext _xr50Appcontext;
-        private readonly TrainingContext _xr50Trainingcontext;
-        private readonly ResourceContext _xr50Resourcecontext;
+        private readonly XR50AppContext _xr50AppContext;
+        private readonly TrainingContext _xr50TrainingContext;
+        private readonly ResourceContext _xr50ResourceContext;
         private readonly HttpClient _httpClient;
-        public AssetController(AssetContext context, HttpClient httpClient)
+        public AssetController(AssetContext context, XR50AppContext xr50AppContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, HttpClient httpClient)
         {
             _context = context;
+            _xr50AppContext = xr50AppContext;
+            _xr50TrainingContext = xr50TrainingContext;
+            _xr50ResourceContext = xr50ResourceContext; 
             _httpClient = httpClient;
         }
-
+        
         // GET: api/Asset
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Asset>>> GetAsset()

@@ -15,11 +15,12 @@ namespace XR5_0TrainingRepo.Controllers
     public class TrainingController : ControllerBase
     {
         private readonly TrainingContext _context;
-        private readonly XR50AppContext _xr50Appcontext;
+        private readonly XR50AppContext _xr50AppContext;
         private readonly HttpClient _httpClient;
-        public TrainingController(TrainingContext context, HttpClient httpClient)
+        public TrainingController(TrainingContext context, XR50AppContext xr50AppContext, HttpClient httpClient)
         {
             _context = context;
+            _xr50AppContext = xr50AppContext;
             _httpClient = httpClient;
         }
 

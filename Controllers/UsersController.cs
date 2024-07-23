@@ -17,12 +17,13 @@ namespace XR5_0TrainingRepo.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserContext _context;
-        private readonly XR50AppContext _xr50Appcontext;
+        private readonly XR50AppContext _xr50AppContext;
         private readonly HttpClient _httpClient;
 
-        public UsersController(UserContext context, HttpClient httpClient)
+        public UsersController(UserContext context, XR50AppContext xr50AppContext, HttpClient httpClient)
         { 
             _context = context;
+            _xr50AppContext = xr50AppContext;
             _httpClient = httpClient;
         }
 
@@ -51,12 +52,12 @@ namespace XR5_0TrainingRepo.Controllers
 
             return await _context.Users.ToListAsync();
         }
-        /*
+        
         // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(long id)
+        [HttpGet("{userName}")]
+        public async Task<ActionResult<User>> GetUser(string userName)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(userName);
 
             if (user == null)
             {
@@ -69,10 +70,10 @@ namespace XR5_0TrainingRepo.Controllers
         
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(long id, User user)
+        [HttpPut("{userName}")]
+        public async Task<IActionResult> PutUser(string userName, User user)
         {
-            if (id != user.UserId)
+            if  (!user.UserId.Equals(userName))
             {
                 return BadRequest();
             }
@@ -85,7 +86,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
+                if (!UserExists(userName))
                 {
                     return NotFound();
                 }
@@ -96,7 +97,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
 
             return NoContent();
-        }*/
+        }
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -104,7 +105,7 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var xR50App = await _xr50Appcontext.Apps.FindAsync(user.AppId);
+            var xR50App = await _xr50AppContext.Apps.FindAsync(user.AppId);
             if (xR50App == null)
             {
                 return NotFound();
@@ -117,10 +118,10 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(long id)
+        [HttpDelete("{userName}")]
+        public async Task<IActionResult> DeleteUser(string userName)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(userName);
             if (user == null)
             {
                 return NotFound();
@@ -132,9 +133,9 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 
-        private bool UserExists(long id)
+        private bool UserExists(string userName)
         {
-            return _context.Users.Any(e => e.UserId == id);
+            return _context.Users.Any(e => e.UserId.Equals(userName));
         }
     }
 }
