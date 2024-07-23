@@ -45,7 +45,7 @@ namespace XR5_0TrainingRepo.Controllers
             return Training;
         }
 
-        // PUT: api/Training/5
+        // PUT: api/Training/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{TrainingName}")]
         public async Task<IActionResult> PutTraining(string TrainingName, TrainingModule Training)

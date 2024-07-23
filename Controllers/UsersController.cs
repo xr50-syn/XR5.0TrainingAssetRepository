@@ -67,7 +67,7 @@ namespace XR5_0TrainingRepo.Controllers
             return user;
         }
 
-        
+        /*
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{userName}")]
@@ -98,6 +98,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
+        */
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -135,6 +136,20 @@ namespace XR5_0TrainingRepo.Controllers
             // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
+            //Console.WriteLine($"Response content: {resultContent}");
+            var valuesMod = new List<KeyValuePair<string, string>>();
+            valuesMod.Add(new KeyValuePair<string, string>("groupid", user.AppName));
+            FormUrlEncodedContent messageContentMod = new FormUrlEncodedContent(valuesMod);
+
+            var requestMod = new HttpRequestMessage(HttpMethod.Post, $"/ocs/v1.php/cloud/users/{user.UserName}/groups")
+            {
+                 Content = messageContentMod
+            };
+            requestMod.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var resultMod = _httpClient.SendAsync(requestMod).Result;
+            string resultContentMod = resultMod.Content.ReadAsStringAsync().Result;
             //Console.WriteLine($"Response content: {resultContent}");
 
             return CreatedAtAction("GetUser", new { id = user.UserName }, user);

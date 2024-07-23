@@ -13,7 +13,7 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/xr50/training-repo/XR50App/[controller]")]
     [ApiController]
     public class XR50AppController : ControllerBase
     {
