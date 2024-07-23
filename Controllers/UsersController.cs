@@ -120,6 +120,7 @@ namespace XR5_0TrainingRepo.Controllers
             values.Add(new KeyValuePair<string, string>("password", user.Password));
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
+            values.Add(new KeyValuePair<string, string>("groups[]", user.AppName));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = "emmie";
             string password = "!@m!nL0v3W!th@my";
@@ -137,7 +138,7 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             //Console.WriteLine($"Response content: {resultContent}");
-            var valuesMod = new List<KeyValuePair<string, string>>();
+           /* var valuesMod = new List<KeyValuePair<string, string>>();
             valuesMod.Add(new KeyValuePair<string, string>("groupid", user.AppName));
             FormUrlEncodedContent messageContentMod = new FormUrlEncodedContent(valuesMod);
 
@@ -149,7 +150,7 @@ namespace XR5_0TrainingRepo.Controllers
             
             // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var resultMod = _httpClient.SendAsync(requestMod).Result;
-            string resultContentMod = resultMod.Content.ReadAsStringAsync().Result;
+            string resultContentMod = resultMod.Content.ReadAsStringAsync().Result;*/
             //Console.WriteLine($"Response content: {resultContent}");
 
             return CreatedAtAction("GetUser", new { id = user.UserName }, user);
