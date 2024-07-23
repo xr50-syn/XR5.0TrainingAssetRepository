@@ -17,6 +17,7 @@ namespace XR5_0TrainingRepo.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserContext _context;
+        private readonly XR50AppContext _xr50Appcontext;
         private readonly HttpClient _httpClient;
 
         public UsersController(UserContext context, HttpClient httpClient)
@@ -103,7 +104,7 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var xR50App = await _context.Apps.FindAsync(user.AppId);
+            var xR50App = await _xr50Appcontext.Apps.FindAsync(user.AppId);
             if (xR50App == null)
             {
                 return NotFound();
