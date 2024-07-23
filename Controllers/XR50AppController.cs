@@ -132,6 +132,7 @@ namespace XR5_0TrainingRepo.Controllers
             var xR50App = await _context.Apps.FindAsync(id);
             if (xR50App == null)
             {
+                Console.WriteLine($"Did not find XR app with id: {User.}")
                 return NotFound();
             }
 

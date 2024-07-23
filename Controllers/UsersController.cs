@@ -102,6 +102,13 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
+            
+            var xR50App = await _context.Apps.FindAsync(user.AppId);
+            if (xR50App == null)
+            {
+                return NotFound();
+            }
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
