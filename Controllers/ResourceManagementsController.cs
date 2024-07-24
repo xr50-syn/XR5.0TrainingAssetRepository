@@ -86,6 +86,24 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resource.Add(resourceManagement);
             await _context.SaveChangesAsync();
 
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingId);
+            if (Training == null)
+            {
+                return NotFound();
+            }
+            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
+            if (xR50App == null)
+            {
+                return NotFound();
+            }
+
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+            // Createe root dir for the Training
+            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
+            Console.WriteLine(cmd);
+            System.Diagnostics.Process.Start("CMD.exe", cmd);
+
             return CreatedAtAction("GetResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
         }
 
@@ -102,6 +120,23 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resource.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingId);
+            if (Training == null)
+            {
+                return NotFound();
+            }
+            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
+            if (xR50App == null)
+            {
+                return NotFound();
+            }
+
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+            // Createe root dir for the Training
+            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
+            Console.WriteLine(cmd);
+            System.Diagnostics.Process.Start("CMD.exe", cmd);
             return NoContent();
         }
 

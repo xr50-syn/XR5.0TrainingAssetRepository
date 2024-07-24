@@ -88,6 +88,30 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Asset.Add(Asset);
             await _context.SaveChangesAsync();
 
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.TrainingId);
+            if (Training == null)
+            {
+                return NotFound();
+            }
+            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
+            if (xR50App == null)
+            {
+                return NotFound();
+            }
+            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceId);
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+            // Createe root dir for the Training
+            string cmd;
+            if (Resource != null)
+            {
+                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
+            } else
+            {
+                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
+            }
+            Console.WriteLine(cmd);
+            System.Diagnostics.Process.Start("CMD.exe", cmd);
             return CreatedAtAction("GetAsset", new { id = Asset.AssetId }, Asset);
         }
 
@@ -104,6 +128,31 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Asset.Remove(Asset);
             await _context.SaveChangesAsync();
 
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.TrainingId);
+            if (Training == null)
+            {
+                return NotFound();
+            }
+            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
+            if (xR50App == null)
+            {
+                return NotFound();
+            }
+            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceId);
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+            // Createe root dir for the Training
+            string cmd;
+            if (Resource != null)
+            {
+                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
+            }
+            else
+            {
+                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
+            }
+            Console.WriteLine(cmd);
+            System.Diagnostics.Process.Start("CMD.exe", cmd);
             return NoContent();
         }
 

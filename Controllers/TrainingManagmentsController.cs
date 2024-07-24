@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using XR5_0TrainingRepo.Models;
 
@@ -81,15 +83,28 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<TrainingModule>> PostTraining(TrainingModule Training)
         {
+            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
+            if (xR50App == null)
+            {
+                return NotFound();
+            }
+
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
+
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+            // Createe root dir for the Training
+            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            Console.WriteLine(cmd);
+            System.Diagnostics.Process.Start("CMD.exe", cmd);
 
             return CreatedAtAction("GetTraining", new { Training.TrainingName });
         }
 
         // DELETE: api/Training/5
         [HttpDelete("{TrainingName}")]
-        public async Task<IActionResult> DeleteTraining(long TrainingName)
+        public async Task<IActionResult> DeleteTraining(string TrainingName)
         {
             var Training = await _context.Trainings.FindAsync(TrainingName);
             if (Training == null)
@@ -100,6 +115,18 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Trainings.Remove(Training);
             await _context.SaveChangesAsync();
 
+            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
+            if (xR50App == null)
+            {
+                return NotFound();
+            }
+
+            string username = "emmie";
+            string password = "!@m!nL0v3W!th@my";
+            // Createe root dir for the Training
+            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            Console.WriteLine(cmd);
+            System.Diagnostics.Process.Start("CMD.exe", cmd);
             return NoContent();
         }
 
