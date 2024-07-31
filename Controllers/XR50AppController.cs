@@ -35,29 +35,6 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<XR50App>>> GetApps()
         {
-
-            var values = new List<KeyValuePair<string, string>>();
-            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-            string authenticationString = $"{username}:{password}";
-            
-            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-
-            var request = new HttpRequestMessage(HttpMethod.Get, uri_path)
-            {
-                Content = messageContent
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-            _httpClient.BaseAddress = new Uri(uri_base);
-            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
-            var result = _httpClient.SendAsync(request).Result;
-            string resultContent = result.Content.ReadAsStringAsync().Result;
-
-            //Console.WriteLine($"Response content: {resultContent}");
             return await _context.Apps.ToListAsync();
         }
         
