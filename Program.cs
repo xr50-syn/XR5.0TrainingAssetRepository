@@ -24,6 +24,7 @@ builder.Services.AddDbContext<XR50AppContext>(opt =>
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Configuration.AddJsonFile("appsettings.json");
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

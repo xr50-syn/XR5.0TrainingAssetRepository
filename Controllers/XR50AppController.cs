@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using XR5_0TrainingRepo.Models;
 
@@ -21,10 +22,13 @@ namespace XR5_0TrainingRepo.Controllers
     {
         private readonly XR50AppContext _context;
         private readonly HttpClient _httpClient;
-        public XR50AppController(XR50AppContext context, HttpClient httpClient)
+        private readonly IConfiguration _configuration;
+     
+        public XR50AppController(XR50AppContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
+             _configuration= configuration;
         }
 
         // GET: api/XR50App
@@ -34,18 +38,21 @@ namespace XR5_0TrainingRepo.Controllers
 
             var values = new List<KeyValuePair<string, string>>();
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = "emmie";
-            string password = "!@m!nL0v3W!th@my";
-
+            
+            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
+            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
             string authenticationString = $"{username}:{password}";
+            
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
 
-            var request = new HttpRequestMessage(HttpMethod.Get, "")
+            var request = new HttpRequestMessage(HttpMethod.Get, uri_path)
             {
                 Content = messageContent
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-            _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080/ocs/v1.php/cloud/groups");
+            _httpClient.BaseAddress = new Uri(uri_base);
             // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
@@ -113,16 +120,19 @@ namespace XR5_0TrainingRepo.Controllers
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", xR50App.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = "emmie";
-            string password = "!@m!nL0v3W!th@my";
+            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
+            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-            var request = new HttpRequestMessage(HttpMethod.Post, "")
+            var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
             {
                 Content = messageContent
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-            _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080/ocs/v1.php/cloud/groups");
+            _httpClient.BaseAddress = new Uri(uri_base);
            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
@@ -130,7 +140,7 @@ namespace XR5_0TrainingRepo.Controllers
 
 
             // Create root dir for the App
-            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/\"";
+            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{xR50App.OwncloudDirectory}/\"";
             Console.WriteLine( cmd );
             
             System.Diagnostics.Process.Start("CMD.exe", cmd) ;
@@ -153,23 +163,26 @@ namespace XR5_0TrainingRepo.Controllers
 
             var values = new List<KeyValuePair<string, string>>();
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = "emmie";
-            string password = "!@m!nL0v3W!th@my";
+            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
+            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"/ocs/v1.php/cloud/groups/{xR50App.OwncloudGroup}")
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_path}/{xR50App.OwncloudGroup}")
             {
                 Content = messageContent
             };
             Console.WriteLine(xR50App.OwncloudGroup);
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-            _httpClient.BaseAddress = new Uri("http://192.168.169.6:8080");
+            _httpClient.BaseAddress = new Uri(uri_base);
             //_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             // Delete root dir for the App
-            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/\"";
+            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{xR50App.OwncloudDirectory}/\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
             //Console.WriteLine($"Response content: {resultContent}");
