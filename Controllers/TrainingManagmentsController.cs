@@ -19,11 +19,13 @@ namespace XR5_0TrainingRepo.Controllers
         private readonly TrainingContext _context;
         private readonly XR50AppContext _xr50AppContext;
         private readonly HttpClient _httpClient;
-        public TrainingController(TrainingContext context, XR50AppContext xr50AppContext, HttpClient httpClient)
+        private readonly IConfiguration _configuration;
+        public TrainingController(TrainingContext context, XR50AppContext xr50AppContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _xr50AppContext = xr50AppContext;
             _httpClient = httpClient;
+            _configuration = configuration; 
         }
 
         // GET: api/Training
@@ -92,10 +94,11 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 
-            string username = "emmie";
-            string password = "!@m!nL0v3W!th@my";
+            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
+            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
 
@@ -121,10 +124,13 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
 
-            string username = "emmie";
-            string password = "!@m!nL0v3W!th@my";
+            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
+            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"http://192.168.169.6:8080/remote.php/webdav/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
             return NoContent();
