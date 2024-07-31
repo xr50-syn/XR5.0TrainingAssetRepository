@@ -37,7 +37,7 @@ namespace XR5_0TrainingRepo.Controllers
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
@@ -128,7 +128,7 @@ namespace XR5_0TrainingRepo.Controllers
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
 
@@ -141,7 +141,7 @@ namespace XR5_0TrainingRepo.Controllers
             // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            //Console.WriteLine($"Response content: {resultContent}");
+            Console.WriteLine($"Response content: {resultContent}");
 
             return CreatedAtAction("GetUser", new { id = user.UserName }, user);
         }
@@ -168,8 +168,7 @@ namespace XR5_0TrainingRepo.Controllers
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
