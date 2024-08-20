@@ -10,20 +10,20 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/Asset-management/[controller]")]
+    [Route("/xr50/training-repo/asset-management/[controller]")]
     [ApiController]
     public class AssetController : ControllerBase
     {
         private readonly AssetContext _context;
-        private readonly XR50AppContext _xr50AppContext;
+        private readonly XR50AppContext _XR50AppContext;
         private readonly TrainingContext _xr50TrainingContext;
         private readonly ResourceContext _xr50ResourceContext;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration; 
-        public AssetController(AssetContext context, XR50AppContext xr50AppContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, HttpClient httpClient, IConfiguration configuration)
+        public AssetController(AssetContext context, XR50AppContext XR50AppContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _xr50AppContext = xr50AppContext;
+            _XR50AppContext = XR50AppContext;
             _xr50TrainingContext = xr50TrainingContext;
             _xr50ResourceContext = xr50ResourceContext; 
             _httpClient = httpClient;
@@ -96,8 +96,8 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
-            if (xR50App == null)
+            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            if (XR50App == null)
             {
                 return NotFound();
             }
@@ -109,10 +109,10 @@ namespace XR5_0TrainingRepo.Controllers
             string cmd;
             if (Resource != null)
             {
-                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
+                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
             } else
             {
-                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
+                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
             }
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
@@ -137,8 +137,8 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
-            if (xR50App == null)
+            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            if (XR50App == null)
             {
                 return NotFound();
             }
@@ -150,11 +150,11 @@ namespace XR5_0TrainingRepo.Controllers
             string cmd;
             if (Resource != null)
             {
-                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
+                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
             }
             else
             {
-                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
+                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
             }
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
