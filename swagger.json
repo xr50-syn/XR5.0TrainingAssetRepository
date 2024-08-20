@@ -5,7 +5,7 @@
     "version": "1.0"
   },
   "paths": {
-    "/xr50/training-repo/Asset-management/Asset": {
+    "/xr50/training-repo/asset-management/Asset": {
       "get": {
         "tags": [
           "Asset"
@@ -89,7 +89,7 @@
         }
       }
     },
-    "/xr50/training-repo/Asset-management/Asset/{id}": {
+    "/xr50/training-repo/asset-management/Asset/{id}": {
       "get": {
         "tags": [
           "Asset"
@@ -698,7 +698,7 @@
         }
       }
     },
-    "/xr50/training-repo/XR50AppManagement/XR50App": {
+    "/xr50/training-repo/xr50app-management/XR50App": {
       "get": {
         "tags": [
           "XR50App"
@@ -782,7 +782,7 @@
         }
       }
     },
-    "/xr50/training-repo/XR50AppManagement/XR50App/{appName}": {
+    "/xr50/training-repo/xr50app-management/XR50App/{appName}": {
       "get": {
         "tags": [
           "XR50App"
