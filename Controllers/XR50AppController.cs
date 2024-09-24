@@ -121,7 +121,7 @@ namespace XR5_0TrainingRepo.Controllers
             Console.WriteLine( cmd );
             
             System.Diagnostics.Process.Start("CMD.exe", cmd) ;
-            return CreatedAtAction("GetXR50App", new { id = XR50App.AppName }, XR50App);
+            return CreatedAtAction("PostXR50App", XR50App);
         }
 
         // DELETE: api/XR50App/5

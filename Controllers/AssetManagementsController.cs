@@ -116,7 +116,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
-            return CreatedAtAction("GetAsset", new { id = Asset.AssetId }, Asset);
+            return CreatedAtAction("PostAsset", new { id = Asset.AssetId }, Asset);
         }
 
         // DELETE: api/Asset/5

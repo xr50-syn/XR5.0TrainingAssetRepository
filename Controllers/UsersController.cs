@@ -123,7 +123,7 @@ namespace XR5_0TrainingRepo.Controllers
             string resultContent = result.Content.ReadAsStringAsync().Result;
             Console.WriteLine($"Response content: {resultContent}");
 
-            return CreatedAtAction("GetUser", new { id = user.UserName }, user);
+            return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
 
         // DELETE: api/Users/5

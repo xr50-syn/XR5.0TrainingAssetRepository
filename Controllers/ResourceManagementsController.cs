@@ -107,7 +107,7 @@ namespace XR5_0TrainingRepo.Controllers
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
 
-            return CreatedAtAction("GetResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
+            return CreatedAtAction("PostResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
         }
 
         // DELETE: api/ResourceManagements/5

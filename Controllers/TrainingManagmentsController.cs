@@ -102,7 +102,7 @@ namespace XR5_0TrainingRepo.Controllers
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
 
-            return CreatedAtAction("GetTraining", new { Training.TrainingName });
+            return CreatedAtAction("PostTraining", new { Training.TrainingName });
         }
 
         // DELETE: api/Training/5
