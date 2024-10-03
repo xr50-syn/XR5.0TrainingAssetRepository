@@ -2,10 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Policy;
+using System.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
@@ -103,11 +110,28 @@ namespace XR5_0TrainingRepo.Controllers
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
-            Console.WriteLine(cmd);
-            System.Diagnostics.Process.Start("CMD.exe", cmd);
+	    string cmd="curl";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
+            // Create root dir for the App
+            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
 
-            return CreatedAtAction("GetResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
+            return CreatedAtAction("PostResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
         }
 
         // DELETE: api/ResourceManagements/5
@@ -138,9 +162,26 @@ namespace XR5_0TrainingRepo.Controllers
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
-            Console.WriteLine(cmd);
-            System.Diagnostics.Process.Start("CMD.exe", cmd);
+	    string cmd="curl";
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
+            // Create root dir for the App
+            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
             return NoContent();
         }
 
