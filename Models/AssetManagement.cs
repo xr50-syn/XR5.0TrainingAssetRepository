@@ -10,6 +10,7 @@ namespace XR5_0TrainingRepo.Models
         public string? OwncloudFileName { get; set; }
         public string TrainingId { get; set; }
         public string? ResourceId { get; set; } 
+        public string? Type { get; set; }
 
         [Key]
         public long? AssetId { get; set; }

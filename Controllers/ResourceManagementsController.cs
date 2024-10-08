@@ -94,6 +94,7 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
             var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            
             if (XR50App == null)
             {
                 return NotFound();
@@ -106,7 +107,7 @@ namespace XR5_0TrainingRepo.Controllers
             string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
-
+            Training.ResourceList.Add(resourceManagement);
             return CreatedAtAction("PostResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
         }
 
