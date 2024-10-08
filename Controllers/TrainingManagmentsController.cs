@@ -90,7 +90,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
+            
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 
@@ -102,7 +102,7 @@ namespace XR5_0TrainingRepo.Controllers
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
 
-            return CreatedAtAction("PostTraining", new { Training.TrainingName });
+            return CreatedAtAction("PostTraining", Training);
         }
 
         // DELETE: api/Training/5

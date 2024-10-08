@@ -1,5 +1,6 @@
 {
   "appName": "pilot5",
   "useCase": "UseCase 1",
-  "trainingName": "Advanced_Arcana"
+  "trainingName": "Advanced_Arcana",
+  "resourseList": []
 }

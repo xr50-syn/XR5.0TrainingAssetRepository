@@ -11,5 +11,10 @@ namespace XR5_0TrainingRepo.Models {
         public List<Asset>? AssetList { get; }
         [Key]
         public string? ResourceName { get; set; }
+        
+        public ResourceManagement()
+        {
+            AssetList = new List<Asset>();
+        }
     }
 }
