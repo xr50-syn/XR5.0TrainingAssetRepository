@@ -16,6 +16,7 @@ namespace XR5_0TrainingRepo.Models
         public TrainingModule()
         {
             ResourceList = new List<ResourceManagement>();
+
         }
     }
 

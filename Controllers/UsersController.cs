@@ -94,9 +94,15 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
+            XR50App.UserList.Add(user);
+            Console.WriteLine(XR50App.UserList.ToString());
+            if (user.admin)
+            {
+                XR50App.AdminUser = user.UserName;
+            }
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+            await _XR50AppContext.SaveChangesAsync();
 
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("userid", user.UserName));

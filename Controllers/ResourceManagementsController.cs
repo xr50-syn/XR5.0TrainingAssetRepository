@@ -109,7 +109,8 @@ namespace XR5_0TrainingRepo.Controllers
             System.Diagnostics.Process.Start("CMD.exe", cmd);
             
             Training.ResourceList.Add(resourceManagement);
-            
+            _xr50TrainingContext.Trainings.Entry(Training).CurrentValues.SetValues(Training);
+            _xr50TrainingContext.SaveChanges();
             return CreatedAtAction("PostResourceManagement", resourceManagement);
         }
 
