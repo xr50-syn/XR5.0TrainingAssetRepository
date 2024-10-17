@@ -101,8 +101,8 @@ namespace XR5_0TrainingRepo.Controllers
                 XR50App.AdminUser = user.UserName;
             }
             _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            await _XR50AppContext.SaveChangesAsync();
+            _context.SaveChanges();
+            _XR50AppContext.SaveChanges();
 
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("userid", user.UserName));
