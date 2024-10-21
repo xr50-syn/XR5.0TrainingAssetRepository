@@ -13,11 +13,13 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using XR5_0TrainingRepo.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace XR5_0TrainingRepo.Controllers
 {
     [Route("/xr50/training-repo/xr50app-management/[controller]")]
     [ApiController]
+    
     public class XR50AppController : ControllerBase
     {
         private readonly XR50AppContext _context;

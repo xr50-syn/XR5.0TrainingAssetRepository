@@ -3,5 +3,6 @@
   "fullName": "Princess Lily",
   "userEmail": "hrh_lily@palace.gov",
   "password": "r0s3",
+  "admin": false,
   "appName": "pilot5"
 }
