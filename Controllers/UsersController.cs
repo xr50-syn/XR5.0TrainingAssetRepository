@@ -94,11 +94,10 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            XR50App.UserList.Add(user);
-            Console.WriteLine(XR50App.UserList.ToString());
+            
             if (user.admin)
             {
-                XR50App.AdminUser = user.UserName;
+                XR50App.AdminUser = user;
             }
             _context.Users.Add(user);
             _context.SaveChanges();

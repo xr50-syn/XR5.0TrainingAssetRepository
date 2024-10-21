@@ -18,14 +18,16 @@ namespace XR5_0TrainingRepo.Controllers
         private readonly XR50AppContext _XR50AppContext;
         private readonly TrainingContext _xr50TrainingContext;
         private readonly ResourceContext _xr50ResourceContext;
+        private readonly UserContext _userContext;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration; 
-        public AssetController(AssetContext context, XR50AppContext XR50AppContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, HttpClient httpClient, IConfiguration configuration)
+        public AssetController(AssetContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _XR50AppContext = XR50AppContext;
             _xr50TrainingContext = xr50TrainingContext;
             _xr50ResourceContext = xr50ResourceContext; 
+            _userContext = UserManagementContext;
             _httpClient = httpClient;
             _configuration = configuration; 
 
@@ -100,6 +102,11 @@ namespace XR5_0TrainingRepo.Controllers
             if (XR50App == null)
             {
                 return NotFound();
+            }
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminUser);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Training.AppName}");
             }
             var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceId);
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");

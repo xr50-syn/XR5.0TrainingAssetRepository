@@ -18,12 +18,14 @@ namespace XR5_0TrainingRepo.Controllers
     {
         private readonly TrainingContext _context;
         private readonly XR50AppContext _XR50AppContext;
+        private readonly UserContext _userContext;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public TrainingController(TrainingContext context, XR50AppContext XR50AppContext, HttpClient httpClient, IConfiguration configuration)
+        public TrainingController(TrainingContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _XR50AppContext = XR50AppContext;
+            _userContext = UserManagementContext;   
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -88,14 +90,21 @@ namespace XR5_0TrainingRepo.Controllers
             var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
-                return NotFound();
+                return NotFound($"App {Training.AppName}");
             }
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminUser);
+            if (admin ==null) 
+            {
+                return NotFound($"Admin user for {Training.AppName}");
+            }
+           
+                
             
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string username = admin.UserName;
+            string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";

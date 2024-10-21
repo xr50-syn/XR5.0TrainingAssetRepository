@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -17,13 +17,15 @@ namespace XR5_0TrainingRepo.Controllers
         private readonly ResourceContext _context;
         private readonly XR50AppContext _XR50AppContext;
         private readonly TrainingContext _xr50TrainingContext;
+        private readonly UserContext _userContext;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public ResourceManagementController(ResourceContext context, XR50AppContext XR50AppContext, TrainingContext xr50TrainingContext, HttpClient httpClient, IConfiguration configuration)
+        public ResourceManagementController(ResourceContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _XR50AppContext = XR50AppContext;
             _xr50TrainingContext = xr50TrainingContext; 
+            _userContext = UserManagementContext;
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -94,7 +96,11 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
             var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
-            
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminUser);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Training.AppName}");
+            } 
             if (XR50App == null)
             {
                 return NotFound();

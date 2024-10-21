@@ -1,6 +1,17 @@
 {
   "appName": "pilot5",
   "OwncloudGroup": "pilot5",
-  "OwncloudDirectory":  "pilot5_root",
-  "Description": "Hijacked by the evil dragon"
+  "OwncloudDirectory": "pilot5_root",
+  "Description": "Hijacked by the evil dragon",
+  "adminUser": {
+    "userName": "evilwyrm666",
+    "fullName": "Oversized Red Dragon",
+    "userEmail": "evilwyrm666@hisevilness.evil",
+    "password": "3v1l",
+    "admin": true,
+    "appName": "pilot5"
+  },
+  "trainingList": [
+  ],
+  "appName": "string"
 }

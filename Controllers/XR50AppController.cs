@@ -24,11 +24,13 @@ namespace XR5_0TrainingRepo.Controllers
     {
         private readonly XR50AppContext _context;
         private readonly HttpClient _httpClient;
+        private readonly UserContext _userContext;
         private readonly IConfiguration _configuration;
      
-        public XR50AppController(XR50AppContext context, HttpClient httpClient, IConfiguration configuration)
+        public XR50AppController(XR50AppContext context, UserContext UserManagementContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
+            _userContext = UserManagementContext;   
             _httpClient = httpClient;
              _configuration= configuration;
         }
@@ -95,7 +97,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             _context.Apps.Add(XR50App);
 
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", XR50App.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
@@ -115,6 +117,9 @@ namespace XR5_0TrainingRepo.Controllers
            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
+            User adminUser = XR50App.AdminUser;
+            _userContext.Users.Add(adminUser);
+            _userContext.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
 
 

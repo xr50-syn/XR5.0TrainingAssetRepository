@@ -9,8 +9,8 @@ namespace XR5_0TrainingRepo.Models
         public string? OwncloudGroup { get; set; }
         public string? Description { get; set; }
         public string? OwncloudDirectory {  get; set; }
-        public string? AdminUser { get; set; }
-        public List<User>? UserList { get; set; }
+        public User AdminUser { get; set; }
+       
         public List<TrainingModule>? TrainingList { get; set; }
 
         [Key]
@@ -18,7 +18,7 @@ namespace XR5_0TrainingRepo.Models
         
         public XR50App() 
         {
-            UserList = new List<User>();
+          
             TrainingList = new List<TrainingModule>();
         }
 
