@@ -1,7 +1,7 @@
 {
-  "appName": "pilot5",
-  "OwncloudGroup": "pilot5",
-  "OwncloudDirectory": "pilot5_root",
+  "appName": "FairyTale",
+  "OwncloudGroup": "FairyTale",
+  "OwncloudDirectory": "FairyTale_root",
   "Description": "Hijacked by the evil dragon",
   "adminUser": {
     "userName": "evilwyrm666",
@@ -9,9 +9,8 @@
     "userEmail": "evilwyrm666@hisevilness.evil",
     "password": "3v1l",
     "admin": true,
-    "appName": "pilot5"
+    "appName": "FairyTale"
   },
-  "trainingList": [
-  ],
+  "trainingList": [],
   "appName": "string"
 }
