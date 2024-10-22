@@ -103,14 +103,14 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminUser);
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
             }
             var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceId);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string username = admin.UserName;
+            string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd;
@@ -150,8 +150,14 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
             var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceId);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Training.AppName}");
+            }
+            string username = admin.UserName;
+            string password = admin.Password;
+         
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd;

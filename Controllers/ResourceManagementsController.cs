@@ -96,7 +96,7 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
             var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminUser);
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
@@ -106,8 +106,8 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
 
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string username = admin.UserName;
+            string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
@@ -143,9 +143,13 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Training.AppName}");
+            }
+            string username = admin.UserName;
+            string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";

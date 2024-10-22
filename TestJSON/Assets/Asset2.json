@@ -2,6 +2,7 @@
   "path": "C:/magical_text.pdf",
   "description": "BAD! Do not cast",
   "owncloudFileName": "Souleater.pdf",
+  "type": "PDF",
   "trainingId": "Advanced_Arcana",
   "resourceId": "Epic_Spellbook"
 }

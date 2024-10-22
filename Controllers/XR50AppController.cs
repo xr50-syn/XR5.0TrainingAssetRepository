@@ -97,7 +97,6 @@ namespace XR5_0TrainingRepo.Controllers
 
             _context.Apps.Add(XR50App);
 
-            _context.SaveChanges();
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", XR50App.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
@@ -118,16 +117,39 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             User adminUser = XR50App.AdminUser;
+            XR50App.AdminName = adminUser.UserName;
             _userContext.Users.Add(adminUser);
             _userContext.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
+            //Create the admin User
+            var valuesAdmin = new List<KeyValuePair<string, string>>();
+            valuesAdmin.Add(new KeyValuePair<string, string>("userid", adminUser.UserName));
+            valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
+            valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
+            valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50App.OwncloudGroup));
+            //Target The User Interface
+            uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
+           
+            var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
+            {
+                Content = messageContentAdmin
+            };
+            requestAdmin.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+           
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var resultAdmin = _httpClient.SendAsync(requestAdmin).Result;
+            string resultAdminContent = resultAdmin.Content.ReadAsStringAsync().Result;
+            Console.WriteLine($"Response content: {resultAdminContent}");
 
-
-            // Create root dir for the App
-            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            // Create root dir for the App, owned by Admin
+            string cmd = $"/C curl -X MKCOL -u {adminUser.UserName}:{adminUser.Password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
             Console.WriteLine( cmd );
             
             System.Diagnostics.Process.Start("CMD.exe", cmd) ;
+
+            _context.SaveChanges();
             return CreatedAtAction("PostXR50App", XR50App);
         }
 
@@ -141,7 +163,11 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine($"Did not find XR app with id: {appName}");
                 return NotFound();
             }
-
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {appName}");
+            }
             _context.Apps.Remove(XR50App);
             await _context.SaveChangesAsync();
 
@@ -166,7 +192,7 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             // Delete root dir for the App
-            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            string cmd = $"/C curl -X DELETE -u {admin.UserName}:{admin.Password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
             //Console.WriteLine($"Response content: {resultContent}");

@@ -92,7 +92,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"App {Training.AppName}");
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminUser);
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
             if (admin ==null) 
             {
                 return NotFound($"Admin user for {Training.AppName}");
@@ -132,9 +132,13 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Training.AppName}");
+            }
+            string username = admin.UserName;
+            string password = admin.Password;
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
             string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");

@@ -3,6 +3,7 @@
   "OwncloudGroup": "FairyTale",
   "OwncloudDirectory": "FairyTale_root",
   "Description": "Hijacked by the evil dragon",
+  "AdminName":  "evilwyrm666",
   "adminUser": {
     "userName": "evilwyrm666",
     "fullName": "Oversized Red Dragon",
@@ -11,6 +12,5 @@
     "admin": true,
     "appName": "FairyTale"
   },
-  "trainingList": [],
-  "appName": "string"
+  "trainingList": []
 }
