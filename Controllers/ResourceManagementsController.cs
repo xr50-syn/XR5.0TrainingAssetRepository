@@ -115,7 +115,7 @@ namespace XR5_0TrainingRepo.Controllers
             System.Diagnostics.Process.Start("CMD.exe", cmd);
             
             Training.ResourceList.Add(resourceManagement);
-            _xr50TrainingContext.Trainings.Entry(Training).CurrentValues.SetValues(Training);
+            
             _xr50TrainingContext.SaveChanges();
             return CreatedAtAction("PostResourceManagement", resourceManagement);
         }
@@ -152,7 +152,7 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
+            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
             return NoContent();

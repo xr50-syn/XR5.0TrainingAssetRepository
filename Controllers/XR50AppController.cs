@@ -163,11 +163,7 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine($"Did not find XR app with id: {appName}");
                 return NotFound();
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
-            if (admin == null)
-            {
-                return NotFound($"Admin user for {appName}");
-            }
+           
             _context.Apps.Remove(XR50App);
             await _context.SaveChangesAsync();
 
@@ -192,7 +188,7 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             // Delete root dir for the App
-            string cmd = $"/C curl -X DELETE -u {admin.UserName}:{admin.Password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
             //Console.WriteLine($"Response content: {resultContent}");
