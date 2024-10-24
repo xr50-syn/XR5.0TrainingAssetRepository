@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using XR5_0TrainingRepo.Models;
+using System.Configuration;
 
 namespace XR5_0TrainingRepo.Controllers
 {
@@ -13,11 +17,25 @@ namespace XR5_0TrainingRepo.Controllers
     [ApiController]
     public class OwncloudSharesController : ControllerBase
     {
-        private readonly XR50AppContext _context;
+        private readonly OwncloudShareContext _context;
+        private readonly XR50AppContext _XR50AppContext;
+        private readonly TrainingContext _xr50TrainingContext;
+        private readonly ResourceContext _xr50ResourceContext;
+        private readonly UserContext _userContext;
+        private readonly AssetContext _assetContext;
+        private readonly HttpClient _httpClient;
+        private readonly IConfiguration _configuration;
 
-        public OwncloudSharesController(XR50AppContext context)
+        public OwncloudSharesController(OwncloudShareContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, AssetContext assetContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
+            _XR50AppContext = XR50AppContext;
+            _xr50TrainingContext = xr50TrainingContext;
+            _xr50ResourceContext = xr50ResourceContext;
+            _assetContext = assetContext;
+            _userContext = UserManagementContext;
+            _httpClient = httpClient;
+            _configuration = configuration;
         }
 
         // GET: api/OwncloudShares
@@ -78,21 +96,71 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<OwncloudShare>> PostOwncloudShare(OwncloudShare owncloudShare)
         {
             _context.OwncloudShare.Add(owncloudShare);
-            try
+
+            var XR50App = await _XR50AppContext.Apps.FindAsync(owncloudShare.AppName);
+            if (XR50App == null)
             {
-                await _context.SaveChangesAsync();
+                return NotFound($"App {owncloudShare.AppName}");
             }
-            catch (DbUpdateException)
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            if (admin == null)
             {
-                if (OwncloudShareExists(owncloudShare.ShareId))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound($"Admin user for {owncloudShare.AppName}");
             }
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(owncloudShare.AppName, owncloudShare.TrainingName);
+            if (Training == null)
+            {
+                return NotFound($"Training for {owncloudShare.TrainingName}");
+            }
+            string shareTarget;
+            int shareType;
+            if (owncloudShare.Type == "Group")
+            {
+                shareTarget = XR50App.OwncloudGroup;
+                shareType = 1;
+            } else
+            {
+                shareTarget = owncloudShare.Target;
+                shareType = 0;
+            }
+            string assetId;
+            if (owncloudShare.AssetId== null)
+            {
+                assetId = "";
+                return NotFound("No Asset ID provided to share");
+            } else
+            {
+                assetId=owncloudShare.AssetId;
+            }
+            var Asset = await _assetContext.Asset.FindAsync(assetId);
+            if (Asset==null)
+             {
+                    return NotFound($"Asset with {owncloudShare.AssetId}");
+             }
+            var values = new List<KeyValuePair<string, string>>();
+            values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
+            values.Add(new KeyValuePair<string, string>("sharedWith", shareTarget));
+            values.Add(new KeyValuePair<string, string>("permissions", 1.ToString()));
+            values.Add(new KeyValuePair<string, string>("path", $"{Asset.OwncloudPath}/{Asset.OwncloudFileName}"));
+            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
+            string username = admin.UserName;
+            string password = admin.Password;
+
+            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
+            string uri_share = _configuration.GetValue<string>("OwncloudSettings:ShareManagementPath");
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
+            var request = new HttpRequestMessage(HttpMethod.Post, uri_share)
+            {
+                Content = messageContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            _httpClient.BaseAddress = new Uri(uri_base);
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var result = _httpClient.SendAsync(request).Result;
+            string resultContent = result.Content.ReadAsStringAsync().Result;
+            Console.WriteLine(resultContent);
 
             return CreatedAtAction("GetOwncloudShare", new { id = owncloudShare.ShareId }, owncloudShare);
         }

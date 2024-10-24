@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="TestJSON\NewFolder\NewFolder\" />
     <Folder Include="TestJSON\Resources\" />
   </ItemGroup>
 

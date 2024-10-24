@@ -90,9 +90,7 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<Asset>> PostAsset(Asset Asset)
         {
-            
-            _context.Asset.Add(Asset);
-            
+          
             var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
             if (Training == null)
             {
@@ -119,13 +117,17 @@ namespace XR5_0TrainingRepo.Controllers
             string cmd;
             if (Resource != null)
             {
-                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
+                Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/";
+                
             } else
             {
-                cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
+                Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/";
             }
+            cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{Asset.OwncloudPath}/{Asset.OwncloudFileName}\"";
             Console.WriteLine(cmd);
             System.Diagnostics.Process.Start("CMD.exe", cmd);
+
+            _context.Asset.Add(Asset);
             return CreatedAtAction("PostAsset", Asset);
         }
 
