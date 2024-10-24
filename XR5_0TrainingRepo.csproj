@@ -25,4 +25,6 @@
     <Folder Include="TestJSON\Resources\" />
   </ItemGroup>
 
+  <ProjectExtensions><VisualStudio><UserProperties testjson_4resources_4resource_1json__JsonSchema="https://api.app-prg1.zerops.io/api/rest/public/settings/zerops-yml-json-schema.json" /></VisualStudio></ProjectExtensions>
+
 </Project>

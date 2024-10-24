@@ -87,25 +87,25 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<ResourceManagement>> PostResourceManagement(ResourceManagement resourceManagement)
         {
-            _context.Resource.Add(resourceManagement);
-            await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingId);
-            if (Training == null)
+            var XR50App = await _XR50AppContext.Apps.FindAsync(resourceManagement.AppName);
+            if (XR50App == null)
             {
-                return NotFound();
+                return NotFound($"App {resourceManagement.AppName}");
             }
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
             var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
-            } 
-            if (XR50App == null)
-            {
-                return NotFound();
+                return NotFound($"Admin user for {resourceManagement.AppName}");
             }
-
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
+            if (Training == null)
+            {
+                return NotFound($"Training for {resourceManagement.TrainingName}");
+            }
+            _context.Resource.Add(resourceManagement);
+            await _context.SaveChangesAsync();
+           
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
@@ -133,7 +133,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resource.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingId);
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingName,resourceManagement.AppName);
             if (Training == null)
             {
                 return NotFound();

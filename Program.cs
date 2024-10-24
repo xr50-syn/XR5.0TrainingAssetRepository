@@ -12,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+builder.Services.AddDbContext<OwncloudShareContext>(opt =>
+    opt.UseInMemoryDatabase("OwncloudShares"));
 builder.Services.AddDbContext<TrainingContext>(opt =>
     opt.UseInMemoryDatabase("TrainingCatalogue"));
 builder.Services.AddDbContext<AssetContext>(opt =>

@@ -11,5 +11,6 @@ namespace XR5_0TrainingRepo.Models
         }
 
         public DbSet<XR50App> Apps { get; set; } = null!;
+        public DbSet<XR5_0TrainingRepo.Models.OwncloudShare> OwncloudShare { get; set; } = default!;
     }
 }

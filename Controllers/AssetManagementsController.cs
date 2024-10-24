@@ -57,7 +57,7 @@ namespace XR5_0TrainingRepo.Controllers
         // PUT: api/Asset/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutAsset(long id, Asset Asset)
+        public async Task<IActionResult> PutAsset(string id, Asset Asset)
         {
             if (id != Asset.AssetId)
             {
@@ -90,15 +90,15 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<Asset>> PostAsset(Asset Asset)
         {
+            
             _context.Asset.Add(Asset);
-            await _context.SaveChangesAsync();
-
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.TrainingId);
+            
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
             if (Training == null)
             {
                 return NotFound();
             }
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _XR50AppContext.Apps.FindAsync(Asset.AppName);
             if (XR50App == null)
             {
                 return NotFound();
@@ -108,7 +108,10 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {Training.AppName}");
             }
-            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceId);
+
+            
+            await _context.SaveChangesAsync();
+            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
             string username = admin.UserName;
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
@@ -139,7 +142,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Asset.Remove(Asset);
             await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.TrainingId);
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.TrainingName);
             if (Training == null)
             {
                 return NotFound();
@@ -149,7 +152,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceId);
+            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceName);
             var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
@@ -174,7 +177,7 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 
-        private bool AssetExists(long id)
+        private bool AssetExists(string id)
         {
             return _context.Asset.Any(e => e.AssetId == id);
         }

@@ -3,6 +3,7 @@
   "description": "BAD! Do not cast",
   "owncloudFileName": "Souleater.pdf",
   "type": "PDF",
-  "trainingId": "Advanced_Arcana",
-  "resourceId": "Epic_Spellbook"
+  "trainingName": "Advanced_Arcana",
+  "resourceName": "Epic_Spellbook",
+  "appName":  "FairyTale"
 }
