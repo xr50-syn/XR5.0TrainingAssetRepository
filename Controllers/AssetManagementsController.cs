@@ -106,9 +106,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {Training.AppName}");
             }
-
-            
-            await _context.SaveChangesAsync();
+           
             var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
             string username = admin.UserName;
             string password = admin.Password; ;
@@ -128,6 +126,7 @@ namespace XR5_0TrainingRepo.Controllers
             System.Diagnostics.Process.Start("CMD.exe", cmd);
 
             _context.Asset.Add(Asset);
+            await _context.SaveChangesAsync();
             return CreatedAtAction("PostAsset", Asset);
         }
 

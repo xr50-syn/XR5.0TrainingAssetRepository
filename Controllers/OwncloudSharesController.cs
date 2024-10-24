@@ -139,8 +139,9 @@ namespace XR5_0TrainingRepo.Controllers
              }
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
-            values.Add(new KeyValuePair<string, string>("sharedWith", shareTarget));
+            values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
             values.Add(new KeyValuePair<string, string>("permissions", 1.ToString()));
+
             values.Add(new KeyValuePair<string, string>("path", $"{Asset.OwncloudPath}/{Asset.OwncloudFileName}"));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = admin.UserName;
