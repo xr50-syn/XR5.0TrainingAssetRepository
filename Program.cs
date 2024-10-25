@@ -19,7 +19,8 @@ builder.Services.AddDbContext<TrainingContext>(opt =>
 builder.Services.AddDbContext<AssetContext>(opt =>
     opt.UseInMemoryDatabase("AssetRepository"));
 builder.Services.AddDbContext<ResourceContext>(opt =>
-    opt.UseInMemoryDatabase("ResourceRepository"));
+   opt.UseInMemoryDatabase("ResourceRepository"));
+
 builder.Services.AddDbContext<XRAIInterfaceContext>(opt =>
     opt.UseInMemoryDatabase("QueryDb"));
 builder.Services.AddDbContext<UserContext>(opt =>
