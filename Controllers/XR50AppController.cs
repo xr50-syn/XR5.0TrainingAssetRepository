@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Policy;
 using System.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -144,12 +145,27 @@ namespace XR5_0TrainingRepo.Controllers
             Console.WriteLine($"Response content: {resultAdminContent}");
 
             // Create root dir for the App, owned by Admin
-            string cmd = $"/C curl -X MKCOL -u {adminUser.UserName}:{adminUser.Password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
-            Console.WriteLine( cmd );
-            
-            System.Diagnostics.Process.Start("CMD.exe", cmd) ;
-
-             _context.SaveChanges();
+	    string cmd="curl";
+            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            // Create root dir for the App
+            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
+            _context.SaveChanges();
             return CreatedAtAction("PostXR50App", XR50App);
         }
 
@@ -188,9 +204,24 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             // Delete root dir for the App
-            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
-            Console.WriteLine(cmd);
-            System.Diagnostics.Process.Start("CMD.exe", cmd);
+	     string cmd= "curl";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            Console.WriteLine("Executing command: " + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {                                                                                                                           FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }

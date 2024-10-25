@@ -13,7 +13,7 @@ using System.Configuration;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("/xr50/training-repo/share-management/[controller]")]
     [ApiController]
     public class OwncloudSharesController : ControllerBase
     {
