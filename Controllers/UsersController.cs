@@ -17,13 +17,13 @@ namespace XR5_0TrainingRepo.Controllers
     public class UsersController : ControllerBase
     {
         private readonly UserContext _context;
-        private readonly XR50AppContext _xr50AppContext;
+        private readonly XR50AppContext _XR50AppContext;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public UsersController(UserContext context, XR50AppContext xr50AppContext, HttpClient httpClient, IConfiguration configuration)
+        public UsersController(UserContext context, XR50AppContext XR50AppContext, HttpClient httpClient, IConfiguration configuration)
         { 
             _context = context;
-            _xr50AppContext = xr50AppContext;
+            _XR50AppContext = XR50AppContext;
             _httpClient = httpClient;
             _configuration = configuration;     
         }
@@ -32,26 +32,6 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            var values = new List<KeyValuePair<string, string>>();
-            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
-
-            string authenticationString = $"{username}:{password}";
-            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-
-            var request = new HttpRequestMessage(HttpMethod.Get, uri_path)
-            {
-                Content = messageContent
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-            _httpClient.BaseAddress = new Uri(uri_base);
-            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
-            var result = _httpClient.SendAsync(request).Result;
-            string resultContent = result.Content.ReadAsStringAsync().Result;
-            //Console.WriteLine($"Response content: {resultContent}");
 
             return await _context.Users.ToListAsync();
         }
@@ -109,8 +89,8 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var xR50App = await _xr50AppContext.Apps.FindAsync(user.AppName);
-            if (xR50App == null)
+            var XR50App = await _XR50AppContext.Apps.FindAsync(user.AppName);
+            if (XR50App == null)
             {
                 return NotFound();
             }
@@ -143,7 +123,7 @@ namespace XR5_0TrainingRepo.Controllers
             string resultContent = result.Content.ReadAsStringAsync().Result;
             Console.WriteLine($"Response content: {resultContent}");
 
-            return CreatedAtAction("GetUser", new { id = user.UserName }, user);
+            return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
 
         // DELETE: api/Users/5

@@ -1,13 +1,18 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Policy;
 using System.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
@@ -17,13 +22,13 @@ namespace XR5_0TrainingRepo.Controllers
     public class TrainingController : ControllerBase
     {
         private readonly TrainingContext _context;
-        private readonly XR50AppContext _xr50AppContext;
+        private readonly XR50AppContext _XR50AppContext;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public TrainingController(TrainingContext context, XR50AppContext xr50AppContext, HttpClient httpClient, IConfiguration configuration)
+        public TrainingController(TrainingContext context, XR50AppContext XR50AppContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _xr50AppContext = xr50AppContext;
+            _XR50AppContext = XR50AppContext;
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -85,8 +90,8 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<TrainingModule>> PostTraining(TrainingModule Training)
         {
-            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
-            if (xR50App == null)
+            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            if (XR50App == null)
             {
                 return NotFound();
             }
@@ -98,11 +103,27 @@ namespace XR5_0TrainingRepo.Controllers
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd = $"/C curl -X MKCOL -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
-            Console.WriteLine(cmd);
-            System.Diagnostics.Process.Start("CMD.exe", cmd);
+	    string cmd="curl";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
 
-            return CreatedAtAction("GetTraining", new { Training.TrainingName });
+            return CreatedAtAction("PostTraining", new { Training.TrainingName });
         }
 
         // DELETE: api/Training/5
@@ -118,8 +139,8 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Trainings.Remove(Training);
             await _context.SaveChangesAsync();
 
-            var xR50App = await _xr50AppContext.Apps.FindAsync(Training.AppName);
-            if (xR50App == null)
+            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            if (XR50App == null)
             {
                 return NotFound();
             }
@@ -130,9 +151,24 @@ namespace XR5_0TrainingRepo.Controllers
             string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\"  \"{webdav_base}/{xR50App.OwncloudDirectory}/{Training.TrainingName}\"";
-            Console.WriteLine(cmd);
-            System.Diagnostics.Process.Start("CMD.exe", cmd);
+	    string cmd= "curl";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            Console.WriteLine("Executing command: " + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {                                                                                                                           FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
             return NoContent();
         }
 

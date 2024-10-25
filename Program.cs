@@ -3,7 +3,7 @@ using XR5_0TrainingRepo.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
-
+var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 // Add services to the container.
 
@@ -21,6 +21,14 @@ builder.Services.AddDbContext<UserContext>(opt =>
     opt.UseInMemoryDatabase("UserList"));
 builder.Services.AddDbContext<XR50AppContext>(opt =>
     opt.UseInMemoryDatabase("AppList"));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy  =>
+                      {
+                          policy.WithOrigins("https://emmie.frontdesk.lab.synelixis.com");
+                      });
+});
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -35,7 +43,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthorization();
 
 app.MapControllers();
