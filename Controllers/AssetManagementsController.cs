@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using XR5_0TrainingRepo.Models;
 
@@ -112,7 +113,6 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd;
             if (Resource != null)
             {
                 Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/";
@@ -121,10 +121,26 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/";
             }
-            cmd = $"/C curl -X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{Asset.OwncloudPath}/{Asset.OwncloudFileName}\"";
-            Console.WriteLine(cmd);
-            System.Diagnostics.Process.Start("CMD.exe", cmd);
-
+	    string cmd="curl";
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{Asset.OwncloudPath}/{Asset.OwncloudFileName}\"";
+            // Create root dir for the App
+            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
             _context.Asset.Add(Asset);
             await _context.SaveChangesAsync();
             return CreatedAtAction("PostAsset", Asset);
@@ -164,17 +180,24 @@ namespace XR5_0TrainingRepo.Controllers
          
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string cmd;
-            if (Resource != null)
+	    string cmd= "curl";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            Console.WriteLine("Executing command: " + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {                                                                                                                           FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
             {
-                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/{Asset.OwncloudFileName}\"";
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
             }
-            else
-            {
-                cmd = $"/C curl -X DELETE -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Asset.OwncloudFileName}\"";
-            }
-            Console.WriteLine(cmd);
-            System.Diagnostics.Process.Start("CMD.exe", cmd);
             return NoContent();
         }
 
