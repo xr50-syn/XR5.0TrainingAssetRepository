@@ -3,5 +3,6 @@
   "fullName": "Grand Duchess Rose",
   "userEmail": "sorceress@impstudios.hl",
   "password": "l1ly",
-  "appName": "pilot5"
+  "admin": false,
+  "appName": "FairyTale"
 }

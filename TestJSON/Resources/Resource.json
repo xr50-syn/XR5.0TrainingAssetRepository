@@ -1,6 +1,7 @@
 {
-  "description": "string",
+  "description": "A non-rigorous description of Amethyst's custom-made epic spells'",
   "owncloudFileName": "Epic_Spellbook",
-  "trainingId": "Advanced_Arcana",
+  "trainingName": "Advanced_Arcana",
+  "appName": "FairyTale",
   "resourceName": "Epic_Spellbook"
 }

@@ -94,16 +94,21 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
+            
+            if (user.admin)
+            {
+                XR50App.AdminUser = user;
+            }
             _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            _context.SaveChanges();
+            _XR50AppContext.SaveChanges();
 
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("userid", user.UserName));
             values.Add(new KeyValuePair<string, string>("password", user.Password));
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
-            values.Add(new KeyValuePair<string, string>("groups[]", user.AppName));
+            values.Add(new KeyValuePair<string, string>("groups[]", XR50App.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");

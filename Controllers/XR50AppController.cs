@@ -14,20 +14,24 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using XR5_0TrainingRepo.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace XR5_0TrainingRepo.Controllers
 {
     [Route("/xr50/training-repo/xr50app-management/[controller]")]
     [ApiController]
+    
     public class XR50AppController : ControllerBase
     {
         private readonly XR50AppContext _context;
         private readonly HttpClient _httpClient;
+        private readonly UserContext _userContext;
         private readonly IConfiguration _configuration;
      
-        public XR50AppController(XR50AppContext context, HttpClient httpClient, IConfiguration configuration)
+        public XR50AppController(XR50AppContext context, UserContext UserManagementContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
+            _userContext = UserManagementContext;   
             _httpClient = httpClient;
              _configuration= configuration;
         }
@@ -94,7 +98,6 @@ namespace XR5_0TrainingRepo.Controllers
 
             _context.Apps.Add(XR50App);
 
-            await _context.SaveChangesAsync();
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", XR50App.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
@@ -114,28 +117,56 @@ namespace XR5_0TrainingRepo.Controllers
            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
+            User adminUser = XR50App.AdminUser;
+            XR50App.AdminName = adminUser.UserName;
+            _userContext.Users.Add(adminUser);
+            _userContext.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
+            //Create the admin User
+            var valuesAdmin = new List<KeyValuePair<string, string>>();
+            valuesAdmin.Add(new KeyValuePair<string, string>("userid", adminUser.UserName));
+            valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
+            valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
+            valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50App.OwncloudGroup));
+            //Target The User Interface
+            uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
+           
+            var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
+            {
+                Content = messageContentAdmin
+            };
+            requestAdmin.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+           
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var resultAdmin = _httpClient.SendAsync(requestAdmin).Result;
+            string resultAdminContent = resultAdmin.Content.ReadAsStringAsync().Result;
+            Console.WriteLine($"Response content: {resultAdminContent}");
+
+            // Create root dir for the App, owned by Admin
 	    string cmd="curl";
-	    string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
             // Create root dir for the App
-	    Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
-	    var startInfo = new ProcessStartInfo
-	    {
-    		FileName = cmd,
-    		Arguments = Arg,
-    		UseShellExecute = false,
-    		RedirectStandardOutput = true,
-    		RedirectStandardError = true
-	    };
+            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
             using (var process = Process.Start(startInfo))
-	    {
-    		string output = process.StandardOutput.ReadToEnd();
-    		string error = process.StandardError.ReadToEnd();
-    		process.WaitForExit();
-    		Console.WriteLine("Output: " + output);
-    		Console.WriteLine("Error: " + error);
-	    }	 
-            return CreatedAtAction("PostXR50App", new { id = XR50App.AppName }, XR50App);
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
+            _context.SaveChanges();
+            return CreatedAtAction("PostXR50App", XR50App);
         }
 
         // DELETE: api/XR50App/5
@@ -148,7 +179,7 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine($"Did not find XR app with id: {appName}");
                 return NotFound();
             }
-
+           
             _context.Apps.Remove(XR50App);
             await _context.SaveChangesAsync();
 
@@ -173,10 +204,10 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             // Delete root dir for the App
-	    string cmd= "curl";
-	    string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
-	    Console.WriteLine("Executing command: " + cmd + " " + Arg);
-	    var startInfo = new ProcessStartInfo
+	        string cmd= "curl";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            Console.WriteLine("Executing command: " + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
                 Arguments = Arg,
                 UseShellExecute = false,
@@ -185,7 +216,7 @@ namespace XR5_0TrainingRepo.Controllers
             };
             using (var process = Process.Start(startInfo))
             {
-		string output = process.StandardOutput.ReadToEnd();
+                string output = process.StandardOutput.ReadToEnd();
                 string error = process.StandardError.ReadToEnd();
                 process.WaitForExit();
                 Console.WriteLine("Output: " + output);

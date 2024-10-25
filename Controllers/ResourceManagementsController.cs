@@ -1,10 +1,7 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Policy;
-using System.Text;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -24,13 +21,15 @@ namespace XR5_0TrainingRepo.Controllers
         private readonly ResourceContext _context;
         private readonly XR50AppContext _XR50AppContext;
         private readonly TrainingContext _xr50TrainingContext;
+        private readonly UserContext _userContext;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public ResourceManagementController(ResourceContext context, XR50AppContext XR50AppContext, TrainingContext xr50TrainingContext, HttpClient httpClient, IConfiguration configuration)
+        public ResourceManagementController(ResourceContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _XR50AppContext = XR50AppContext;
             _xr50TrainingContext = xr50TrainingContext; 
+            _userContext = UserManagementContext;
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -92,25 +91,30 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<ResourceManagement>> PostResourceManagement(ResourceManagement resourceManagement)
         {
-            _context.Resource.Add(resourceManagement);
-            await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingId);
-            if (Training == null)
-            {
-                return NotFound();
-            }
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _XR50AppContext.Apps.FindAsync(resourceManagement.AppName);
             if (XR50App == null)
             {
-                return NotFound();
+                return NotFound($"App {resourceManagement.AppName}");
             }
-
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {resourceManagement.AppName}");
+            }
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
+            if (Training == null)
+            {
+                return NotFound($"Training for {resourceManagement.TrainingName}");
+            }
+            _context.Resource.Add(resourceManagement);
+            await _context.SaveChangesAsync();
+           
+            string username = admin.UserName;
+            string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-	    string cmd="curl";
+            string cmd="curl";
             string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
             // Create root dir for the App
             Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
@@ -129,9 +133,11 @@ namespace XR5_0TrainingRepo.Controllers
                 process.WaitForExit();
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
-            }
-
-            return CreatedAtAction("PostResourceManagement", new {resourceManagement.ResourceName }, resourceManagement);
+            } 
+            Training.ResourceList.Add(resourceManagement);
+            
+            _xr50TrainingContext.SaveChanges();
+            return CreatedAtAction("PostResourceManagement", resourceManagement);
         }
 
         // DELETE: api/ResourceManagements/5
@@ -147,7 +153,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resource.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingId);
+            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingName,resourceManagement.AppName);
             if (Training == null)
             {
                 return NotFound();
@@ -157,9 +163,13 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Training.AppName}");
+            }
+            string username = admin.UserName;
+            string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	    string cmd="curl";

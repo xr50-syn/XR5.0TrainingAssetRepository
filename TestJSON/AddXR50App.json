@@ -1,6 +1,16 @@
 {
-  "appName": "pilot5",
-  "OwncloudGroup": "pilot5",
-  "OwncloudDirectory":  "pilot5_root",
-  "Description": "Hijacked by the evil dragon"
+  "appName": "FairyTale",
+  "OwncloudGroup": "FairyTale",
+  "OwncloudDirectory": "Copy_of_Amethysts_Library",
+  "Description": "Hijacked by the evil dragon",
+  "AdminName":  "evilwyrm666",
+  "adminUser": {
+    "userName": "evilwyrm666",
+    "fullName": "Oversized Red Dragon",
+    "userEmail": "evilwyrm666@hisevilness.evil",
+    "password": "3v1l",
+    "admin": true,
+    "appName": "FairyTale"
+  },
+  "trainingList": []
 }
