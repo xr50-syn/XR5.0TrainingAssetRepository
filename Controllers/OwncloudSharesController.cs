@@ -162,7 +162,8 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             Console.WriteLine(resultContent);
-
+            _context.OwncloudShare.Add(owncloudShare);
+            await _context.SaveChangesAsync();
             return CreatedAtAction("GetOwncloudShare", new { id = owncloudShare.ShareId }, owncloudShare);
         }
 
