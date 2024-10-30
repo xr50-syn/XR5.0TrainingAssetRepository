@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
