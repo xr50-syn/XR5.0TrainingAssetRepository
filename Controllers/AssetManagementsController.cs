@@ -15,20 +15,12 @@ namespace XR5_0TrainingRepo.Controllers
     [ApiController]
     public class AssetController : ControllerBase
     {
-        private readonly AssetContext _context;
-        private readonly XR50AppContext _XR50AppContext;
-        private readonly TrainingContext _xr50TrainingContext;
-        private readonly ResourceContext _xr50ResourceContext;
-        private readonly UserContext _userContext;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration; 
-        public AssetController(AssetContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, HttpClient httpClient, IConfiguration configuration)
+        public AssetController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _XR50AppContext = XR50AppContext;
-            _xr50TrainingContext = xr50TrainingContext;
-            _xr50ResourceContext = xr50ResourceContext; 
-            _userContext = UserManagementContext;
             _httpClient = httpClient;
             _configuration = configuration; 
 
@@ -92,23 +84,23 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<Asset>> PostAsset(Asset Asset)
         {
           
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
+            var Training = await _context.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
             if (Training == null)
             {
                 return NotFound();
             }
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Asset.AppName);
+            var XR50App = await _context.Apps.FindAsync(Asset.AppName);
             if (XR50App == null)
             {
                 return NotFound();
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
             }
            
-            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
+            var Resource = await _context.Resource.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
             string username = admin.UserName;
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
@@ -159,18 +151,18 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Asset.Remove(Asset);
             await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(Asset.TrainingName);
+            var Training = await _context.Trainings.FindAsync(Asset.TrainingName);
             if (Training == null)
             {
                 return NotFound();
             }
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
                 return NotFound();
             }
-            var Resource = await _xr50ResourceContext.Resource.FindAsync(Asset.ResourceName);
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var Resource = await _context.Resource.FindAsync(Asset.ResourceName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");

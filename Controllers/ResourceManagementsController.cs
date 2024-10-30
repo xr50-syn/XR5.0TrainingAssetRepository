@@ -18,18 +18,12 @@ namespace XR5_0TrainingRepo.Controllers
     [ApiController]
     public class ResourceManagementController : ControllerBase
     {
-        private readonly ResourceContext _context;
-        private readonly XR50AppContext _XR50AppContext;
-        private readonly TrainingContext _xr50TrainingContext;
-        private readonly UserContext _userContext;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public ResourceManagementController(ResourceContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, HttpClient httpClient, IConfiguration configuration)
+        public ResourceManagementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _XR50AppContext = XR50AppContext;
-            _xr50TrainingContext = xr50TrainingContext; 
-            _userContext = UserManagementContext;
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -92,17 +86,17 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<ResourceManagement>> PostResourceManagement(ResourceManagement resourceManagement)
         {
 
-            var XR50App = await _XR50AppContext.Apps.FindAsync(resourceManagement.AppName);
+            var XR50App = await _context.Apps.FindAsync(resourceManagement.AppName);
             if (XR50App == null)
             {
                 return NotFound($"App {resourceManagement.AppName}");
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {resourceManagement.AppName}");
             }
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
+            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
             if (Training == null)
             {
                 return NotFound($"Training for {resourceManagement.TrainingName}");
@@ -136,7 +130,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             Training.ResourceList.Add(resourceManagement);
             
-            _xr50TrainingContext.SaveChanges();
+            _context.SaveChanges();
             return CreatedAtAction("PostResourceManagement", resourceManagement);
         }
 
@@ -153,17 +147,17 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resource.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingName,resourceManagement.AppName);
+            var Training = await _context.Trainings.FindAsync(resourceManagement.TrainingName,resourceManagement.AppName);
             if (Training == null)
             {
                 return NotFound();
             }
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
                 return NotFound();
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");

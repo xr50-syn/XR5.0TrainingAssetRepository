@@ -17,23 +17,13 @@ namespace XR5_0TrainingRepo.Controllers
     [ApiController]
     public class OwncloudSharesController : ControllerBase
     {
-        private readonly OwncloudShareContext _context;
-        private readonly XR50AppContext _XR50AppContext;
-        private readonly TrainingContext _xr50TrainingContext;
-        private readonly ResourceContext _xr50ResourceContext;
-        private readonly UserContext _userContext;
-        private readonly AssetContext _assetContext;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public OwncloudSharesController(OwncloudShareContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, ResourceContext xr50ResourceContext, AssetContext assetContext, HttpClient httpClient, IConfiguration configuration)
+        public OwncloudSharesController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _XR50AppContext = XR50AppContext;
-            _xr50TrainingContext = xr50TrainingContext;
-            _xr50ResourceContext = xr50ResourceContext;
-            _assetContext = assetContext;
-            _userContext = UserManagementContext;
             _httpClient = httpClient;
             _configuration = configuration;
         }
@@ -97,17 +87,17 @@ namespace XR5_0TrainingRepo.Controllers
         {
             _context.OwncloudShare.Add(owncloudShare);
 
-            var XR50App = await _XR50AppContext.Apps.FindAsync(owncloudShare.AppName);
+            var XR50App = await _context.Apps.FindAsync(owncloudShare.AppName);
             if (XR50App == null)
             {
                 return NotFound($"App {owncloudShare.AppName}");
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {owncloudShare.AppName}");
             }
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(owncloudShare.AppName, owncloudShare.TrainingName);
+            var Training = await _context.Trainings.FindAsync(owncloudShare.AppName, owncloudShare.TrainingName);
             if (Training == null)
             {
                 return NotFound($"Training for {owncloudShare.TrainingName}");
@@ -132,7 +122,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 assetId=owncloudShare.AssetId;
             }
-            var Asset = await _assetContext.Asset.FindAsync(assetId);
+            var Asset = await _context.Asset.FindAsync(assetId);
             if (Asset==null)
              {
                     return NotFound($"Asset with {owncloudShare.AssetId}");

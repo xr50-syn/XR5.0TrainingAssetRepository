@@ -16,14 +16,12 @@ namespace XR5_0TrainingRepo.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly UserContext _context;
-        private readonly XR50AppContext _XR50AppContext;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public UsersController(UserContext context, XR50AppContext XR50AppContext, HttpClient httpClient, IConfiguration configuration)
+        public UsersController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         { 
             _context = context;
-            _XR50AppContext = XR50AppContext;
             _httpClient = httpClient;
             _configuration = configuration;     
         }
@@ -89,7 +87,7 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var XR50App = await _XR50AppContext.Apps.FindAsync(user.AppName);
+            var XR50App = await _context.Apps.FindAsync(user.AppName);
             if (XR50App == null)
             {
                 return NotFound();
@@ -101,7 +99,6 @@ namespace XR5_0TrainingRepo.Controllers
             }
             _context.Users.Add(user);
             _context.SaveChanges();
-            _XR50AppContext.SaveChanges();
 
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("userid", user.UserName));

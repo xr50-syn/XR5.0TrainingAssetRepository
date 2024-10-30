@@ -23,17 +23,15 @@ namespace XR5_0TrainingRepo.Controllers
     
     public class XR50AppController : ControllerBase
     {
-        private readonly XR50AppContext _context;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
-        private readonly UserContext _userContext;
         private readonly IConfiguration _configuration;
      
-        public XR50AppController(XR50AppContext context, UserContext UserManagementContext, HttpClient httpClient, IConfiguration configuration)
+        public XR50AppController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _userContext = UserManagementContext;   
             _httpClient = httpClient;
-             _configuration= configuration;
+            _configuration= configuration;
         }
 
         // GET: api/XR50App
@@ -119,8 +117,8 @@ namespace XR5_0TrainingRepo.Controllers
             string resultContent = result.Content.ReadAsStringAsync().Result;
             User adminUser = XR50App.AdminUser;
             XR50App.AdminName = adminUser.UserName;
-            _userContext.Users.Add(adminUser);
-            _userContext.SaveChanges();
+            _context.Users.Add(adminUser);
+            _context.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
             //Create the admin User
             var valuesAdmin = new List<KeyValuePair<string, string>>();

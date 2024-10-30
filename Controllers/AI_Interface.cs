@@ -14,9 +14,9 @@ namespace XR5_0TrainingRepo.Controllers
     [ApiController]
     public class AI_Interface : ControllerBase
     {
-        private readonly XRAIInterfaceContext _context;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
-        public AI_Interface(XRAIInterfaceContext context, HttpClient httpClient)
+        public AI_Interface(XR50RepoContext context, HttpClient httpClient)
         {
             _context = context;
             _httpClient = httpClient;

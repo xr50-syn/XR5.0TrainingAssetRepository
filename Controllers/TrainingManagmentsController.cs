@@ -21,16 +21,12 @@ namespace XR5_0TrainingRepo.Controllers
     [ApiController]
     public class TrainingController : ControllerBase
     {
-        private readonly TrainingContext _context;
-        private readonly XR50AppContext _XR50AppContext;
-        private readonly UserContext _userContext;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public TrainingController(TrainingContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, HttpClient httpClient, IConfiguration configuration)
+        public TrainingController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _XR50AppContext = XR50AppContext;
-            _userContext = UserManagementContext;   
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -92,12 +88,12 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<TrainingModule>> PostTraining(TrainingModule Training)
         {
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
                 return NotFound($"App {Training.AppName}");
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin ==null) 
             {
                 return NotFound($"Admin user for {Training.AppName}");
@@ -147,12 +143,12 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Trainings.Remove(Training);
             await _context.SaveChangesAsync();
 
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
                 return NotFound();
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
