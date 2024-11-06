@@ -35,7 +35,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // GET: api/Asset/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Asset>> GetAsset(long id)
+        public async Task<ActionResult<Asset>> GetAsset(string id)
         {
             var Asset = await _context.Asset.FindAsync(id);
 

@@ -40,7 +40,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // GET: api/Training/5
         [HttpGet("{TrainingName}")]
-        public async Task<ActionResult<TrainingModule>> GetTraining(long TrainingName)
+        public async Task<ActionResult<TrainingModule>> GetTraining(string TrainingName)
         {
             var Training = await _context.Trainings.FindAsync(TrainingName);
 
@@ -48,7 +48,6 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
             return Training;
         }
 
