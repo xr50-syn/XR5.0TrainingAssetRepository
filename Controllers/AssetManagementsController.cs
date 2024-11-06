@@ -16,6 +16,7 @@ namespace XR5_0TrainingRepo.Controllers
     public class AssetController : ControllerBase
     {
         private readonly AssetContext _context;
+       
         private readonly XR50AppContext _XR50AppContext;
         private readonly TrainingContext _xr50TrainingContext;
         private readonly ResourceContext _xr50ResourceContext;
@@ -148,7 +149,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // DELETE: api/Asset/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsset(long id)
+        public async Task<IActionResult> DeleteAsset(string id)
         {
             var Asset = await _context.Asset.FindAsync(id);
             if (Asset == null)

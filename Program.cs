@@ -12,7 +12,7 @@ var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<OwncloudShareContext>(opt =>
+builder.Services.AddDbContext<OwncloudShareContext>(opt => 
     opt.UseInMemoryDatabase("OwncloudShares"));
 builder.Services.AddDbContext<TrainingContext>(opt =>
     opt.UseInMemoryDatabase("TrainingCatalogue"));
