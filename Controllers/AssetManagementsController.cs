@@ -140,7 +140,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // DELETE: api/Asset/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsset(long id)
+        public async Task<IActionResult> DeleteAsset(string id)
         {
             var Asset = await _context.Asset.FindAsync(id);
             if (Asset == null)
@@ -151,7 +151,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Asset.Remove(Asset);
             await _context.SaveChangesAsync();
 
-            var Training = await _context.Trainings.FindAsync(Asset.TrainingName);
+            var Training = await _context.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
             if (Training == null)
             {
                 return NotFound();
@@ -161,7 +161,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var Resource = await _context.Resource.FindAsync(Asset.ResourceName);
+            var Resource = await _context.Resource.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
             var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
