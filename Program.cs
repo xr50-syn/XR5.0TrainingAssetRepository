@@ -11,6 +11,7 @@ var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddControllers();
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine(connectionString);
 builder.Services.AddDbContext<XR50RepoContext>(opt =>
     opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));    
 builder.Services.AddHttpClient();

@@ -11,8 +11,8 @@ using XR5_0TrainingRepo.Models;
 namespace XR5_0TrainingRepo.Migrations
 {
     [DbContext(typeof(XR50RepoContext))]
-    [Migration("20241030143905_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241109063037_InitCreate")]
+    partial class InitCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
