@@ -147,7 +147,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resource.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
-            var Training = await _context.Trainings.FindAsync(resourceManagement.TrainingName,resourceManagement.AppName);
+            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName,resourceManagement.TrainingName);
             if (Training == null)
             {
                 return NotFound();

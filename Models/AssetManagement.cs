@@ -1,7 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models
 {
+    [PrimaryKey(nameof(AppName), nameof(TrainingName), nameof(ResourceName), nameof(OwncloudFileName))]
     public class Asset
     {
 
@@ -14,7 +17,6 @@ namespace XR5_0TrainingRepo.Models
         public string? ResourceName { get; set; } 
         public string? Type { get; set; }
 
-        [Key]
         public string? AssetId { get; set; }
         public Asset ()
         {
