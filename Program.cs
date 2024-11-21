@@ -7,34 +7,13 @@ using Microsoft.AspNetCore.Server.Kestrel.Https;
 
 var builder = WebApplication.CreateBuilder(args);
 var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
 // Add services to the container.
 
 builder.Services.AddControllers();
-
-builder.Services.AddDbContext<OwncloudShareContext>(opt =>
-    opt.UseInMemoryDatabase("OwncloudShares"));
-builder.Services.AddDbContext<TrainingContext>(opt =>
-    opt.UseInMemoryDatabase("TrainingCatalogue"));
-builder.Services.AddDbContext<AssetContext>(opt =>
-    opt.UseInMemoryDatabase("AssetRepository"));
-builder.Services.AddDbContext<ResourceContext>(opt =>
-   opt.UseInMemoryDatabase("ResourceRepository"));
-
-builder.Services.AddDbContext<XRAIInterfaceContext>(opt =>
-    opt.UseInMemoryDatabase("QueryDb"));
-builder.Services.AddDbContext<UserContext>(opt =>
-    opt.UseInMemoryDatabase("UserList"));
-builder.Services.AddDbContext<XR50AppContext>(opt =>
-    opt.UseInMemoryDatabase("AppList"));
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      policy  =>
-                      {
-                          policy.WithOrigins("https://emmie.frontdesk.lab.synelixis.com");
-                      });
-});
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine(connectionString);
+builder.Services.AddDbContext<XR50RepoContext>(opt =>
+    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));    
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 /*builder.Services.AddAuthentication(

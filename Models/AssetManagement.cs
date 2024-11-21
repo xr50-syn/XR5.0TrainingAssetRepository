@@ -1,7 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models
 {
+
     public class Asset
     {
 
@@ -13,8 +16,7 @@ namespace XR5_0TrainingRepo.Models
         public string? TrainingName { get; set; }
         public string? ResourceName { get; set; } 
         public string? Type { get; set; }
-
-        [Key]
+	[Key]
         public string? AssetId { get; set; }
         public Asset ()
         {

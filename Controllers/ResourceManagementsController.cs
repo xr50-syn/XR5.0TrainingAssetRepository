@@ -14,22 +14,16 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/resource-management/[controller]")]
+    [Route("/xr50/training-repo/[controller]")]
     [ApiController]
     public class ResourceManagementController : ControllerBase
     {
-        private readonly ResourceContext _context;
-        private readonly XR50AppContext _XR50AppContext;
-        private readonly TrainingContext _xr50TrainingContext;
-        private readonly UserContext _userContext;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public ResourceManagementController(ResourceContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, TrainingContext xr50TrainingContext, HttpClient httpClient, IConfiguration configuration)
+        public ResourceManagementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _XR50AppContext = XR50AppContext;
-            _xr50TrainingContext = xr50TrainingContext; 
-            _userContext = UserManagementContext;
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -38,14 +32,14 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ResourceManagement>>> GetResource()
         {
-            return await _context.Resource.ToListAsync();
+            return await _context.Resources.ToListAsync();
         }
 
         // GET: api/ResourceManagements/5
-        [HttpGet("{ResourceName}")]
-        public async Task<ActionResult<ResourceManagement>> GetResourceManagement(string ResourceName)
+        [HttpGet("{AppName}/{TrainingName}/{ResourceName}")]
+        public async Task<ActionResult<ResourceManagement>> GetResourceManagement(string AppName, string TrainingName, string ResourceName)
         {
-            var resourceManagement = await _context.Resource.FindAsync(ResourceName);
+            var resourceManagement = await _context.Resources.FindAsync(ResourceName);
 
             if (resourceManagement == null)
             {
@@ -88,26 +82,26 @@ namespace XR5_0TrainingRepo.Controllers
 
         // POST: api/ResourceManagements
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<ResourceManagement>> PostResourceManagement(ResourceManagement resourceManagement)
+        [HttpPost("{AppName}/{TrainingName}")]
+        public async Task<ActionResult<ResourceManagement>> PostResourceManagement(string AppName, string TrainingName, ResourceManagement resourceManagement)
         {
 
-            var XR50App = await _XR50AppContext.Apps.FindAsync(resourceManagement.AppName);
+            var XR50App = await _context.Apps.FindAsync(resourceManagement.AppName);
             if (XR50App == null)
             {
                 return NotFound($"App {resourceManagement.AppName}");
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {resourceManagement.AppName}");
             }
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
+            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
             if (Training == null)
             {
                 return NotFound($"Training for {resourceManagement.TrainingName}");
             }
-            _context.Resource.Add(resourceManagement);
+            _context.Resources.Add(resourceManagement);
             await _context.SaveChangesAsync();
            
             string username = admin.UserName;
@@ -136,34 +130,34 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             Training.ResourceList.Add(resourceManagement);
             
-            _xr50TrainingContext.SaveChanges();
+            _context.SaveChanges();
             return CreatedAtAction("PostResourceManagement", resourceManagement);
         }
 
         // DELETE: api/ResourceManagements/5
-        [HttpDelete("{ResourceName}")]
-        public async Task<IActionResult> DeleteResourceManagement(string ResourceName)
+        [HttpDelete("{AppName}/{TrainingName}/{ResourceName}")]
+        public async Task<IActionResult> DeleteResourceManagement(string AppName, string TrainingName, string ResourceName)
         {
-            var resourceManagement = await _context.Resource.FindAsync(ResourceName);
+            var resourceManagement = await _context.Resources.FindAsync(AppName, TrainingName, ResourceName);
             if (resourceManagement == null)
             {
                 return NotFound();
             }
 
-            _context.Resource.Remove(resourceManagement);
+            _context.Resources.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
-            var Training = await _xr50TrainingContext.Trainings.FindAsync(resourceManagement.TrainingName,resourceManagement.AppName);
+            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName,resourceManagement.TrainingName);
             if (Training == null)
             {
                 return NotFound();
             }
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
                 return NotFound();
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
@@ -197,7 +191,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         private bool ResourceManagementExists(string ResourceName)
         {
-            return _context.Resource.Any(e => e.ResourceName.Equals(ResourceName));
+            return _context.Resources.Any(e => e.ResourceName.Equals(ResourceName));
         }
     }
 }

@@ -17,20 +17,16 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/training-management/[controller]")]
+    [Route("/xr50/training-repo/[controller]")]
     [ApiController]
-    public class TrainingController : ControllerBase
+    public class TrainingManagementController : ControllerBase
     {
-        private readonly TrainingContext _context;
-        private readonly XR50AppContext _XR50AppContext;
-        private readonly UserContext _userContext;
+        private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public TrainingController(TrainingContext context, XR50AppContext XR50AppContext, UserContext UserManagementContext, HttpClient httpClient, IConfiguration configuration)
+        public TrainingManagementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
-            _XR50AppContext = XR50AppContext;
-            _userContext = UserManagementContext;   
             _httpClient = httpClient;
             _configuration = configuration; 
         }
@@ -43,22 +39,21 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // GET: api/Training/5
-        [HttpGet("{TrainingName}")]
-        public async Task<ActionResult<TrainingModule>> GetTraining(long TrainingName)
+        [HttpGet("{AppName}/{TrainingName}")]
+        public async Task<ActionResult<TrainingModule>> GetTraining(string AppName,string TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(TrainingName);
+            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
 
             if (Training == null)
             {
                 return NotFound();
             }
-
             return Training;
         }
 
         // PUT: api/Training/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{TrainingName}")]
+        [HttpPut("{AppName}/{TrainingName}")]
         public async Task<IActionResult> PutTraining(string TrainingName, TrainingModule Training)
         {
             if (!TrainingName.Equals(Training.TrainingName))
@@ -89,15 +84,18 @@ namespace XR5_0TrainingRepo.Controllers
 
         // POST: api/Training
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<TrainingModule>> PostTraining(TrainingModule Training)
+        [HttpPost("{AppName}")]
+        public async Task<ActionResult<TrainingModule>> PostTraining(string AppName,TrainingModule Training)
         {
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+	    if (!AppName.Equals(Training.AppName)) {
+		    return NotFound($"App {Training.AppName} is not our parent");
+	    }
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
                 return NotFound($"App {Training.AppName}");
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin ==null) 
             {
                 return NotFound($"Admin user for {Training.AppName}");
@@ -135,10 +133,10 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // DELETE: api/Training/5
-        [HttpDelete("{TrainingName}")]
-        public async Task<IActionResult> DeleteTraining(string TrainingName)
+        [HttpDelete("{AppName}/{TrainingName}")]
+        public async Task<IActionResult> DeleteTraining(string TrainingName, string AppName)
         {
-            var Training = await _context.Trainings.FindAsync(TrainingName);
+            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)
             {
                 return NotFound();
@@ -147,12 +145,12 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Trainings.Remove(Training);
             await _context.SaveChangesAsync();
 
-            var XR50App = await _XR50AppContext.Apps.FindAsync(Training.AppName);
+            var XR50App = await _context.Apps.FindAsync(AppName);
             if (XR50App == null)
             {
                 return NotFound();
             }
-            var admin = await _userContext.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
