@@ -41,13 +41,7 @@ namespace XR5_0TrainingRepo.Migrations
                     b.Property<string>("Path")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ResourceManagementAppName")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("ResourceManagementResourceName")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("ResourceManagementTrainingName")
+                    b.Property<string>("ResourceManagementResourceId")
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("ResourceName")
@@ -61,9 +55,9 @@ namespace XR5_0TrainingRepo.Migrations
 
                     b.HasKey("AssetId");
 
-                    b.HasIndex("ResourceManagementAppName", "ResourceManagementTrainingName", "ResourceManagementResourceName");
+                    b.HasIndex("ResourceManagementResourceId");
 
-                    b.ToTable("Asset");
+                    b.ToTable("Assets");
                 });
 
             modelBuilder.Entity("XR5_0TrainingRepo.Models.OwncloudShare", b =>
@@ -101,38 +95,16 @@ namespace XR5_0TrainingRepo.Migrations
 
                     b.HasKey("ShareId");
 
-                    b.ToTable("OwncloudShare");
-                });
-
-            modelBuilder.Entity("XR5_0TrainingRepo.Models.QueryStore", b =>
-                {
-                    b.Property<long>("QueryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("QueryId"));
-
-                    b.Property<string>("Query")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("QueryResponse")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("QueryId");
-
-                    b.ToTable("Queries");
+                    b.ToTable("OwncloudShares");
                 });
 
             modelBuilder.Entity("XR5_0TrainingRepo.Models.ResourceManagement", b =>
                 {
+                    b.Property<string>("ResourceId")
+                        .HasColumnType("varchar(255)");
+
                     b.Property<string>("AppName")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("TrainingName")
-                        .HasColumnType("varchar(255)");
-
-                    b.Property<string>("ResourceName")
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
@@ -140,23 +112,37 @@ namespace XR5_0TrainingRepo.Migrations
                     b.Property<string>("OwncloudFileName")
                         .HasColumnType("longtext");
 
-                    b.HasKey("AppName", "TrainingName", "ResourceName");
+                    b.Property<string>("ResourceName")
+                        .HasColumnType("longtext");
 
-                    b.ToTable("Resource");
+                    b.Property<string>("TrainingName")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("ResourceId");
+
+                    b.ToTable("Resources");
                 });
 
             modelBuilder.Entity("XR5_0TrainingRepo.Models.TrainingModule", b =>
                 {
-                    b.Property<string>("AppName")
+                    b.Property<string>("TrainingId")
                         .HasColumnType("varchar(255)");
 
+                    b.Property<string>("AppName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ResourceList")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("TrainingName")
-                        .HasColumnType("varchar(255)");
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("UseCase")
                         .HasColumnType("longtext");
 
-                    b.HasKey("AppName", "TrainingName");
+                    b.HasKey("TrainingId");
 
                     b.ToTable("Trainings");
                 });
@@ -208,6 +194,9 @@ namespace XR5_0TrainingRepo.Migrations
                     b.Property<string>("OwncloudGroup")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("TrainingList")
+                        .HasColumnType("longtext");
+
                     b.HasKey("AppName");
 
                     b.HasIndex("AdminUserUserName");
@@ -219,25 +208,7 @@ namespace XR5_0TrainingRepo.Migrations
                 {
                     b.HasOne("XR5_0TrainingRepo.Models.ResourceManagement", null)
                         .WithMany("AssetList")
-                        .HasForeignKey("ResourceManagementAppName", "ResourceManagementTrainingName", "ResourceManagementResourceName");
-                });
-
-            modelBuilder.Entity("XR5_0TrainingRepo.Models.ResourceManagement", b =>
-                {
-                    b.HasOne("XR5_0TrainingRepo.Models.TrainingModule", null)
-                        .WithMany("ResourceList")
-                        .HasForeignKey("AppName", "TrainingName")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("XR5_0TrainingRepo.Models.TrainingModule", b =>
-                {
-                    b.HasOne("XR5_0TrainingRepo.Models.XR50App", null)
-                        .WithMany("TrainingList")
-                        .HasForeignKey("AppName")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ResourceManagementResourceId");
                 });
 
             modelBuilder.Entity("XR5_0TrainingRepo.Models.XR50App", b =>
@@ -254,16 +225,6 @@ namespace XR5_0TrainingRepo.Migrations
             modelBuilder.Entity("XR5_0TrainingRepo.Models.ResourceManagement", b =>
                 {
                     b.Navigation("AssetList");
-                });
-
-            modelBuilder.Entity("XR5_0TrainingRepo.Models.TrainingModule", b =>
-                {
-                    b.Navigation("ResourceList");
-                });
-
-            modelBuilder.Entity("XR5_0TrainingRepo.Models.XR50App", b =>
-                {
-                    b.Navigation("TrainingList");
                 });
 #pragma warning restore 612, 618
         }

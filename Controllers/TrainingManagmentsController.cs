@@ -100,9 +100,9 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {Training.AppName}");
             }
-           
+            Training.TrainingId=AppName+"_"+Training.TrainingName; 
                 
-            
+            XR50App.TrainingList.Add(Training.TrainingId); 
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 

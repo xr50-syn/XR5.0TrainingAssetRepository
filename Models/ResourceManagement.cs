@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models {
-    [PrimaryKey(nameof(AppName), nameof(TrainingName), nameof(ResourceName))]
     public class ResourceManagement
 {
         public string? AppName { get; set; }
@@ -13,9 +12,11 @@ namespace XR5_0TrainingRepo.Models {
         public List<Asset>? AssetList { get; }
         
         public string? ResourceName { get; set; }
-        
+	[Key]
+        public string? ResourceId {get; set;}
         public ResourceManagement()
         {
+	    ResourceId= Guid.NewGuid().ToString();
             AssetList = new List<Asset>();
         }
     }

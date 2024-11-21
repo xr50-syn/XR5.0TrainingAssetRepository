@@ -6,7 +6,7 @@ namespace XR5_0TrainingRepo.Models
 {
     public class XR50App
     { 
-         [Key]
+        [Key]
         public string AppName { get; set; }
 	[ForeignKey("Trainings")]
         public virtual List<string>? TrainingList { get; set; }

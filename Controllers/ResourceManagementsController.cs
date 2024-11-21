@@ -128,7 +128,7 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
             } 
-            Training.ResourceList.Add(resourceManagement);
+            Training.ResourceList.Add(resourceManagement.ResourceId);
             
             _context.SaveChanges();
             return CreatedAtAction("PostResourceManagement", resourceManagement);
