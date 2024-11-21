@@ -14,9 +14,9 @@ namespace XR5_0TrainingRepo.Models
 	public DbSet<QueryStore> Queries { get; set; } = null!;
 	public DbSet<User> Users { get; set; } = null!;
 	public DbSet<TrainingModule> Trainings { get; set; } = null!;
-	public DbSet<ResourceManagement> Resource { get; set; } = null!;
-	public DbSet<OwncloudShare> OwncloudShare { get; set; } = null!;
-	public DbSet<Asset> Asset { get; set; } = null!;
+	public DbSet<ResourceManagement> Resources { get; set; } = null!;
+	public DbSet<OwncloudShare> OwncloudShares{ get; set; } = null!;
+	public DbSet<Asset> Assets { get; set; } = null!;
 
     }
 }

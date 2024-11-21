@@ -30,14 +30,14 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Asset>>> GetAsset()
         {
-            return await _context.Asset.ToListAsync();
+            return await _context.Assets.ToListAsync();
         }
 
         // GET: api/Asset/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Asset>> GetAsset(string id)
         {
-            var Asset = await _context.Asset.FindAsync(id);
+            var Asset = await _context.Assets.FindAsync(id);
 
             if (Asset == null)
             {
@@ -100,7 +100,7 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound($"Admin user for {Training.AppName}");
             }
            
-            var Resource = await _context.Resource.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
+            var Resource = await _context.Resources.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
             string username = admin.UserName;
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
@@ -133,7 +133,7 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
             }
-            _context.Asset.Add(Asset);
+            _context.Assets.Add(Asset);
             await _context.SaveChangesAsync();
             return CreatedAtAction("PostAsset", Asset);
         }
@@ -142,13 +142,13 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAsset(string id)
         {
-            var Asset = await _context.Asset.FindAsync(id);
+            var Asset = await _context.Assets.FindAsync(id);
             if (Asset == null)
             {
                 return NotFound();
             }
 
-            _context.Asset.Remove(Asset);
+            _context.Assets.Remove(Asset);
             await _context.SaveChangesAsync();
 
             var Training = await _context.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
@@ -161,7 +161,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var Resource = await _context.Resource.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
+            var Resource = await _context.Resources.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
             var admin = await _context.Users.FindAsync(XR50App.AdminName);
             if (admin == null)
             {
@@ -195,7 +195,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         private bool AssetExists(string id)
         {
-            return _context.Asset.Any(e => e.AssetId == id);
+            return _context.Assets.Any(e => e.AssetId == id);
         }
     }
 }

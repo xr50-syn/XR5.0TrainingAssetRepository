@@ -32,14 +32,14 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OwncloudShare>>> GetOwncloudShare()
         {
-            return await _context.OwncloudShare.ToListAsync();
+            return await _context.OwncloudShares.ToListAsync();
         }
 
         // GET: api/OwncloudShares/5
         [HttpGet("{id}")]
         public async Task<ActionResult<OwncloudShare>> GetOwncloudShare(string id)
         {
-            var owncloudShare = await _context.OwncloudShare.FindAsync(id);
+            var owncloudShare = await _context.OwncloudShares.FindAsync(id);
 
             if (owncloudShare == null)
             {
@@ -85,7 +85,7 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<OwncloudShare>> PostOwncloudShare(OwncloudShare owncloudShare)
         {
-            _context.OwncloudShare.Add(owncloudShare);
+            _context.OwncloudShares.Add(owncloudShare);
 
             var XR50App = await _context.Apps.FindAsync(owncloudShare.AppName);
             if (XR50App == null)
@@ -122,7 +122,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 assetId=owncloudShare.AssetId;
             }
-            var Asset = await _context.Asset.FindAsync(assetId);
+            var Asset = await _context.Assets.FindAsync(assetId);
             if (Asset==null)
              {
                     return NotFound($"Asset with {owncloudShare.AssetId}");
@@ -160,13 +160,13 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOwncloudShare(string id)
         {
-            var owncloudShare = await _context.OwncloudShare.FindAsync(id);
+            var owncloudShare = await _context.OwncloudShares.FindAsync(id);
             if (owncloudShare == null)
             {
                 return NotFound();
             }
 
-            _context.OwncloudShare.Remove(owncloudShare);
+            _context.OwncloudShares.Remove(owncloudShare);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -174,7 +174,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         private bool OwncloudShareExists(string id)
         {
-            return _context.OwncloudShare.Any(e => e.ShareId == id);
+            return _context.OwncloudShares.Any(e => e.ShareId == id);
         }
     }
 }
