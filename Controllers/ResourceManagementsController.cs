@@ -51,10 +51,10 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/ResourceManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{ResourceName}")]
-        public async Task<IActionResult> PutResourceManagement(string ResourceName, ResourceManagement resourceManagement)
+        [HttpPut("{ResourceId}")]
+        public async Task<IActionResult> PutResourceManagement(string ResourceId, ResourceManagement resourceManagement)
         {
-            if (!ResourceName.Equals(resourceManagement.ResourceName))
+            if (!ResourceId.Equals(resourceManagement.ResourceId))
             {
                 return BadRequest();
             }
@@ -67,7 +67,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ResourceManagementExists(ResourceName))
+                if (!ResourceManagementExists(ResourceId))
                 {
                     return NotFound();
                 }
@@ -101,6 +101,8 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Training for {resourceManagement.TrainingName}");
             }
+            resourceManagement.ResourceId = Guid.NewGuid().ToString();
+            Training.ResourceList.Add(resourceManagement.ResourceId);
             _context.Resources.Add(resourceManagement);
             await _context.SaveChangesAsync();
            

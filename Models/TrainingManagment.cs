@@ -22,7 +22,7 @@ namespace XR5_0TrainingRepo.Models
          
         public TrainingModule()
         {
-            TrainingId=AppName+"_"+TrainingName;	    
+            TrainingId= Guid.NewGuid().ToString();;	    
             ResourceList = new List<string>();
 
         }

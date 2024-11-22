@@ -100,7 +100,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {Training.AppName}");
             }
-            Training.TrainingId=AppName+"_"+Training.TrainingName; 
+            Training.TrainingId= Guid.NewGuid().ToString();; 
                 
             XR50App.TrainingList.Add(Training.TrainingId); 
             _context.Trainings.Add(Training);
@@ -133,19 +133,18 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // DELETE: api/Training/5
-        [HttpDelete("{AppName}/{TrainingName}")]
-        public async Task<IActionResult> DeleteTraining(string TrainingName, string AppName)
+        [HttpDelete("{TrainingId}")]
+        public async Task<IActionResult> DeleteTraining(string TrainingId)
         {
-            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
+            var Training = await _context.Trainings.FindAsync(TrainingId);
             if (Training == null)
             {
                 return NotFound();
             }
 
-            _context.Trainings.Remove(Training);
-            await _context.SaveChangesAsync();
+            
 
-            var XR50App = await _context.Apps.FindAsync(AppName);
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
                 return NotFound();
@@ -160,8 +159,11 @@ namespace XR5_0TrainingRepo.Controllers
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
             string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
-	    string cmd= "curl";
+            _context.Trainings.Remove(Training);
+            XR50App.TrainingList.Remove(Training.TrainingId);
+            await _context.SaveChangesAsync();
+            // Remove root dir for the Training
+	        string cmd= "curl";
             string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
