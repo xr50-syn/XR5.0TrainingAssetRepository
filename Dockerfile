@@ -1,20 +1,22 @@
-# Stage 1: Build the app
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /source
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /App
 
-# Copy project files and restore dependencies
-COPY *.csproj .
+ENV ASPNETCORE_ENVIRONMENT Development
+
+# Copy everything
+COPY . ./
+# Restore as distinct layers
 RUN dotnet restore
+# Build and publish a release
+RUN dotnet publish -c Release -o out
+RUN dotnet tool install  -g dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN dotnet ef migrations add InitialCreate
+RUN dotnet ef database update
 
-# Copy the rest of the application and publish
-COPY . .
-RUN dotnet restore XR5_0TrainingRepo.csproj
-RUN dotnet publish XR5_0TrainingRepo.csproj --no-restore -c Release -o /source/app
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /App
+COPY --from=build-env /App/out .
 
-# Stage 2: Run the app
-FROM mcr.microsoft.com/dotnet/runtime:8.0
-WORKDIR /app
-COPY --from=build /source/app .
-
-# Run the app
 ENTRYPOINT ["dotnet", "XR5_0TrainingRepo.dll"]
