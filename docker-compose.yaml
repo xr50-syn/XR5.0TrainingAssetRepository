@@ -1,0 +1,47 @@
+version: '3.8'
+
+volumes:
+  mysql:
+    driver: local
+
+
+services:
+  db:
+    image: mariadb:10.11 # minimum required ownCloud version is 10.9
+    container_name: repo-db
+    ports:
+      - "3306:3306"
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_USER: root
+      MYSQL_PASSWORD: my-secret-pw
+      MYSQL_DATABASE: some_mariadb
+      MARIADB_AUTO_UPGRADE: 1
+    command: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "root", "--password=my-secret-pw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mysql:/var/lib/mysql
+      
+  training-repo:
+    container_name: training-repo
+    image: training-repo-image
+    depends_on:
+      db:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "8080:8080"
+      - "17296:17296"
+      - "5286:5286"
+      - "7069:7069"
+
+  
