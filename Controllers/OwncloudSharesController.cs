@@ -92,7 +92,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"App {owncloudShare.AppName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {owncloudShare.AppName}");

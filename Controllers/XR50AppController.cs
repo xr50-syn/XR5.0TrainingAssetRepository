@@ -115,8 +115,9 @@ namespace XR5_0TrainingRepo.Controllers
            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            User adminUser = XR50App.AdminUser;
-            XR50App.AdminName = adminUser.UserName;
+            User adminUser = XR50App.Owner;
+            XR50App.OwnerName = adminUser.UserName;
+	    XR50App.AdminList.Add(adminUser.UserName);
             _context.Users.Add(adminUser);
             _context.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");

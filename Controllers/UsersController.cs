@@ -95,7 +95,7 @@ namespace XR5_0TrainingRepo.Controllers
             
             if (user.admin)
             {
-                XR50App.AdminUser = user;
+                XR50App.AdminList.Add(user.UserName);
             }
             _context.Users.Add(user);
             _context.SaveChanges();

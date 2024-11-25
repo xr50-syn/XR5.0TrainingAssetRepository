@@ -3,8 +3,8 @@
   "OwncloudGroup": "FairyTale",
   "OwncloudDirectory": "Copy_of_Amethysts_Library",
   "Description": "Hijacked by the evil dragon",
-  "AdminName":  "evilwyrm666",
-  "adminUser": {
+  "OwnerName":  "evilwyrm666",
+  "Owner": {
     "userName": "evilwyrm666",
     "fullName": "Oversized Red Dragon",
     "userEmail": "evilwyrm666@hisevilness.evil",
@@ -12,5 +12,6 @@
     "admin": true,
     "appName": "FairyTale"
   },
+  "adminList": [],
   "trainingList": []
 }

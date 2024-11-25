@@ -95,7 +95,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"App {Training.AppName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin ==null) 
             {
                 return NotFound($"Admin user for {Training.AppName}");
@@ -149,7 +149,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");

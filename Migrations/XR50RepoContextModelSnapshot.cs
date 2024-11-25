@@ -178,12 +178,8 @@ namespace XR5_0TrainingRepo.Migrations
                     b.Property<string>("AppName")
                         .HasColumnType("varchar(255)");
 
-                    b.Property<string>("AdminName")
+                    b.Property<string>("AdminList")
                         .HasColumnType("longtext");
-
-                    b.Property<string>("AdminUserUserName")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
@@ -194,12 +190,18 @@ namespace XR5_0TrainingRepo.Migrations
                     b.Property<string>("OwncloudGroup")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("OwnerName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("OwnerUserName")
+                        .HasColumnType("varchar(255)");
+
                     b.Property<string>("TrainingList")
                         .HasColumnType("longtext");
 
                     b.HasKey("AppName");
 
-                    b.HasIndex("AdminUserUserName");
+                    b.HasIndex("OwnerUserName");
 
                     b.ToTable("Apps");
                 });
@@ -213,13 +215,11 @@ namespace XR5_0TrainingRepo.Migrations
 
             modelBuilder.Entity("XR5_0TrainingRepo.Models.XR50App", b =>
                 {
-                    b.HasOne("XR5_0TrainingRepo.Models.User", "AdminUser")
+                    b.HasOne("XR5_0TrainingRepo.Models.User", "Owner")
                         .WithMany()
-                        .HasForeignKey("AdminUserUserName")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OwnerUserName");
 
-                    b.Navigation("AdminUser");
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("XR5_0TrainingRepo.Models.ResourceManagement", b =>

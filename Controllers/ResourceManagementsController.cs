@@ -91,12 +91,12 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"App {resourceManagement.AppName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {resourceManagement.AppName}");
             }
-            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
+            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
             if (Training == null)
             {
                 return NotFound($"Training for {resourceManagement.TrainingName}");
@@ -130,7 +130,6 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
             } 
-            Training.ResourceList.Add(resourceManagement.ResourceId);
             
             _context.SaveChanges();
             return CreatedAtAction("PostResourceManagement", resourceManagement);
@@ -159,7 +158,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
