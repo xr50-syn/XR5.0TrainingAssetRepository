@@ -17,14 +17,14 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
-    public class TrainingManagementController : ControllerBase
+    public class training_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public TrainingManagementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public training_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;

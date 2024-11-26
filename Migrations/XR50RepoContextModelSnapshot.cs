@@ -41,9 +41,6 @@ namespace XR5_0TrainingRepo.Migrations
                     b.Property<string>("Path")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ResourceManagementResourceId")
-                        .HasColumnType("varchar(255)");
-
                     b.Property<string>("ResourceName")
                         .HasColumnType("longtext");
 
@@ -54,8 +51,6 @@ namespace XR5_0TrainingRepo.Migrations
                         .HasColumnType("longtext");
 
                     b.HasKey("AssetId");
-
-                    b.HasIndex("ResourceManagementResourceId");
 
                     b.ToTable("Assets");
                 });
@@ -104,6 +99,9 @@ namespace XR5_0TrainingRepo.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("AppName")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("AssetList")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Description")
@@ -206,13 +204,6 @@ namespace XR5_0TrainingRepo.Migrations
                     b.ToTable("Apps");
                 });
 
-            modelBuilder.Entity("XR5_0TrainingRepo.Models.Asset", b =>
-                {
-                    b.HasOne("XR5_0TrainingRepo.Models.ResourceManagement", null)
-                        .WithMany("AssetList")
-                        .HasForeignKey("ResourceManagementResourceId");
-                });
-
             modelBuilder.Entity("XR5_0TrainingRepo.Models.XR50App", b =>
                 {
                     b.HasOne("XR5_0TrainingRepo.Models.User", "Owner")
@@ -220,11 +211,6 @@ namespace XR5_0TrainingRepo.Migrations
                         .HasForeignKey("OwnerUserName");
 
                     b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("XR5_0TrainingRepo.Models.ResourceManagement", b =>
-                {
-                    b.Navigation("AssetList");
                 });
 #pragma warning restore 612, 618
         }

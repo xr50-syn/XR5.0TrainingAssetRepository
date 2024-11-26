@@ -18,16 +18,16 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/xr50app-management/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
     
-    public class XR50AppController : ControllerBase
+    public class app_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
      
-        public XR50AppController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public app_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;

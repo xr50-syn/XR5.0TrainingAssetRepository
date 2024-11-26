@@ -13,15 +13,15 @@ using System.Configuration;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/share-management/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
-    public class OwncloudSharesController : ControllerBase
+    public class share_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public OwncloudSharesController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public share_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;

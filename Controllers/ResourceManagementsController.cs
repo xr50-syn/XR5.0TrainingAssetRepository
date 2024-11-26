@@ -14,14 +14,14 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
-    public class ResourceManagementController : ControllerBase
+    public class resource_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public ResourceManagementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
+        public resource_managementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -148,7 +148,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resources.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
-            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName,resourceManagement.TrainingName);
+	     var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
             if (Training == null)
             {
                 return NotFound();

@@ -14,7 +14,7 @@ namespace XR5_0TrainingRepo.Models
         public string? OwncloudGroup { get; set; }
         public string? Description { get; set; }
         public string? OwncloudDirectory {  get; set; }
-        public string? OwnerName { get ; set; }
+        public string? OwnerName { get; set;} 
 	public User? Owner {get; set;}
         public virtual List<string>? AdminList { get; set; }
         

@@ -11,14 +11,14 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/asset-management/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
-    public class AssetController : ControllerBase
+    public class asset_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration; 
-        public AssetController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public asset_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -83,14 +83,14 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<Asset>> PostAsset(Asset Asset)
         {
-          
-            var Training = await _context.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
-            if (Training == null)
+
+	    var XR50App = await _context.Apps.FindAsync(Asset.AppName);
+            if (XR50App == null)
             {
                 return NotFound();
-            }
-            var XR50App = await _context.Apps.FindAsync(Asset.AppName);
-            if (XR50App == null)
+            } 
+            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName)); 
+            if (Training == null)
             {
                 return NotFound();
             }
@@ -100,13 +100,14 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound($"Admin user for {Training.AppName}");
             }
            
-            var Resource = await _context.Resources.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
             string username = admin.UserName;
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            if (Resource != null)
+            if (Asset.ResourceName != null)
             {
+		var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(Asset.ResourceName) && r.TrainingName.Equals(Asset.TrainingName) && r.AppName.Equals(Asset.AppName));
+		Resource.AssetList.Add(Asset.AssetId);
                 Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/";
                 
             } else
@@ -147,29 +148,16 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
+            var XR50App = await _context.Apps.FindAsync(Asset.AppName);                                                             if (XR50App == null)                                                                                                    {                                                                                                                           return NotFound();                                                                                                  }
+	    var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50App.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.AppName}");                                                              }
+	    if (Asset.ResourceName !=null) {
+            	var Resource = await _context.Resources.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
+	    }
 
-            _context.Assets.Remove(Asset);
-            await _context.SaveChangesAsync();
 
-            var Training = await _context.Trainings.FindAsync(Asset.AppName, Asset.TrainingName);
-            if (Training == null)
-            {
-                return NotFound();
-            }
-            var XR50App = await _context.Apps.FindAsync(Training.AppName);
-            if (XR50App == null)
-            {
-                return NotFound();
-            }
-            var Resource = await _context.Resources.FindAsync(Asset.AppName, Asset.TrainingName,Asset.ResourceName);
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
-            if (admin == null)
-            {
-                return NotFound($"Admin user for {Training.AppName}");
-            }
             string username = admin.UserName;
             string password = admin.Password;
-         
+             _context.Assets.Remove(Asset);                                                                                          await _context.SaveChangesAsync(); 
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	    string cmd= "curl";
