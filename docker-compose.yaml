@@ -1,48 +1,99 @@
 version: '3.8'
 
 volumes:
-  mysql:
+  repodb_mysql:
+    driver: local
+  owncloud_files:
+    driver: local
+  owncloud_mysql:
+    driver: local
+  owncloud_redis:
     driver: local
 
 
 services:
-  db:
+  mariadb:
     image: mariadb:10.11 # minimum required ownCloud version is 10.9
-    container_name: repo-db
+    container_name: mariadb
     ports:
       - "3306:3306"
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: my-secret-pw
-      MYSQL_USER: root
-      MYSQL_PASSWORD: my-secret-pw
-      MYSQL_DATABASE: some_mariadb
+      MYSQL_ROOT_PASSWORD: owncloud
+      MYSQL_USER: owncloud
+      MYSQL_PASSWORD: owncloud
+      MYSQL_DATABASE: owncloud
       MARIADB_AUTO_UPGRADE: 1
     command: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-u", "root", "--password=my-secret-pw"]
+      test: ["CMD", "mysqladmin", "ping", "-u", "owncloud", "--password=owncloud"]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
-      - mysql:/var/lib/mysql
+      - repodb_mysql:/var/lib/mysql
+      - ./db-init-scripts:/docker-entrypoint-initdb.d/ # Mount custom scripts for DB initialization
       
   training-repo:
     container_name: training-repo
     image: training-repo-image
     depends_on:
-      db:
+      mariadb:
         condition: service_healthy
+      # owncloud:
+      #   condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: server=db;port=3306;database=some_mariadb;user=root;password=my-secret-pw;
+      ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=some_mariadb;user=XR50user;password=my-secret-pw;
     ports:
-      - "8080:8080"
+      # - "8088:8080"
       - "17296:17296"
       - "5286:5286"
       - "7069:7069"
+  
+  owncloud:
+    image: owncloud/server:10.15
+    container_name: owncloud_server
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - mariadb
+      - owncloud_redis
+    environment:
+      - OWNCLOUD_DOMAIN=localhost:8080
+      - OWNCLOUD_TRUSTED_DOMAINS=localhost
+      - OWNCLOUD_DB_TYPE=mysql
+      - OWNCLOUD_DB_NAME=owncloud
+      - OWNCLOUD_DB_USERNAME=owncloud
+      - OWNCLOUD_DB_PASSWORD=owncloud
+      - OWNCLOUD_DB_HOST=mariadb
+      - OWNCLOUD_ADMIN_USERNAME=admin
+      - OWNCLOUD_ADMIN_PASSWORD=admin
+      - OWNCLOUD_MYSQL_UTF8MB4=true
+      - OWNCLOUD_REDIS_ENABLED=true
+      - OWNCLOUD_REDIS_HOST=owncloud_redis
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - owncloud_files:/mnt/data
 
+  owncloud_redis:
+    image: redis:6
+    container_name: owncloud_redis
+    restart: always
+    command: ["--databases", "1"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - owncloud_redis:/data
   
