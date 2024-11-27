@@ -367,10 +367,5 @@ server.log
 nohup.out
 appsettings.json
 Migrations/
-
-
-Migrations/
-app/
-.vscode/
 app/
 .vscode/
