@@ -38,6 +38,7 @@ services:
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: server=db;port=3306;database=some_mariadb;user=root;password=my-secret-pw;
     ports:
       - "8080:8080"
       - "17296:17296"
