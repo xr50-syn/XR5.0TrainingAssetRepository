@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Waiting for database to be ready..."
-
+echo " Wating for database to be ready..."
 # Wait for MySQL to be ready
 until mysql -h db -uroot -pmy-secret-pw -e "SELECT 1;" > /dev/null 2>&1; do
     echo "MySQL is unavailable - sleeping"
