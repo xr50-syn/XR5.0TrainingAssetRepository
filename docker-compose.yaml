@@ -40,7 +40,6 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: server=db;port=3306;database=some_mariadb;user=root;password=my-secret-pw;
     ports:
-      - "8080:8080"
       - "17296:17296"
       - "5286:5286"
       - "7069:7069"
