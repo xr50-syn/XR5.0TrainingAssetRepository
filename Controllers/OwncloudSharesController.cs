@@ -97,11 +97,6 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {owncloudShare.AppName}");
             }
-            var Training = await _context.Trainings.FindAsync(owncloudShare.AppName, owncloudShare.TrainingName);
-            if (Training == null)
-            {
-                return NotFound($"Training for {owncloudShare.TrainingName}");
-            }
             string shareTarget;
             int shareType;
             if (owncloudShare.Type == "Group")
@@ -124,9 +119,14 @@ namespace XR5_0TrainingRepo.Controllers
             }
             var Asset = await _context.Assets.FindAsync(assetId);
             if (Asset==null)
-             {
+            {
                     return NotFound($"Asset with {owncloudShare.AssetId}");
-             }
+            }
+	    var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));
+            if (Training == null)
+            {
+                return NotFound($"Training for {owncloudShare.TrainingName}");
+            }
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
             values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
@@ -151,8 +151,8 @@ namespace XR5_0TrainingRepo.Controllers
             // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            Console.WriteLine(resultContent);
-
+            //Console.WriteLine(resultContent);
+	    await _context.SaveChangesAsync();
             return CreatedAtAction("GetOwncloudShare", new { id = owncloudShare.ShareId }, owncloudShare);
         }
 
