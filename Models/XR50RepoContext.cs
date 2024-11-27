@@ -11,7 +11,6 @@ namespace XR5_0TrainingRepo.Models
         }
 
         public DbSet<XR50App> Apps { get; set; } = null!;
-	public DbSet<QueryStore> Queries { get; set; } = null!;
 	public DbSet<User> Users { get; set; } = null!;
 	public DbSet<TrainingModule> Trainings { get; set; } = null!;
 	public DbSet<ResourceManagement> Resources { get; set; } = null!;

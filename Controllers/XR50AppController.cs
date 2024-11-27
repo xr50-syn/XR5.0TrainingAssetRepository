@@ -18,16 +18,16 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/xr50app-management/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
     
-    public class XR50AppController : ControllerBase
+    public class app_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
      
-        public XR50AppController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public app_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -115,8 +115,9 @@ namespace XR5_0TrainingRepo.Controllers
            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            User adminUser = XR50App.AdminUser;
-            XR50App.AdminName = adminUser.UserName;
+            User adminUser = XR50App.Owner;
+            XR50App.OwnerName = adminUser.UserName;
+	    XR50App.AdminList.Add(adminUser.UserName);
             _context.Users.Add(adminUser);
             _context.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
