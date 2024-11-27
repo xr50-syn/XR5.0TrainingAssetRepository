@@ -47,7 +47,7 @@ services:
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=some_mariadb;user=XR50user;password=my-secret-pw;
+      ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=magical_library;user=amy;password=3mm13;
     ports:
       # - "8088:8080"
       - "17296:17296"
@@ -64,15 +64,15 @@ services:
       - mariadb
       - owncloud_redis
     environment:
-      - OWNCLOUD_DOMAIN=localhost:8080
-      - OWNCLOUD_TRUSTED_DOMAINS=localhost
+      - OWNCLOUD_DOMAIN=locahost:8080
+      - OWNCLOUD_TRUSTED_DOMAINS=localhost,192.168.190.33,amy.library.lab.synelixis.com
       - OWNCLOUD_DB_TYPE=mysql
       - OWNCLOUD_DB_NAME=owncloud
       - OWNCLOUD_DB_USERNAME=owncloud
       - OWNCLOUD_DB_PASSWORD=owncloud
       - OWNCLOUD_DB_HOST=mariadb
-      - OWNCLOUD_ADMIN_USERNAME=admin
-      - OWNCLOUD_ADMIN_PASSWORD=admin
+      - OWNCLOUD_ADMIN_USERNAME=emmie
+      - OWNCLOUD_ADMIN_PASSWORD=!@m!nL0v3W!th3@my
       - OWNCLOUD_MYSQL_UTF8MB4=true
       - OWNCLOUD_REDIS_ENABLED=true
       - OWNCLOUD_REDIS_HOST=owncloud_redis

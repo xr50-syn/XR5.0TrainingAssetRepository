@@ -4,7 +4,7 @@ set -e
 echo "Waiting for database to be ready..."
 
 # Wait for MySQL to be ready
-until mysql -h mariadb -uXR50user -pmy-secret-pw -e "SELECT 1;" > /dev/null 2>&1; do
+until mysql -h mariadb -uamy -p3mm13 -e "SELECT 1;" > /dev/null 2>&1; do
     echo "MySQL is unavailable - sleeping"
     sleep 5
 done
