@@ -12,14 +12,14 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/user-management/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class user_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public UsersController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public user_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         { 
             _context = context;
             _httpClient = httpClient;
@@ -95,7 +95,7 @@ namespace XR5_0TrainingRepo.Controllers
             
             if (user.admin)
             {
-                XR50App.AdminUser = user;
+                XR50App.AdminList.Add(user.UserName);
             }
             _context.Users.Add(user);
             _context.SaveChanges();

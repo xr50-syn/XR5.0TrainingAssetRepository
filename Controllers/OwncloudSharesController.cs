@@ -13,15 +13,15 @@ using System.Configuration;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/share-management/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
-    public class OwncloudSharesController : ControllerBase
+    public class share_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public OwncloudSharesController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public share_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -92,15 +92,10 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"App {owncloudShare.AppName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {owncloudShare.AppName}");
-            }
-            var Training = await _context.Trainings.FindAsync(owncloudShare.AppName, owncloudShare.TrainingName);
-            if (Training == null)
-            {
-                return NotFound($"Training for {owncloudShare.TrainingName}");
             }
             string shareTarget;
             int shareType;
@@ -124,9 +119,14 @@ namespace XR5_0TrainingRepo.Controllers
             }
             var Asset = await _context.Assets.FindAsync(assetId);
             if (Asset==null)
-             {
+            {
                     return NotFound($"Asset with {owncloudShare.AssetId}");
-             }
+            }
+	    var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));
+            if (Training == null)
+            {
+                return NotFound($"Training for {owncloudShare.TrainingName}");
+            }
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
             values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
@@ -151,8 +151,8 @@ namespace XR5_0TrainingRepo.Controllers
             // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            Console.WriteLine(resultContent);
-
+            //Console.WriteLine(resultContent);
+	    await _context.SaveChangesAsync();
             return CreatedAtAction("GetOwncloudShare", new { id = owncloudShare.ShareId }, owncloudShare);
         }
 

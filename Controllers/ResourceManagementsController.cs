@@ -14,14 +14,14 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/training-repo/[controller]")]
+    [Route("/xr50/magical_library/[controller]")]
     [ApiController]
-    public class ResourceManagementController : ControllerBase
+    public class resource_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public ResourceManagementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
+        public resource_managementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -51,10 +51,10 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/ResourceManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{ResourceName}")]
-        public async Task<IActionResult> PutResourceManagement(string ResourceName, ResourceManagement resourceManagement)
+        [HttpPut("{ResourceId}")]
+        public async Task<IActionResult> PutResourceManagement(string ResourceId, ResourceManagement resourceManagement)
         {
-            if (!ResourceName.Equals(resourceManagement.ResourceName))
+            if (!ResourceId.Equals(resourceManagement.ResourceId))
             {
                 return BadRequest();
             }
@@ -67,7 +67,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ResourceManagementExists(ResourceName))
+                if (!ResourceManagementExists(ResourceId))
                 {
                     return NotFound();
                 }
@@ -91,16 +91,18 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"App {resourceManagement.AppName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {resourceManagement.AppName}");
             }
-            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName, resourceManagement.TrainingName);
+            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
             if (Training == null)
             {
                 return NotFound($"Training for {resourceManagement.TrainingName}");
             }
+            resourceManagement.ResourceId = Guid.NewGuid().ToString();
+            Training.ResourceList.Add(resourceManagement.ResourceId);
             _context.Resources.Add(resourceManagement);
             await _context.SaveChangesAsync();
            
@@ -128,7 +130,6 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
             } 
-            Training.ResourceList.Add(resourceManagement);
             
             _context.SaveChanges();
             return CreatedAtAction("PostResourceManagement", resourceManagement);
@@ -147,7 +148,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resources.Remove(resourceManagement);
             await _context.SaveChangesAsync();
 
-            var Training = await _context.Trainings.FindAsync(resourceManagement.AppName,resourceManagement.TrainingName);
+	     var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
             if (Training == null)
             {
                 return NotFound();
@@ -157,7 +158,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.AdminName);
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
                 return NotFound($"Admin user for {Training.AppName}");
