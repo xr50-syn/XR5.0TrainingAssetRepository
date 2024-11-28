@@ -65,14 +65,14 @@ services:
       - owncloud_redis
     environment:
       - OWNCLOUD_DOMAIN=locahost:8080
-      - OWNCLOUD_TRUSTED_DOMAINS=localhost,192.168.190.33,amy.library.lab.synelixis.com
+      - OWNCLOUD_TRUSTED_DOMAINS=localhost,owncloud,192.168.190.33,amy.library.lab.synelixis.com
       - OWNCLOUD_DB_TYPE=mysql
       - OWNCLOUD_DB_NAME=owncloud
       - OWNCLOUD_DB_USERNAME=owncloud
       - OWNCLOUD_DB_PASSWORD=owncloud
       - OWNCLOUD_DB_HOST=mariadb
       - OWNCLOUD_ADMIN_USERNAME=emmie
-      - OWNCLOUD_ADMIN_PASSWORD=!@m!nL0v3W!th3@my
+      - OWNCLOUD_ADMIN_PASSWORD=!@m!nL0v3W!th@my
       - OWNCLOUD_MYSQL_UTF8MB4=true
       - OWNCLOUD_REDIS_ENABLED=true
       - OWNCLOUD_REDIS_HOST=owncloud_redis
