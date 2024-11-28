@@ -112,6 +112,7 @@ namespace XR5_0TrainingRepo.Controllers
                 
             } else
             {
+		Training.AssetList.Add(Asset.AssetId);
                 Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/";
             }
 	    string cmd="curl";
@@ -151,8 +152,12 @@ namespace XR5_0TrainingRepo.Controllers
             var XR50App = await _context.Apps.FindAsync(Asset.AppName);                                                             if (XR50App == null)                                                                                                    {                                                                                                                           return NotFound();                                                                                                  }
 	    var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50App.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.AppName}");                                                              }
 	    if (Asset.ResourceName!=null) {
-	    	var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(Asset.ResourceName) && r.TrainingName.Equals(Asset.TrainingName) &&r.AppName.Equals(Asset.AppName));                                                              Resource.AssetList.Add(Asset.AssetId);                                                             
+	    	var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(Asset.ResourceName) && r.TrainingName.Equals(Asset.TrainingName) &&r.AppName.Equals(Asset.AppName));                                                              Resource.AssetList.Remove(Asset.AssetId);                                                             
+	    } else {
+		Training.AssetList.Remove(Asset.AssetId);
 	    }
+
+
 
 
             string username = admin.UserName;
@@ -161,7 +166,7 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	    string cmd= "curl";
-            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{Asset.OwncloudPath}/{Asset.OwncloudFileName}\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
