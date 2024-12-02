@@ -9,6 +9,8 @@ volumes:
     driver: local
   owncloud_redis:
     driver: local
+  db_migrations:
+    driver: local
 
 
 services:
@@ -61,6 +63,8 @@ services:
     ports:
       - "5286:5286"
       - "7069:7069"
+    volumes:
+      - db_migrations:/App/Migrations
   
   owncloud:
     image: owncloud/server:10.15
