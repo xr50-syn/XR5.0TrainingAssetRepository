@@ -40,7 +40,7 @@ COPY run-migrations.sh .
 
 # Make the script executable
 RUN chmod +x run-migrations.sh
-RUN apt-get update && apt-get install -y default-mysql-client
+RUN apt-get update && apt-get install -y default-mysql-client jq
 
 # ENTRYPOINT ["dotnet", "XR5_0TrainingRepo.dll"]
 ENTRYPOINT ["./run-migrations.sh"]

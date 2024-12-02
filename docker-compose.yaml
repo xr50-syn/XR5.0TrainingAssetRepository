@@ -9,6 +9,8 @@ volumes:
     driver: local
   owncloud_redis:
     driver: local
+  db_migrations:
+    driver: local
 
 
 services:
@@ -19,14 +21,17 @@ services:
       - "3306:3306"
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: owncloud
-      MYSQL_USER: owncloud
-      MYSQL_PASSWORD: owncloud
+      MYSQL_ROOT_PASSWORD: ${XR50_OWNCLOUD_DB_PASSWORD}
+      MYSQL_USER: ${XR50_OWNCLOUD_DB_USER}
+      MYSQL_PASSWORD: ${XR50_OWNCLOUD_DB_PASSWORD}
       MYSQL_DATABASE: owncloud
       MARIADB_AUTO_UPGRADE: 1
+      XR50_REPO_DB_NAME: ${XR50_REPO_DB_NAME}
+      XR50_REPO_DB_USER: ${XR50_REPO_DB_USER}
+      XR50_REPO_DB_PASSWORD: ${XR50_REPO_DB_PASSWORD}
     command: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-u", "owncloud", "--password=owncloud"]
+      test: ["CMD", "mysqladmin", "ping", "-u", "${XR50_OWNCLOUD_DB_USER}", "--password=${XR50_OWNCLOUD_DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,18 +45,26 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-      # owncloud:
-      #   condition: service_healthy
+      owncloud:
+        condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=magical_library;user=amy;password=3mm13;
+      XR50_REPO_DB_USER: ${XR50_REPO_DB_USER}
+      XR50_REPO_DB_PASSWORD: ${XR50_REPO_DB_PASSWORD}
+      XR50_REPO_DB_NAME: ${XR50_REPO_DB_NAME}
+      OwncloudSettings__BaseAPI: http://owncloud:8080
+      OwncloudSettings__BaseWebDAV: http://owncloud:8080/remote.php/webdav
+      OwncloudSettings__Admin: ${XR50_OWNCLOUD_ADMIN_USER}
+      OwncloudSettings__Password: ${XR50_OWNCLOUD_ADMIN_PASSWORD}
+      ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=${XR50_REPO_DB_NAME};user=${XR50_REPO_DB_USER};password=${XR50_REPO_DB_PASSWORD};
     ports:
-      # - "8088:8080"
       - "5286:5286"
       - "7069:7069"
+    volumes:
+      - db_migrations:/App/Migrations
   
   owncloud:
     image: owncloud/server:10.15
@@ -63,15 +76,15 @@ services:
       - mariadb
       - owncloud_redis
     environment:
-      - OWNCLOUD_DOMAIN=locahost:8080
-      - OWNCLOUD_TRUSTED_DOMAINS=localhost,owncloud,amethyst,192.168.190.33,amy.library.lab.synelixis.com
+      - OWNCLOUD_DOMAIN=localhost:8080
+      - OWNCLOUD_TRUSTED_DOMAINS=${XR50_OWNCLOUD_TRUSTED_DOMAINS}
       - OWNCLOUD_DB_TYPE=mysql
       - OWNCLOUD_DB_NAME=owncloud
-      - OWNCLOUD_DB_USERNAME=owncloud
-      - OWNCLOUD_DB_PASSWORD=owncloud
+      - OWNCLOUD_DB_USERNAME=${XR50_OWNCLOUD_DB_USER}
+      - OWNCLOUD_DB_PASSWORD=${XR50_OWNCLOUD_DB_PASSWORD}
       - OWNCLOUD_DB_HOST=mariadb
-      - OWNCLOUD_ADMIN_USERNAME=emmie
-      - OWNCLOUD_ADMIN_PASSWORD=!@m!nL0v3W!th@my
+      - OWNCLOUD_ADMIN_USERNAME=${XR50_OWNCLOUD_ADMIN_USER}
+      - OWNCLOUD_ADMIN_PASSWORD=${XR50_OWNCLOUD_ADMIN_PASSWORD}
       - OWNCLOUD_MYSQL_UTF8MB4=true
       - OWNCLOUD_REDIS_ENABLED=true
       - OWNCLOUD_REDIS_HOST=owncloud_redis
