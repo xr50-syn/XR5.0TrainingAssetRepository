@@ -139,7 +139,7 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpDelete("{AppName}/{TrainingName}/{ResourceName}")]
         public async Task<IActionResult> DeleteResourceManagement(string AppName, string TrainingName, string ResourceName)
         {
-            var resourceManagement = await _context.Resources.FindAsync(AppName, TrainingName, ResourceName);
+            var resourceManagement = _context.Resources.FirstOrDefault( r=> r.ResourceName.Equals(ResourceName) && r.TrainingName.Equals(TrainingName) && r.AppName.Equals(AppName));
             if (resourceManagement == null)
             {
                 return NotFound();
@@ -153,6 +153,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
+	    Training.ResourceList.Remove(resourceManagement.ResourceId);
             var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {

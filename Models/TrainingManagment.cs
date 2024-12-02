@@ -15,9 +15,9 @@ namespace XR5_0TrainingRepo.Models
         public string TrainingId { get; set; }
         [ForeignKey("Resources")]
         public virtual List<string>? ResourceList { get; set; }
-
+        [ForeignKey("Assets")]
+        public virtual List<string>? AssetList { get; set; }
         public string AppName { get; set; }
-        
         public string TrainingName { get; set; }
          
         public TrainingModule()
