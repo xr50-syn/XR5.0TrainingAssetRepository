@@ -50,7 +50,6 @@ services:
       ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=magical_library;user=amy;password=3mm13;
     ports:
       # - "8088:8080"
-      - "17296:17296"
       - "5286:5286"
       - "7069:7069"
   
@@ -65,7 +64,7 @@ services:
       - owncloud_redis
     environment:
       - OWNCLOUD_DOMAIN=locahost:8080
-      - OWNCLOUD_TRUSTED_DOMAINS=localhost,owncloud,192.168.190.33,amy.library.lab.synelixis.com
+      - OWNCLOUD_TRUSTED_DOMAINS=localhost,owncloud,amethyst,192.168.190.33,amy.library.lab.synelixis.com
       - OWNCLOUD_DB_TYPE=mysql
       - OWNCLOUD_DB_NAME=owncloud
       - OWNCLOUD_DB_USERNAME=owncloud

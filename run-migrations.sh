@@ -16,7 +16,7 @@ if [ ! -d "./Migrations" ]; then
   echo "Migrations directory not found. Generating initial migration..."
   dotnet ef migrations add InitialCreate
   # Apply migrations
-  #dotnet ef database update
+  dotnet ef database update
 else
   echo "Migrations already exist. Skipping migration generation."
 fi
