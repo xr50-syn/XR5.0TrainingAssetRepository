@@ -219,27 +219,27 @@ namespace XR5_0TrainingRepo.Controllers
         // POST: api/XR50App
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("{AppName}/{TrainingName}")]
-        public async Task<ActionResult<ResourceManagement>> PostResourceManagement(string AppName, string TrainingName, ResourceManagement resourceManagement)
+        public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, ResourceBundle ResourceBundle)
         {
 
-            var XR50App = await _context.Apps.FindAsync(resourceManagement.AppName);
+            var XR50App = await _context.Apps.FindAsync(ResourceBundle.AppName);
             if (XR50App == null)
             {
-                return NotFound($"App {resourceManagement.AppName}");
+                return NotFound($"App {ResourceBundle.AppName}");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {resourceManagement.AppName}");
+                return NotFound($"Admin user for {ResourceBundle.AppName}");
             }
             var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
             if (Training == null)
             {
-                return NotFound($"Training for {resourceManagement.TrainingName}");
+                return NotFound($"Training for {ResourceBundle.TrainingName}");
             }
-            resourceManagement.ResourceId = Guid.NewGuid().ToString();
-            Training.ResourceList.Add(resourceManagement.ResourceId);
-            _context.Resources.Add(resourceManagement);
+            ResourceBundle.ResourceId = Guid.NewGuid().ToString();
+            Training.ResourceList.Add(ResourceBundle.ResourceId);
+            _context.Resources.Add(ResourceBundle);
             await _context.SaveChangesAsync();
            
             string username = admin.UserName;
@@ -247,7 +247,7 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
             // Create root dir for the App
             Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -268,7 +268,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostResourceManagement", resourceManagement);
+            return CreatedAtAction("PostResourceManagement", ResourceBundle);
         }
 
         // DELETE: api/XR50App/5
