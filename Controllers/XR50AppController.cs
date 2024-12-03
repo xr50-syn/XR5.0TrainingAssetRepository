@@ -54,7 +54,18 @@ namespace XR5_0TrainingRepo.Controllers
 
             return XR50App;
         }
-
+        // GET: api/XR50App/5
+        [HttpGet("{appName}/TrainingModules")]
+        public async Task<ActionResult<IEnumerable<TrainingModule>>> GetAppTrainings(string appName)
+        {
+            return  _context.Trainings.Where(t=>t.AppName.Equals(appName)).ToList();
+        }
+        // GET: api/XR50App/5
+        [HttpGet("{appName}/TrainingModules")]
+        public async Task<ActionResult<IEnumerable<ResourceBundle>>> GetTrainingResources(string appName,string trainingName)
+        {
+            return  _context.Resources.Where(r=>r.AppName.Equals(appName) && r.TrainingName.Equals(trainingName)).ToList();
+        }
         /*
         // PUT: api/XR50App/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -172,9 +183,9 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost("{AppName}")]
         public async Task<ActionResult<TrainingModule>> PostTraining(string AppName,TrainingModule Training)
         {
-	    if (!AppName.Equals(Training.AppName)) {
-		    return NotFound($"App {Training.AppName} is not our parent");
-	    }
+	        if (!AppName.Equals(Training.AppName)) {
+		        return NotFound($"App {Training.AppName} is not our parent");
+	        }
             var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {

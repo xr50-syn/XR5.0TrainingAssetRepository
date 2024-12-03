@@ -40,9 +40,9 @@ namespace XR5_0TrainingRepo.Controllers
 
         // GET: api/Training/5
         [HttpGet("{AppName}/{TrainingName}")]
-        public async Task<ActionResult<TrainingModule>> GetTraining(string AppName,string TrainingName)
+        public async Task<ActionResult<TrainingModule>> GetTraining(string TrainingId)
         {
-            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
+            var Training = await _context.Trainings.FindAsync(TrainingId);
 
             if (Training == null)
             {
