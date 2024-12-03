@@ -11,14 +11,14 @@ namespace XR5_0TrainingRepo.Models {
         public string? OwncloudFileName { get; set; }
         public string? TrainingName { get; set; }
         public string? ResourceName { get; set; }
-	[ForeignKey("Assets")]
+	    [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
-	[Key]
+	    [Key]
         public string? ResourceId {get; set;}
 
         public ResourceManagement()
         {
-	    ResourceId= Guid.NewGuid().ToString();
+	        ResourceId= Guid.NewGuid().ToString();
             AssetList = new List<string>();
         }
     }

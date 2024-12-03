@@ -117,7 +117,7 @@ namespace XR5_0TrainingRepo.Controllers
             string resultContent = result.Content.ReadAsStringAsync().Result;
             User adminUser = XR50App.Owner;
             XR50App.OwnerName = adminUser.UserName;
-	    XR50App.AdminList.Add(adminUser.UserName);
+	        XR50App.AdminList.Add(adminUser.UserName);
             _context.Users.Add(adminUser);
             _context.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
@@ -144,7 +144,7 @@ namespace XR5_0TrainingRepo.Controllers
             Console.WriteLine($"Response content: {resultAdminContent}");
 
             // Create root dir for the App, owned by Admin
-	    string cmd="curl";
+	        string cmd="curl";
             string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
             // Create root dir for the App
             Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
@@ -179,12 +179,12 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
             var adminUser = await _context.Users.FindAsync(XR50App.OwnerName); 
-	    if (adminUser == null) {
-		 Console.WriteLine($"Did not find Owner: {XR50App.OwnerName}");
+	        if (adminUser == null) {
+		        Console.WriteLine($"Did not find Owner: {XR50App.OwnerName}");
                 return NotFound();
             }
             _context.Apps.Remove(XR50App);
-	    _context.Users.Remove(adminUser);
+	        _context.Users.Remove(adminUser);
             await _context.SaveChangesAsync();
 
             var values = new List<KeyValuePair<string, string>>();
@@ -193,7 +193,7 @@ namespace XR5_0TrainingRepo.Controllers
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
             string uri_group = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-	    string uri_user = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+	        string uri_user = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
 
             string authenticationString = $"{username}:{password}";
@@ -208,18 +208,8 @@ namespace XR5_0TrainingRepo.Controllers
             //_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-
-	    request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_user}/{XR50App.OwnerName}")
-            {
-                Content = messageContent
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
-	    result = _httpClient.SendAsync(request).Result;
-            resultContent = result.Content.ReadAsStringAsync().Result;    
-
             // Delete root dir for the App
-	    string cmd= "curl";
+	        string cmd= "curl";
             string Arg=  $"-X DELETE -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -237,6 +227,14 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
             }
+            request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_user}/{XR50App.OwnerName}")
+            {
+                Content = messageContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+	        result = _httpClient.SendAsync(request).Result;
+            resultContent = result.Content.ReadAsStringAsync().Result;    
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }

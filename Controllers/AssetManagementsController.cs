@@ -106,13 +106,13 @@ namespace XR5_0TrainingRepo.Controllers
             // Createe root dir for the Training
             if (Asset.ResourceName != null)
             {
-		var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(Asset.ResourceName) && r.TrainingName.Equals(Asset.TrainingName) && r.AppName.Equals(Asset.AppName));
-		Resource.AssetList.Add(Asset.AssetId);
+		        var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(Asset.ResourceName) && r.TrainingName.Equals(Asset.TrainingName) && r.AppName.Equals(Asset.AppName));
+		        Resource.AssetList.Add(Asset.AssetId);
                 Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/";
                 
             } else
             {
-		Training.AssetList.Add(Asset.AssetId);
+		        Training.AssetList.Add(Asset.AssetId);
                 Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/";
             }
 	    string cmd="curl";
