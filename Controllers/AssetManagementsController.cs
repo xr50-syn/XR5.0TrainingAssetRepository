@@ -11,6 +11,16 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
+     public class AssetUploadFormData
+    {
+        public string? OwncloudFileName { get; set; }
+        public string? AppName { get; set; }
+        public string? TrainingName { get; set; }
+        public string? ResourceName { get; set; } 
+        public string? Type { get; set; }
+        public string? Description {get; set;}
+        public IFormFile Asset { get; set; }
+    }
     [Route("/xr50/magical_library/[controller]")]
     [ApiController]
     public class asset_managementController : ControllerBase
@@ -49,7 +59,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/Asset/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+      /*  [HttpPut("{id}")]
         public async Task<IActionResult> PutAsset(string id, Asset Asset)
         {
             if (id != Asset.AssetId)
@@ -77,22 +87,30 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-
+*/
         // POST: api/Asset
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Asset>> PostAsset(Asset Asset)
+        public async Task<ActionResult<Asset>> PostAsset([FromForm] AssetUploadFormData assetUpload)
         {
 
-	    var XR50App = await _context.Apps.FindAsync(Asset.AppName);
+	        var XR50App = await _context.Apps.FindAsync(assetUpload.AppName);
+            Asset asset= new Asset();
+            asset.AppName=assetUpload.AppName;
+            asset.OwncloudFileName=assetUpload.OwncloudFileName;
+            asset.TrainingName=assetUpload.TrainingName;
+            asset.ResourceName=assetUpload.ResourceName;
+            asset.Type=assetUpload.Type;
+            asset.Description=assetUpload.Description;
+
             if (XR50App == null)
             {
-                return NotFound();
+                return NotFound($"App {assetUpload.AppName} Not Found");
             } 
-            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName)); 
+            var Training = _context.Trainings.FirstOrDefault(t=> t.AppName.Equals(assetUpload.AppName) && t.TrainingName.Equals(assetUpload.TrainingName)); 
             if (Training == null)
             {
-                return NotFound();
+                return NotFound($"Training {assetUpload.TrainingName} Not Found");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
@@ -104,21 +122,26 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            if (Asset.ResourceName != null)
+            if (assetUpload.ResourceName != null)
             {
-		var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(Asset.ResourceName) && r.TrainingName.Equals(Asset.TrainingName) && r.AppName.Equals(Asset.AppName));
-		Resource.AssetList.Add(Asset.AssetId);
-                Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/";
+		        var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(assetUpload.ResourceName) && r.TrainingName.Equals(assetUpload.TrainingName) && r.AppName.Equals(assetUpload.AppName));
+		        Resource.AssetList.Add(asset.AssetId);
+                asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/";
                 
             } else
             {
-		Training.AssetList.Add(Asset.AssetId);
-                Asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/";
+		        Training.AssetList.Add(asset.AssetId);
+                asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/";
             }
-	    string cmd="curl";
-            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{Asset.Path}\" \"{webdav_base}/{Asset.OwncloudPath}/{Asset.OwncloudFileName}\"";
+            string tempFileName=Path.GetTempFileName();
+            using (var stream = System.IO.File.Create(tempFileName))
+            {
+                  await assetUpload.Asset.CopyToAsync(stream);
+            }
+	        string cmd="curl";
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{asset.OwncloudPath}/{asset.OwncloudFileName}\"";
             // Create root dir for the App
-            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
                 FileName = cmd,
@@ -135,9 +158,9 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
             }
-            _context.Assets.Add(Asset);
+            _context.Assets.Add(asset);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("PostAsset", Asset);
+            return CreatedAtAction("PostAsset", asset);
         }
 
         // DELETE: api/Asset/5

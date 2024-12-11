@@ -40,9 +40,9 @@ namespace XR5_0TrainingRepo.Controllers
 
         // GET: api/Training/5
         [HttpGet("{AppName}/{TrainingName}")]
-        public async Task<ActionResult<TrainingModule>> GetTraining(string AppName,string TrainingName)
+        public async Task<ActionResult<TrainingModule>> GetTraining(string TrainingId)
         {
-            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
+            var Training = await _context.Trainings.FindAsync(TrainingId);
 
             if (Training == null)
             {
@@ -53,7 +53,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/Training/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{AppName}/{TrainingName}")]
+       /* [HttpPut("{AppName}/{TrainingName}")]
         public async Task<IActionResult> PutTraining(string TrainingName, TrainingModule Training)
         {
             if (!TrainingName.Equals(Training.TrainingName))
@@ -81,57 +81,8 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-
-        // POST: api/Training
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("{AppName}")]
-        public async Task<ActionResult<TrainingModule>> PostTraining(string AppName,TrainingModule Training)
-        {
-	    if (!AppName.Equals(Training.AppName)) {
-		    return NotFound($"App {Training.AppName} is not our parent");
-	    }
-            var XR50App = await _context.Apps.FindAsync(Training.AppName);
-            if (XR50App == null)
-            {
-                return NotFound($"App {Training.AppName}");
-            }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
-            if (admin ==null) 
-            {
-                return NotFound($"Admin user for {Training.AppName}");
-            }
-            Training.TrainingId= Guid.NewGuid().ToString();; 
-                
-            XR50App.TrainingList.Add(Training.TrainingId); 
-            _context.Trainings.Add(Training);
-            await _context.SaveChangesAsync();
-
-            string username = admin.UserName;
-            string password = admin.Password;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
-	    string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
-            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            }
-            return CreatedAtAction("PostTraining", Training);
-        }
-
+*/
+        
         // DELETE: api/Training/5
         [HttpDelete("{TrainingId}")]
         public async Task<IActionResult> DeleteTraining(string TrainingId)
@@ -141,9 +92,6 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
-            
-
             var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
