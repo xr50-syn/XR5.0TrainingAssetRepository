@@ -4,21 +4,21 @@ using System.ComponentModel.DataAnnotations.Schema;
 using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models {
-    public class ResourceManagement
+    public class ResourceBundle
 {
         public string? AppName { get; set; }
         public string? Description { get; set; }
         public string? OwncloudFileName { get; set; }
         public string? TrainingName { get; set; }
         public string? ResourceName { get; set; }
-	[ForeignKey("Assets")]
+	    [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
-	[Key]
+	    [Key]
         public string? ResourceId {get; set;}
 
-        public ResourceManagement()
+        public ResourceBundle()
         {
-	    ResourceId= Guid.NewGuid().ToString();
+	        ResourceId= Guid.NewGuid().ToString();
             AssetList = new List<string>();
         }
     }

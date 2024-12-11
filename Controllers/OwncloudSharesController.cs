@@ -51,7 +51,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/OwncloudShares/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+      /*  [HttpPut("{id}")]
         public async Task<IActionResult> PutOwncloudShare(string id, OwncloudShare owncloudShare)
         {
             if (id != owncloudShare.ShareId)
@@ -79,7 +79,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-
+*/
         // POST: api/OwncloudShares
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]

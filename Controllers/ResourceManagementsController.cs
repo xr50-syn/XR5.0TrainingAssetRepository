@@ -30,36 +30,36 @@ namespace XR5_0TrainingRepo.Controllers
 
         // GET: api/ResourceManagements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ResourceManagement>>> GetResource()
+        public async Task<ActionResult<IEnumerable<ResourceBundle>>> GetResource()
         {
             return await _context.Resources.ToListAsync();
         }
 
         // GET: api/ResourceManagements/5
         [HttpGet("{AppName}/{TrainingName}/{ResourceName}")]
-        public async Task<ActionResult<ResourceManagement>> GetResourceManagement(string AppName, string TrainingName, string ResourceName)
+        public async Task<ActionResult<ResourceBundle>> GetResourceManagement(string AppName, string TrainingName, string ResourceName)
         {
-            var resourceManagement = await _context.Resources.FindAsync(ResourceName);
+            var ResourceBundle = await _context.Resources.FindAsync(ResourceName);
 
-            if (resourceManagement == null)
+            if (ResourceBundle == null)
             {
                 return NotFound();
             }
 
-            return resourceManagement;
+            return ResourceBundle;
         }
 
-        // PUT: api/ResourceManagements/5
+       /* // PUT: api/ResourceManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{ResourceId}")]
-        public async Task<IActionResult> PutResourceManagement(string ResourceId, ResourceManagement resourceManagement)
+        public async Task<IActionResult> PutResourceManagement(string ResourceId, ResourceBundle ResourceBundle)
         {
-            if (!ResourceId.Equals(resourceManagement.ResourceId))
+            if (!ResourceId.Equals(ResourceBundle.ResourceId))
             {
                 return BadRequest();
             }
 
-            _context.Entry(resourceManagement).State = EntityState.Modified;
+            _context.Entry(ResourceBundle).State = EntityState.Modified;
 
             try
             {
@@ -79,80 +79,27 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-
-        // POST: api/ResourceManagements
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("{AppName}/{TrainingName}")]
-        public async Task<ActionResult<ResourceManagement>> PostResourceManagement(string AppName, string TrainingName, ResourceManagement resourceManagement)
-        {
-
-            var XR50App = await _context.Apps.FindAsync(resourceManagement.AppName);
-            if (XR50App == null)
-            {
-                return NotFound($"App {resourceManagement.AppName}");
-            }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
-            if (admin == null)
-            {
-                return NotFound($"Admin user for {resourceManagement.AppName}");
-            }
-            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
-            if (Training == null)
-            {
-                return NotFound($"Training for {resourceManagement.TrainingName}");
-            }
-            resourceManagement.ResourceId = Guid.NewGuid().ToString();
-            Training.ResourceList.Add(resourceManagement.ResourceId);
-            _context.Resources.Add(resourceManagement);
-            await _context.SaveChangesAsync();
-           
-            string username = admin.UserName;
-            string password = admin.Password;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
-            string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
-            // Create root dir for the App
-            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            } 
-            
-            _context.SaveChanges();
-            return CreatedAtAction("PostResourceManagement", resourceManagement);
-        }
-
+*/
+        
         // DELETE: api/ResourceManagements/5
         [HttpDelete("{AppName}/{TrainingName}/{ResourceName}")]
-        public async Task<IActionResult> DeleteResourceManagement(string AppName, string TrainingName, string ResourceName)
+        public async Task<IActionResult> DeleteResourceBundle(string AppName, string TrainingName, string ResourceName)
         {
-            var resourceManagement = await _context.Resources.FindAsync(AppName, TrainingName, ResourceName);
-            if (resourceManagement == null)
+            var ResourceBundle = _context.Resources.FirstOrDefault( r=> r.ResourceName.Equals(ResourceName) && r.TrainingName.Equals(TrainingName) && r.AppName.Equals(AppName));
+            if (ResourceBundle == null)
             {
                 return NotFound();
             }
 
-            _context.Resources.Remove(resourceManagement);
+            _context.Resources.Remove(ResourceBundle);
             await _context.SaveChangesAsync();
 
-	     var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
             if (Training == null)
             {
                 return NotFound();
             }
+	        Training.ResourceList.Remove(ResourceBundle.ResourceId);
             var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
@@ -167,10 +114,10 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-	    string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{resourceManagement.OwncloudFileName}\"";
+	        string cmd="curl";
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
             // Create root dir for the App
-            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
                 FileName = cmd,
@@ -189,7 +136,61 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return NoContent();
         }
+        // DELETE: api/ResourceManagements/5
+        [HttpDelete("ResourceId")]
+        public async Task<IActionResult> DeleteResourceBundleById(string ResourceId)
+        {
+            var ResourceBundle = await _context.Resources.FindAsync(ResourceId);
+            if (ResourceBundle == null)
+            {
+                return NotFound();
+            }
 
+            _context.Resources.Remove(ResourceBundle);
+            await _context.SaveChangesAsync();
+
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(ResourceBundle.TrainingName) && t.AppName.Equals(ResourceBundle.AppName));
+            if (Training == null)
+            {
+                return NotFound();
+            }
+	        Training.ResourceList.Remove(ResourceId);
+            var XR50App = await _context.Apps.FindAsync(Training.AppName);
+            if (XR50App == null)
+            {
+                return NotFound();
+            }
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Training.AppName}");
+            }
+            string username = admin.UserName;
+            string password = admin.Password;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            // Createe root dir for the Training
+	        string cmd="curl";
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
+            // Create root dir for the App
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
+            return NoContent();
+        }
         private bool ResourceManagementExists(string ResourceName)
         {
             return _context.Resources.Any(e => e.ResourceName.Equals(ResourceName));
