@@ -49,7 +49,7 @@ namespace XR5_0TrainingRepo.Controllers
             return ResourceBundle;
         }
 
-        // PUT: api/ResourceManagements/5
+       /* // PUT: api/ResourceManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{ResourceId}")]
         public async Task<IActionResult> PutResourceManagement(string ResourceId, ResourceBundle ResourceBundle)
@@ -79,7 +79,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-
+*/
         
         // DELETE: api/ResourceManagements/5
         [HttpDelete("{AppName}/{TrainingName}/{ResourceName}")]
@@ -117,7 +117,7 @@ namespace XR5_0TrainingRepo.Controllers
 	        string cmd="curl";
             string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
             // Create root dir for the App
-            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
                 FileName = cmd,
@@ -172,7 +172,7 @@ namespace XR5_0TrainingRepo.Controllers
 	        string cmd="curl";
             string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
             // Create root dir for the App
-            Console.WriteLine("Ececuting command:" + cmd + " " + Arg);
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
                 FileName = cmd,

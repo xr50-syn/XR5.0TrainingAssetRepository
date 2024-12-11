@@ -7,8 +7,6 @@ namespace XR5_0TrainingRepo.Models
 
     public class Asset
     {
-
-        public string? Path { get; set; }
         public string? Description { get; set; }
         public string? OwncloudFileName { get; set; }
         public string? OwncloudPath { get; set; }

@@ -53,7 +53,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/Training/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{AppName}/{TrainingName}")]
+       /* [HttpPut("{AppName}/{TrainingName}")]
         public async Task<IActionResult> PutTraining(string TrainingName, TrainingModule Training)
         {
             if (!TrainingName.Equals(Training.TrainingName))
@@ -81,7 +81,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-
+*/
         
         // DELETE: api/Training/5
         [HttpDelete("{TrainingId}")]
@@ -92,9 +92,6 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-
-            
-
             var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
