@@ -361,7 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-#Emmie's Garbage
+#Project Temporary/Environment Files
 Properties/launchSettings.json
 server.log
 nohup.out
