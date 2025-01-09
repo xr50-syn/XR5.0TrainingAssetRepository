@@ -180,7 +180,7 @@ namespace XR5_0TrainingRepo.Controllers
         }
         // POST: api/XR50App/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/training-management/{AppName}")]
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/training-management/{AppName}")]
         public async Task<ActionResult<TrainingModule>> PostTraining(string AppName,TrainingModule Training)
         {
 	        if (!AppName.Equals(Training.AppName)) {
@@ -229,7 +229,7 @@ namespace XR5_0TrainingRepo.Controllers
         }
         // POST: api/XR50App
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/resource-management/{AppName}/{TrainingName}")]
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}")]
         public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, ResourceBundle ResourceBundle)
         {
 
@@ -352,7 +352,7 @@ namespace XR5_0TrainingRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
-        [HttpDelete("/training-management/{AppName}/{TrainingName}")]
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/training-management/{AppName}/{TrainingName}")]
         public async Task<IActionResult> DeleteTraining(string AppName,string TrainingName)
         {
             var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
@@ -403,7 +403,7 @@ namespace XR5_0TrainingRepo.Controllers
 
 
         // DELETE: api/XR50App/
-        [HttpDelete("/resource-management/{AppName}/{TrainingName}/{ResourceName}")]
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ResourceName}")]
         public async Task<IActionResult> DeleteResourceBundle(string AppName, string TrainingName, string ResourceName)
         {
             var ResourceBundle = _context.Resources.FirstOrDefault( r=> r.ResourceName.Equals(ResourceName) && r.TrainingName.Equals(TrainingName) && r.AppName.Equals(AppName));
