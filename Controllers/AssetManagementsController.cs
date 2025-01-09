@@ -21,7 +21,7 @@ namespace XR5_0TrainingRepo.Controllers
         public string? Description {get; set;}
         public IFormFile Asset { get; set; }
     }
-    [Route("/xr50/magical_library/[controller]")]
+    [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     public class asset_managementController : ControllerBase
     {
