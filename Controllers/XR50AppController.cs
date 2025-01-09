@@ -297,6 +297,15 @@ namespace XR5_0TrainingRepo.Controllers
 		        Console.WriteLine($"Did not find Owner: {XR50App.OwnerName}");
                 return NotFound();
             }
+
+            foreach (string trainingId in XR50App.TrainingList) {
+              var training= await _context.Trainings.FindAsync(trainingId);
+              foreach (string resourceId in training.ResourceList) {
+                var resource= await _context.Resources.FindAsync(resourceId);
+                _context.Resources.Remove(resource);
+              }     
+              _context.Trainings.Remove(training);
+            }
             _context.Apps.Remove(XR50App);
 	        _context.Users.Remove(adminUser);
             await _context.SaveChangesAsync();
@@ -371,14 +380,21 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {Training.AppName}");
             }
+            foreach (string resourceId in Training.ResourceList) {
+                var resource= await _context.Resources.FindAsync(resourceId);
+                _context.Resources.Remove(resource);
+              }     
+            _context.Trainings.Remove(Training);
+            XR50App.TrainingList.Remove(Training.TrainingId);
+            await _context.SaveChangesAsync();
+
+            //Owncloud stuff
             string username = admin.UserName;
             string password = admin.Password;
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
             string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            _context.Trainings.Remove(Training);
-            XR50App.TrainingList.Remove(Training.TrainingId);
-            await _context.SaveChangesAsync();
+            
             // Remove root dir for the Training
 	        string cmd= "curl";
             string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
