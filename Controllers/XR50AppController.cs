@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/magical_library/[controller]")]
+    [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     
     public class app_managementController : ControllerBase

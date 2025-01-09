@@ -17,7 +17,7 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/magical_library/[controller]")]
+    [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     public class training_managementController : ControllerBase
     {
