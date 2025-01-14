@@ -206,7 +206,7 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-	    string cmd="curl";
+	        string cmd="curl";
             string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -231,6 +231,59 @@ namespace XR5_0TrainingRepo.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}")]
         public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, ResourceBundle ResourceBundle)
+        {
+
+            var XR50App = await _context.Apps.FindAsync(ResourceBundle.AppName);
+            if (XR50App == null)
+            {
+                return NotFound($"App {ResourceBundle.AppName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {ResourceBundle.AppName}");
+            }
+            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+            if (Training == null)
+            {
+                return NotFound($"Training for {ResourceBundle.TrainingName}");
+            }
+            ResourceBundle.ResourceId = Guid.NewGuid().ToString();
+            Training.ResourceList.Add(ResourceBundle.ResourceId);
+            _context.Resources.Add(ResourceBundle);
+            await _context.SaveChangesAsync();
+           
+            string username = admin.UserName;
+            string password = admin.Password;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            // Createe root dir for the Training
+            string cmd="curl";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
+            // Create root dir for the App
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            } 
+            
+            _context.SaveChanges();
+            return CreatedAtAction("PostResourceManagement", ResourceBundle);
+        }
+
+         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ResourceId}")]
+        public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, string ResourceId, ResourceBundle ResourceBundle)
         {
 
             var XR50App = await _context.Apps.FindAsync(ResourceBundle.AppName);
