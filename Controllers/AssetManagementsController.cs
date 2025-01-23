@@ -16,7 +16,7 @@ namespace XR5_0TrainingRepo.Controllers
         public string? OwncloudFileName { get; set; }
         public string? AppName { get; set; }
         public string? TrainingName { get; set; }
-        public string? ResourceName { get; set; } 
+        public string? ResourceId { get; set; } 
         public string? Type { get; set; }
         public string? Description {get; set;}
         public IFormFile Asset { get; set; }
@@ -99,7 +99,7 @@ namespace XR5_0TrainingRepo.Controllers
             asset.AppName=assetUpload.AppName;
             asset.OwncloudFileName=assetUpload.OwncloudFileName;
             asset.TrainingName=assetUpload.TrainingName;
-            asset.ResourceName=assetUpload.ResourceName;
+            asset.ResourceId=assetUpload.ResourceId;
             asset.Type=assetUpload.Type;
             asset.Description=assetUpload.Description;
 
@@ -122,9 +122,9 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            if (assetUpload.ResourceName != null)
+            if (assetUpload.ResourceId != null)
             {
-		        var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(assetUpload.ResourceName) && r.TrainingName.Equals(assetUpload.TrainingName) && r.AppName.Equals(assetUpload.AppName));
+		        var Resource = await _context.Resources.FindAsync(assetUpload.ResourceId);
 		        Resource.AssetList.Add(asset.AssetId);
                 asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Resource.OwncloudFileName}/";
                 
@@ -173,22 +173,20 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
             var XR50App = await _context.Apps.FindAsync(Asset.AppName);                                                             if (XR50App == null)                                                                                                    {                                                                                                                           return NotFound();                                                                                                  }
-	    var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50App.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.AppName}");                                                              }
-	    if (Asset.ResourceName!=null) {
-	    	var Resource = _context.Resources.FirstOrDefault( r => r.ResourceName.Equals(Asset.ResourceName) && r.TrainingName.Equals(Asset.TrainingName) &&r.AppName.Equals(Asset.AppName));                                                              Resource.AssetList.Remove(Asset.AssetId);                                                             
-	    } else {
-		Training.AssetList.Remove(Asset.AssetId);
-	    }
-
-
-
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50App.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.AppName}");                                                              }
+	        if (Asset.ResourceId!=null) {
+	    	    var Resource = await _context.Resources.FindAsync(Asset.ResourceId);
+                Resource.AssetList.Remove(Asset.AssetId);                                                             
+	        } else {
+		        Training.AssetList.Remove(Asset.AssetId);
+	        }
 
             string username = admin.UserName;
             string password = admin.Password;
              _context.Assets.Remove(Asset);                                                                                          await _context.SaveChangesAsync(); 
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-	    string cmd= "curl";
+	        string cmd= "curl";
             string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{Asset.OwncloudPath}/{Asset.OwncloudFileName}\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo

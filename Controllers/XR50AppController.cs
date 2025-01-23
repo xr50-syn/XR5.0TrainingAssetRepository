@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace XR5_0TrainingRepo.Controllers
 {
+
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     
@@ -251,6 +252,7 @@ namespace XR5_0TrainingRepo.Controllers
             ResourceBundle.ResourceId = Guid.NewGuid().ToString();
             Training.ResourceList.Add(ResourceBundle.ResourceId);
             _context.Resources.Add(ResourceBundle);
+            ResourceBundle.ParentType = "TRAINING";
             await _context.SaveChangesAsync();
            
             string username = admin.UserName;
@@ -286,10 +288,10 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, string ResourceId, ResourceBundle ResourceBundle)
         {
 
-            var XR50App = await _context.Apps.FindAsync(ResourceBundle.AppName);
+            var XR50App = await _context.Apps.FindAsync(AppName);
             if (XR50App == null)
             {
-                return NotFound($"App {ResourceBundle.AppName}");
+                return NotFound($"App {AppName}");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
@@ -301,8 +303,13 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Training for {ResourceBundle.TrainingName}");
             }
+            var ParentResource = await _context.Resources.FindAsync(ResourceId);
+            if (ParentResource == null) {
+                return NotFound($"Resource with Id: {ResourceId}");
+            }
             ResourceBundle.ResourceId = Guid.NewGuid().ToString();
-            Training.ResourceList.Add(ResourceBundle.ResourceId);
+            ResourceBundle.ParentType = "RESOURCE";
+            ParentResource.ResourceList.Add(ResourceBundle.ResourceId);
             _context.Resources.Add(ResourceBundle);
             await _context.SaveChangesAsync();
            
