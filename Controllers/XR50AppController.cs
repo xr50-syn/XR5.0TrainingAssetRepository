@@ -309,16 +309,22 @@ namespace XR5_0TrainingRepo.Controllers
             }
             ResourceBundle.ResourceId = Guid.NewGuid().ToString();
             ResourceBundle.ParentType = "RESOURCE";
+            ResourceBundle.ParentId =ParentResource.ResourceId;
             ParentResource.ResourceList.Add(ResourceBundle.ResourceId);
             _context.Resources.Add(ResourceBundle);
             await _context.SaveChangesAsync();
-           
+            
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string ResourcePath=ResourceBundle.ResourceName;
+            while (ParentResource.ParentType.Equals("RESOURCE")) {
+                ResourcePath= ParentResource.ResourceName +"/" + ResourcePath;
+                ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
+            }
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourcePath}\"";
             // Create root dir for the App
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
