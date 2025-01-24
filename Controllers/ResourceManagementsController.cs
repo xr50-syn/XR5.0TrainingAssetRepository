@@ -114,9 +114,12 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string ResourcePath= ResourceBundle.ResourceName;
-            while (ParentResource.ParentType.Equals("RESOURCE")) {
-                ResourcePath= ParentResource.ResourceName +"/" + ResourcePath;
-                ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
+            if (ResourceBundle.ParentType.Equals("RESOURCE")) {
+            var ParentResource= await _context.Resources.FindAsync(ResourceBundle.ParentId);
+                while (ParentResource.ParentType.Equals("RESOURCE")) {
+                    ResourcePath= ParentResource.ResourceName +"/" + ResourcePath;
+                    ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
+                }
             }
 	        string cmd="curl";
             string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourcePath}\"";

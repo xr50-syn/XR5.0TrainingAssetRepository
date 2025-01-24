@@ -284,7 +284,7 @@ namespace XR5_0TrainingRepo.Controllers
             return CreatedAtAction("PostResourceManagement", ResourceBundle);
         }
 
-         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ResourceId}")]
+         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ParentResourceId}")]
         public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, string ParentResourceId, ResourceBundle ResourceBundle)
         {
 

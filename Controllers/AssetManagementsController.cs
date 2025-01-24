@@ -132,11 +132,11 @@ namespace XR5_0TrainingRepo.Controllers
                  if (ParentResource == null) {
                     return NotFound($"Couldnt Find Resource with Id: {assetUpload.ResourceId}");
                 }
-                string OwncloudPath=Resource.ResourceName;
-                while (ParentResource.ParentType.Equals("RESOURCE")) {
-                    OwncloudPath= ParentResource.ResourceName + "/" + OwncloudPath;
+                string OwncloudPath= ParentResource.ResourceName;
+                do {
                     ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
-                }
+                    OwncloudPath= ParentResource.ResourceName + "/" + OwncloudPath; 
+                } while (ParentResource.ParentType.Equals("RESOURCE"));
                 asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{OwncloudPath}";
 
             } else
