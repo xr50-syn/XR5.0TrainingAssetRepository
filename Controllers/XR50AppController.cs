@@ -185,17 +185,17 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<TrainingModule>> PostTraining(string AppName,TrainingModule Training)
         {
 	        if (!AppName.Equals(Training.AppName)) {
-		        return NotFound($"App {Training.AppName} is not our parent");
+		        return NotFound($"Couldnt Find App {Training.AppName} is not our parent");
 	        }
             var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
-                return NotFound($"App {Training.AppName}");
+                return NotFound($"Couldnt Find App {Training.AppName}");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin ==null) 
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Training.AppName}");
             }
             Training.TrainingId= Guid.NewGuid().ToString();; 
                 
@@ -237,17 +237,17 @@ namespace XR5_0TrainingRepo.Controllers
             var XR50App = await _context.Apps.FindAsync(ResourceBundle.AppName);
             if (XR50App == null)
             {
-                return NotFound($"App {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find App {ResourceBundle.AppName}");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find Admin user for {ResourceBundle.AppName}");
             }
             var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)
             {
-                return NotFound($"Training for {ResourceBundle.TrainingName}");
+                return NotFound($"Couldnt Find Training for {ResourceBundle.TrainingName}");
             }
             ResourceBundle.ResourceId = Guid.NewGuid().ToString();
             Training.ResourceList.Add(ResourceBundle.ResourceId);
@@ -285,27 +285,27 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
          [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ResourceId}")]
-        public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, string ResourceId, ResourceBundle ResourceBundle)
+        public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, string ParentResourceId, ResourceBundle ResourceBundle)
         {
 
             var XR50App = await _context.Apps.FindAsync(AppName);
             if (XR50App == null)
             {
-                return NotFound($"App {AppName}");
+                return NotFound($"Couldnt Find App {AppName}");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find Admin user for {ResourceBundle.AppName}");
             }
             var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)
             {
-                return NotFound($"Training for {ResourceBundle.TrainingName}");
+                return NotFound($"Couldnt Find Training for {ResourceBundle.TrainingName}");
             }
-            var ParentResource = await _context.Resources.FindAsync(ResourceId);
+            var ParentResource = await _context.Resources.FindAsync(ParentResourceId);
             if (ParentResource == null) {
-                return NotFound($"Resource with Id: {ResourceId}");
+                return NotFound($"Couldnt Find Resource with Id: {ParentResourceId}");
             }
             ResourceBundle.ResourceId = Guid.NewGuid().ToString();
             ResourceBundle.ParentType = "RESOURCE";
@@ -317,9 +317,9 @@ namespace XR5_0TrainingRepo.Controllers
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            string ResourcePath=ResourceBundle.ResourceName;
+            string ResourcePath=ParentResource.ResourceName + "/"+ ResourceBundle.ResourceName;
             while (ParentResource.ParentType.Equals("RESOURCE")) {
-                ResourcePath= ParentResource.ResourceName +"/" + ResourcePath;
+                ResourcePath= ParentResource.ResourceName + "/" + ResourcePath;
                 ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
             }
             // Createe root dir for the Training
@@ -444,7 +444,7 @@ namespace XR5_0TrainingRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Training.AppName}");
             }
             foreach (string resourceId in Training.ResourceList) {
                 var resource= await _context.Resources.FindAsync(resourceId);
@@ -511,7 +511,7 @@ namespace XR5_0TrainingRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Training.AppName}");
             }
             string username = admin.UserName;
             string password = admin.Password;

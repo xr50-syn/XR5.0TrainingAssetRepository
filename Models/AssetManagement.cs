@@ -13,6 +13,8 @@ namespace XR5_0TrainingRepo.Models
         public string? AppName { get; set; }
         public string? TrainingName { get; set; }
         public string? ResourceId { get; set; } 
+        public string? ParentId {get; set;}
+        public string? ParentType {get; set;}
         public string? Type { get; set; }
 	    [Key]
         public string? AssetId { get; set; }
