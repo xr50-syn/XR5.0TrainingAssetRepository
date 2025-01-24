@@ -59,7 +59,7 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpGet("{appName}/TrainingModules")]
         public async Task<ActionResult<IEnumerable<TrainingModule>>> GetAppTrainings(string appName)
         {
-            return  _context.Trainings.Where(t=>t.AppName.Equals(appName)).ToList();
+            return _context.Trainings.Where(t=>t.AppName.Equals(appName)).ToList();
         }
         // GET: api/XR50App/5
         [HttpGet("{appName}/{trainingName}/ResourceBundles")]
@@ -244,7 +244,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {ResourceBundle.AppName}");
             }
-            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)
             {
                 return NotFound($"Training for {ResourceBundle.TrainingName}");
@@ -298,7 +298,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {ResourceBundle.AppName}");
             }
-            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)
             {
                 return NotFound($"Training for {ResourceBundle.TrainingName}");
@@ -430,7 +430,7 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/training-management/{AppName}/{TrainingName}")]
         public async Task<IActionResult> DeleteTraining(string AppName,string TrainingName)
         {
-            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+            var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)           
             {
                 return NotFound($"Did not find training {TrainingName}");
