@@ -122,11 +122,15 @@ namespace XR5_0TrainingRepo.Controllers
             {
                     return NotFound($"Asset with {owncloudShare.AssetId}");
             }
-	    var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));
             if (Training == null)
             {
                 return NotFound($"Training for {owncloudShare.TrainingName}");
             }
+            owncloudShare.OwncloudFileName=Asset.OwncloudFileName;
+            owncloudShare.Description=Asset.Description;
+            owncloudShare.TrainingName=Asset.TrainingName;
+            
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
             values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
@@ -152,7 +156,7 @@ namespace XR5_0TrainingRepo.Controllers
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
             //Console.WriteLine(resultContent);
-	    await _context.SaveChangesAsync();
+	        await _context.SaveChangesAsync();
             return CreatedAtAction("GetOwncloudShare", new { id = owncloudShare.ShareId }, owncloudShare);
         }
 
