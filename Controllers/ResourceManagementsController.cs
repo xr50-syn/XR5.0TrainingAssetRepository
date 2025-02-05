@@ -30,36 +30,36 @@ namespace XR5_0TrainingRepo.Controllers
 
         // GET: api/ResourceManagements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ResourceBundle>>> GetResource()
+        public async Task<ActionResult<IEnumerable<Material>>> GetResource()
         {
             return await _context.Resources.ToListAsync();
         }
 
         // GET: api/ResourceManagements/5
         [HttpGet("{ResourceId}")]
-        public async Task<ActionResult<ResourceBundle>> GetResourceManagement(string ResourceId)
+        public async Task<ActionResult<Material>> GetResourceManagement(string ResourceId)
         {
-            var ResourceBundle = await _context.Resources.FindAsync(ResourceId);
+            var Material = await _context.Resources.FindAsync(ResourceId);
 
-            if (ResourceBundle == null)
+            if (Material == null)
             {
                 return NotFound();
             }
 
-            return ResourceBundle;
+            return Material;
         }
 
        /* // PUT: api/ResourceManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{ResourceId}")]
-        public async Task<IActionResult> PutResourceManagement(string ResourceId, ResourceBundle ResourceBundle)
+        public async Task<IActionResult> PutResourceManagement(string ResourceId, Material Material)
         {
-            if (!ResourceId.Equals(ResourceBundle.ResourceId))
+            if (!ResourceId.Equals(Material.ResourceId))
             {
                 return BadRequest();
             }
 
-            _context.Entry(ResourceBundle).State = EntityState.Modified;
+            _context.Entry(Material).State = EntityState.Modified;
 
             try
             {
@@ -82,18 +82,18 @@ namespace XR5_0TrainingRepo.Controllers
 */
         // DELETE: api/ResourceManagements/5
         [HttpDelete("{ResourceId}")]
-        public async Task<IActionResult> DeleteResourceBundleById(string ResourceId)
+        public async Task<IActionResult> DeleteMaterialById(string ResourceId)
         {
-            var ResourceBundle = await _context.Resources.FindAsync(ResourceId);
-            if (ResourceBundle == null)
+            var Material = await _context.Resources.FindAsync(ResourceId);
+            if (Material == null)
             {
                 return NotFound();
             }
 
-            _context.Resources.Remove(ResourceBundle);
+            _context.Resources.Remove(Material);
             await _context.SaveChangesAsync();
 
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(ResourceBundle.TrainingName) && t.AppName.Equals(ResourceBundle.AppName));
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Material.TrainingName) && t.AppName.Equals(Material.AppName));
             if (Training == null)
             {
                 return NotFound();
@@ -113,9 +113,9 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string ResourcePath= ResourceBundle.ResourceName;
-            if (ResourceBundle.ParentType.Equals("RESOURCE")) {
-            var ParentResource= await _context.Resources.FindAsync(ResourceBundle.ParentId);
+            string ResourcePath= Material.ResourceName;
+            if (Material.ParentType.Equals("RESOURCE")) {
+            var ParentResource= await _context.Resources.FindAsync(Material.ParentId);
                 while (ParentResource.ParentType.Equals("RESOURCE")) {
                     ResourcePath= ParentResource.ResourceName +"/" + ResourcePath;
                     ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);

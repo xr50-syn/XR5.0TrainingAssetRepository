@@ -62,8 +62,8 @@ namespace XR5_0TrainingRepo.Controllers
             return _context.Trainings.Where(t=>t.AppName.Equals(appName)).ToList();
         }
         // GET: api/XR50App/5
-        [HttpGet("{appName}/{trainingName}/ResourceBundles")]
-        public async Task<ActionResult<IEnumerable<ResourceBundle>>> GetTrainingResources(string appName,string trainingName)
+        [HttpGet("{appName}/{trainingName}/Materials")]
+        public async Task<ActionResult<IEnumerable<Material>>> GetTrainingResources(string appName,string trainingName)
         {
             return  _context.Resources.Where(r=>r.AppName.Equals(appName) && r.TrainingName.Equals(trainingName)).ToList();
         }
@@ -231,28 +231,28 @@ namespace XR5_0TrainingRepo.Controllers
         // POST: api/XR50App
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}")]
-        public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, ResourceBundle ResourceBundle)
+        public async Task<ActionResult<Material>> PostResourceManagement(string AppName, string TrainingName, Material Material)
         {
 
-            var XR50App = await _context.Apps.FindAsync(ResourceBundle.AppName);
+            var XR50App = await _context.Apps.FindAsync(Material.AppName);
             if (XR50App == null)
             {
-                return NotFound($"Couldnt Find App {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find App {Material.AppName}");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Material.AppName}");
             }
             var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)
             {
-                return NotFound($"Couldnt Find Training for {ResourceBundle.TrainingName}");
+                return NotFound($"Couldnt Find Training for {Material.TrainingName}");
             }
-            ResourceBundle.ResourceId = Guid.NewGuid().ToString();
-            Training.ResourceList.Add(ResourceBundle.ResourceId);
-            _context.Resources.Add(ResourceBundle);
-            ResourceBundle.ParentType = "TRAINING";
+            Material.ResourceId = Guid.NewGuid().ToString();
+            Training.ResourceList.Add(Material.ResourceId);
+            _context.Resources.Add(Material);
+            Material.ParentType = "TRAINING";
             await _context.SaveChangesAsync();
            
             string username = admin.UserName;
@@ -260,7 +260,7 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
             // Create root dir for the App
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -281,11 +281,11 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostResourceManagement", ResourceBundle);
+            return CreatedAtAction("PostResourceManagement", Material);
         }
 
          [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ParentResourceId}")]
-        public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, string ParentResourceId, ResourceBundle ResourceBundle)
+        public async Task<ActionResult<Material>> PostResourceManagement(string AppName, string TrainingName, string ParentResourceId, Material Material)
         {
 
             var XR50App = await _context.Apps.FindAsync(AppName);
@@ -296,28 +296,28 @@ namespace XR5_0TrainingRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Material.AppName}");
             }
             var Training = await _context.Trainings.FindAsync(AppName,TrainingName);
             if (Training == null)
             {
-                return NotFound($"Couldnt Find Training for {ResourceBundle.TrainingName}");
+                return NotFound($"Couldnt Find Training for {Material.TrainingName}");
             }
             var ParentResource = await _context.Resources.FindAsync(ParentResourceId);
             if (ParentResource == null) {
                 return NotFound($"Couldnt Find Resource with Id: {ParentResourceId}");
             }
-            ResourceBundle.ResourceId = Guid.NewGuid().ToString();
-            ResourceBundle.ParentType = "RESOURCE";
-            ResourceBundle.ParentId =ParentResource.ResourceId;
-            ParentResource.ResourceList.Add(ResourceBundle.ResourceId);
-            _context.Resources.Add(ResourceBundle);
+            Material.ResourceId = Guid.NewGuid().ToString();
+            Material.ParentType = "RESOURCE";
+            Material.ParentId =ParentResource.ResourceId;
+            ParentResource.ResourceList.Add(Material.ResourceId);
+            _context.Resources.Add(Material);
             await _context.SaveChangesAsync();
             
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            string ResourcePath=ParentResource.ResourceName + "/"+ ResourceBundle.ResourceName;
+            string ResourcePath=ParentResource.ResourceName + "/"+ Material.ResourceName;
             while (ParentResource.ParentType.Equals("RESOURCE")) {
                 ResourcePath= ParentResource.ResourceName + "/" + ResourcePath;
                 ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
@@ -345,7 +345,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostResourceManagement", ResourceBundle);
+            return CreatedAtAction("PostResourceManagement", Material);
         }
 
         // DELETE: api/XR50App/5
@@ -486,15 +486,15 @@ namespace XR5_0TrainingRepo.Controllers
 
         // DELETE: api/XR50App/
         [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ResourceName}")]
-        public async Task<IActionResult> DeleteResourceBundle(string AppName, string TrainingName, string ResourceName)
+        public async Task<IActionResult> DeleteMaterial(string AppName, string TrainingName, string ResourceName)
         {
-            var ResourceBundle = _context.Resources.FirstOrDefault( r=> r.ResourceName.Equals(ResourceName) && r.TrainingName.Equals(TrainingName) && r.AppName.Equals(AppName));
-            if (ResourceBundle == null)
+            var Material = _context.Resources.FirstOrDefault( r=> r.ResourceName.Equals(ResourceName) && r.TrainingName.Equals(TrainingName) && r.AppName.Equals(AppName));
+            if (Material == null)
             {
                 return NotFound();
             }
 
-            _context.Resources.Remove(ResourceBundle);
+            _context.Resources.Remove(Material);
             await _context.SaveChangesAsync();
 
 	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
@@ -502,7 +502,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-	        Training.ResourceList.Remove(ResourceBundle.ResourceId);
+	        Training.ResourceList.Remove(Material.ResourceId);
             var XR50App = await _context.Apps.FindAsync(Training.AppName);
             if (XR50App == null)
             {
@@ -518,7 +518,7 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	        string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
             // Create root dir for the App
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo

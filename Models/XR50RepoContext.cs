@@ -13,7 +13,7 @@ namespace XR5_0TrainingRepo.Models
         public DbSet<XR50App> Apps { get; set; } = null!;
 	public DbSet<User> Users { get; set; } = null!;
 	public DbSet<TrainingModule> Trainings { get; set; } = null!;
-	public DbSet<ResourceBundle> Resources { get; set; } = null!;
+	public DbSet<Material> Resources { get; set; } = null!;
 	public DbSet<OwncloudShare> OwncloudShares{ get; set; } = null!;
 	public DbSet<Asset> Assets { get; set; } = null!;
 
