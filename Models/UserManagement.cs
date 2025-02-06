@@ -12,8 +12,13 @@ namespace XR5_0TrainingRepo.Models
         public bool admin { get; set; }
         [Key]
         public string? UserName { get; set; }
-        public string AppName { get; set; }
 
     }
+    
+    public class Group {
+        public virtual List<string>? GroupList { get; set; }
+         [Key]
+         public string? GroupName { get; set; }
 
+    }
 }

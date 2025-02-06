@@ -28,38 +28,38 @@ namespace XR5_0TrainingRepo.Controllers
             _configuration = configuration;
         }
 
-        // GET: api/OwncloudShares
+        // GET: api/OwncloudFiles
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OwncloudShare>>> GetOwncloudShare()
+        public async Task<ActionResult<IEnumerable<OwncloudFile>>> GetOwncloudFile()
         {
-            return await _context.OwncloudShares.ToListAsync();
+            return await _context.OwncloudFiles.ToListAsync();
         }
 
-        // GET: api/OwncloudShares/5
+        // GET: api/OwncloudFiles/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<OwncloudShare>> GetOwncloudShare(string id)
+        public async Task<ActionResult<OwncloudFile>> GetOwncloudFile(string id)
         {
-            var owncloudShare = await _context.OwncloudShares.FindAsync(id);
+            var OwncloudFile = await _context.OwncloudFiles.FindAsync(id);
 
-            if (owncloudShare == null)
+            if (OwncloudFile == null)
             {
                 return NotFound();
             }
 
-            return owncloudShare;
+            return OwncloudFile;
         }
 
-        // PUT: api/OwncloudShares/5
+        // PUT: api/OwncloudFiles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
       /*  [HttpPut("{id}")]
-        public async Task<IActionResult> PutOwncloudShare(string id, OwncloudShare owncloudShare)
+        public async Task<IActionResult> PutOwncloudFile(string id, OwncloudFile OwncloudFile)
         {
-            if (id != owncloudShare.ShareId)
+            if (id != OwncloudFile.ShareId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(owncloudShare).State = EntityState.Modified;
+            _context.Entry(OwncloudFile).State = EntityState.Modified;
 
             try
             {
@@ -67,7 +67,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!OwncloudShareExists(id))
+                if (!OwncloudFileExists(id))
                 {
                     return NotFound();
                 }
@@ -80,56 +80,56 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 */
-        // POST: api/OwncloudShares
+        // POST: api/OwncloudFiles
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<OwncloudShare>> PostOwncloudShare(OwncloudShare owncloudShare)
+        public async Task<ActionResult<OwncloudFile>> PostOwncloudFile(OwncloudFile OwncloudFile)
         {
-            _context.OwncloudShares.Add(owncloudShare);
+            _context.OwncloudFiles.Add(OwncloudFile);
 
-            var XR50App = await _context.Apps.FindAsync(owncloudShare.AppName);
+            var XR50App = await _context.Apps.FindAsync(OwncloudFile.AppName);
             if (XR50App == null)
             {
-                return NotFound($"App {owncloudShare.AppName}");
+                return NotFound($"App {OwncloudFile.AppName}");
             }
             var admin = await _context.Users.FindAsync(XR50App.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {owncloudShare.AppName}");
+                return NotFound($"Admin user for {OwncloudFile.AppName}");
             }
             string shareTarget;
             int shareType;
-            if (owncloudShare.Type == "Group")
+            if (OwncloudFile.Type == "Group")
             {
                 shareTarget = XR50App.OwncloudGroup;
                 shareType = 1;
             } else
             {
-                shareTarget = owncloudShare.Target;
+                shareTarget = OwncloudFile.Target;
                 shareType = 0;
             }
             string assetId;
-            if (owncloudShare.AssetId== null)
+            if (OwncloudFile.AssetId== null)
             {
                 assetId = "";
                 return NotFound("No Asset ID provided to share");
             } else
             {
-                assetId=owncloudShare.AssetId;
+                assetId=OwncloudFile.AssetId;
             }
             var Asset = await _context.Assets.FindAsync(assetId);
             if (Asset==null)
             {
-                    return NotFound($"Asset with {owncloudShare.AssetId}");
+                    return NotFound($"Asset with {OwncloudFile.AssetId}");
             }
 	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));
             if (Training == null)
             {
-                return NotFound($"Training for {owncloudShare.TrainingName}");
+                return NotFound($"Training for {OwncloudFile.TrainingName}");
             }
-            owncloudShare.OwncloudFileName=Asset.OwncloudFileName;
-            owncloudShare.Description=Asset.Description;
-            owncloudShare.TrainingName=Asset.TrainingName;
+            OwncloudFile.OwncloudFileName=Asset.OwncloudFileName;
+            OwncloudFile.Description=Asset.Description;
+            OwncloudFile.TrainingName=Asset.TrainingName;
             
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
@@ -157,28 +157,28 @@ namespace XR5_0TrainingRepo.Controllers
             string resultContent = result.Content.ReadAsStringAsync().Result;
             //Console.WriteLine(resultContent);
 	        await _context.SaveChangesAsync();
-            return CreatedAtAction("GetOwncloudShare", new { id = owncloudShare.ShareId }, owncloudShare);
+            return CreatedAtAction("GetOwncloudFile", new { id = OwncloudFile.ShareId }, OwncloudFile);
         }
 
-        // DELETE: api/OwncloudShares/5
+        // DELETE: api/OwncloudFiles/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOwncloudShare(string id)
+        public async Task<IActionResult> DeleteOwncloudFile(string id)
         {
-            var owncloudShare = await _context.OwncloudShares.FindAsync(id);
-            if (owncloudShare == null)
+            var OwncloudFile = await _context.OwncloudFiles.FindAsync(id);
+            if (OwncloudFile == null)
             {
                 return NotFound();
             }
 
-            _context.OwncloudShares.Remove(owncloudShare);
+            _context.OwncloudFiles.Remove(OwncloudFile);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool OwncloudShareExists(string id)
+        private bool OwncloudFileExists(string id)
         {
-            return _context.OwncloudShares.Any(e => e.ShareId == id);
+            return _context.OwncloudFiles.Any(e => e.ShareId == id);
         }
     }
 }

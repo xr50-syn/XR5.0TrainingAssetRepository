@@ -1,25 +1,29 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using XR5_0TrainingRepo.Models;
 
+
 namespace XR5_0TrainingRepo.Models
 {
-
-    public class OwncloudShare
+    enum ShareType{
+        Group,
+        User
+    }
+    public class Share
+    {
+        ShareType Type { get; set;}
+        string Target {get; set;}
+    }
+    public class OwncloudFile
     {
 
         public string? Path { get; set; }
         public string? Description { get; set; }
         public string? OwncloudFileName { get; set; }
-        public string? TrainingName { get; set; }
-        public string? ResourceName { get; set; }
-        public string? AppName { get; set; }
-        public string? AssetId { get; set; }
-        public string? Type { get; set; }
-        public string Target { get; set; }
+        public virtual List<Share>? ShareList { get; set; }
 
         [Key]
         public string ShareId { get; set; }
-        public OwncloudShare()
+        public OwncloudFile()
         {
             ShareId= Guid.NewGuid().ToString();
         }
