@@ -92,7 +92,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var XR50Tennant = await _context.Apps.FindAsync(Training.TennantName);
+            var XR50Tennant = await _context.Tennants.FindAsync(Training.TennantName);
             if (XR50Tennant == null)
             {
                 return NotFound();

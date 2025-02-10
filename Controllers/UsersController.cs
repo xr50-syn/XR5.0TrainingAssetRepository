@@ -87,7 +87,7 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var XR50Tennant = await _context.Apps.FindAsync(user.TennantName);
+            var XR50Tennant = await _context.Tennants.FindAsync(user.TennantName);
             if (XR50Tennant == null)
             {
                 return NotFound();
@@ -129,7 +129,7 @@ namespace XR5_0TrainingRepo.Controllers
         }
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
-            var XR50Tennant = await _context.Apps.FindAsync(group.TennantName);
+            var XR50Tennant = await _context.Tennants.FindAsync(group.TennantName);
             if (XR50Tennant == null)
             {
                 return NotFound($"Couldnt Find Tennant {group.TennantName}");
@@ -181,30 +181,8 @@ namespace XR5_0TrainingRepo.Controllers
             var resultAdmin = _httpClient.SendAsync(requestAdmin).Result;
             string resultAdminContent = resultAdmin.Content.ReadAsStringAsync().Result;
             Console.WriteLine($"Response content: {resultAdminContent}");
-
-            // Create root dir for the App, owned by Admin
-	        string cmd="curl";
-            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/\"";
-            // Create root dir for the App
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            }
             _context.SaveChanges();
-            return CreatedAtAction("PostXR50Tennant", XR50Tennant);
+            return CreatedAtAction("PostGroup", group);
         }
         // DELETE: api/Users/5
         [HttpDelete("{userName}")]

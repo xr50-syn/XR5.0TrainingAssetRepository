@@ -99,7 +99,7 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
 	        Training.MaterialList.Remove(MaterialId);
-            var XR50Tennant = await _context.Apps.FindAsync(Training.TennantName);
+            var XR50Tennant = await _context.Tennants.FindAsync(Training.TennantName);
             if (XR50Tennant == null)
             {
                 return NotFound();
@@ -123,7 +123,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
 	        string cmd="curl";
             string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
-            // Create root dir for the App
+            // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {

@@ -89,11 +89,11 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<Asset>> PostAsset(Asset asset)
         {
 
-	        var XR50Tennant = await _context.Apps.FindAsync(asset.TennantName);
+	        var XR50Tennant = await _context.Tennants.FindAsync(asset.TennantName);
            
             if (XR50Tennant == null)
             {
-                return NotFound($"App {asset.TennantName} Not Found");
+                return NotFound($"Tennant {asset.TennantName} Not Found");
             } 
             
             var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
@@ -116,7 +116,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var XR50Tennant = await _context.Apps.FindAsync(Asset.TennantName);     
+            var XR50Tennant = await _context.Tennants.FindAsync(Asset.TennantName);     
             if (XR50Tennant == null)
             {
                 return NotFound();

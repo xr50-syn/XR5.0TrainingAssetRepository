@@ -114,7 +114,7 @@ namespace XR5_0TrainingRepo.Controllers
         
             _context.OwncloudFiles.Add(Owncloudfile);
 
-            var XR50Tennant = await _context.Apps.FindAsync(Owncloudfile.TennantName);
+            var XR50Tennant = await _context.Tennants.FindAsync(Owncloudfile.TennantName);
             if (XR50Tennant == null)
             {
                 return NotFound($"Tennant {Owncloudfile.TennantName}");
@@ -137,7 +137,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
 	        string cmd="curl";
             string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{Owncloudfile.Path}/{Owncloudfile.OwncloudFileName}\"";
-            // Create root dir for the App
+            // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
