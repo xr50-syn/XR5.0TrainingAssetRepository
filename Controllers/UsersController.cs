@@ -127,7 +127,85 @@ namespace XR5_0TrainingRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
+        public async Task<ActionResult<Group>> PostGroup(Group group)
+        {
+            var XR50Tennant = await _context.Apps.FindAsync(group.TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Couldnt Find Tennant {group.TennantName}");
+            } 
 
+            var values = new List<KeyValuePair<string, string>>();
+            values.Add(new KeyValuePair<string, string>("groupid", group.GroupName));
+            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
+            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
+            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
+            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
+            var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
+            {
+                Content = messageContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            _httpClient.BaseAddress = new Uri(uri_base);
+           // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var result = _httpClient.SendAsync(request).Result;
+            string resultContent = result.Content.ReadAsStringAsync().Result;
+            User adminUser = XR50Tennant.Owner;
+            XR50Tennant.OwnerName = adminUser.UserName;
+	        XR50Tennant.AdminList.Add(adminUser.UserName);
+            _context.Users.Add(adminUser);
+            _context.SaveChanges();
+            //Console.WriteLine($"Response content: {resultContent}");
+            //Create the admin User
+            var valuesAdmin = new List<KeyValuePair<string, string>>();
+            valuesAdmin.Add(new KeyValuePair<string, string>("userid", adminUser.UserName));
+            valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
+            valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
+            valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tennant.OwncloudGroup));
+            //Target The User Interface
+            uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
+           
+            var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
+            {
+                Content = messageContentAdmin
+            };
+            requestAdmin.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+           
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var resultAdmin = _httpClient.SendAsync(requestAdmin).Result;
+            string resultAdminContent = resultAdmin.Content.ReadAsStringAsync().Result;
+            Console.WriteLine($"Response content: {resultAdminContent}");
+
+            // Create root dir for the App, owned by Admin
+	        string cmd="curl";
+            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/\"";
+            // Create root dir for the App
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
+            _context.SaveChanges();
+            return CreatedAtAction("PostXR50Tennant", XR50Tennant);
+        }
         // DELETE: api/Users/5
         [HttpDelete("{userName}")]
         public async Task<IActionResult> DeleteUser(string userName)
