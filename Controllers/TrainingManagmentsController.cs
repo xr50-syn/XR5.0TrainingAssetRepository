@@ -102,9 +102,9 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {Training.TennantName}");
             }
-            foreach (string resourceId in Training.ResourceList) {
-                var resource= await _context.Resources.FindAsync(resourceId);
-                _context.Resources.Remove(resource);
+            foreach (string resourceId in Training.MaterialList) {
+                var resource= await _context.Materials.FindAsync(resourceId);
+                _context.Materials.Remove(resource);
             }
             _context.Trainings.Remove(Training);
             XR50Tennant.TrainingList.Remove(Training.TrainingId);

@@ -28,18 +28,18 @@ namespace XR5_0TrainingRepo.Controllers
             _configuration = configuration; 
         }
 
-        // GET: api/ResourceManagements
+        // GET: api/MaterialManagements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Material>>> GetResource()
+        public async Task<ActionResult<IEnumerable<Material>>> GetMaterial()
         {
-            return await _context.Resources.ToListAsync();
+            return await _context.Materials.ToListAsync();
         }
 
-        // GET: api/ResourceManagements/5
-        [HttpGet("{ResourceId}")]
-        public async Task<ActionResult<Material>> GetResourceManagement(string ResourceId)
+        // GET: api/MaterialManagements/5
+        [HttpGet("{MaterialId}")]
+        public async Task<ActionResult<Material>> GetMaterialManagement(string MaterialId)
         {
-            var Material = await _context.Resources.FindAsync(ResourceId);
+            var Material = await _context.Materials.FindAsync(MaterialId);
 
             if (Material == null)
             {
@@ -49,12 +49,12 @@ namespace XR5_0TrainingRepo.Controllers
             return Material;
         }
 
-       /* // PUT: api/ResourceManagements/5
+       /* // PUT: api/MaterialManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{ResourceId}")]
-        public async Task<IActionResult> PutResourceManagement(string ResourceId, Material Material)
+        [HttpPut("{MaterialId}")]
+        public async Task<IActionResult> PutMaterialManagement(string MaterialId, Material Material)
         {
-            if (!ResourceId.Equals(Material.ResourceId))
+            if (!MaterialId.Equals(Material.MaterialId))
             {
                 return BadRequest();
             }
@@ -67,7 +67,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ResourceManagementExists(ResourceId))
+                if (!MaterialManagementExists(MaterialId))
                 {
                     return NotFound();
                 }
@@ -80,17 +80,17 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 */
-        // DELETE: api/ResourceManagements/5
-        [HttpDelete("{ResourceId}")]
-        public async Task<IActionResult> DeleteMaterialById(string ResourceId)
+        // DELETE: api/MaterialManagements/5
+        [HttpDelete("{MaterialId}")]
+        public async Task<IActionResult> DeleteMaterialById(string MaterialId)
         {
-            var Material = await _context.Resources.FindAsync(ResourceId);
+            var Material = await _context.Materials.FindAsync(MaterialId);
             if (Material == null)
             {
                 return NotFound();
             }
 
-            _context.Resources.Remove(Material);
+            _context.Materials.Remove(Material);
             await _context.SaveChangesAsync();
 
 	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Material.TrainingName) && t.TennantName.Equals(Material.TennantName));
@@ -98,7 +98,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-	        Training.ResourceList.Remove(ResourceId);
+	        Training.MaterialList.Remove(MaterialId);
             var XR50Tennant = await _context.Apps.FindAsync(Training.TennantName);
             if (XR50Tennant == null)
             {
@@ -113,16 +113,16 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
-            string ResourcePath= Material.ResourceName;
+            string MaterialPath= Material.MaterialName;
             if (Material.ParentType.Equals("RESOURCE")) {
-            var ParentResource= await _context.Resources.FindAsync(Material.ParentId);
-                while (ParentResource.ParentType.Equals("RESOURCE")) {
-                    ResourcePath= ParentResource.ResourceName +"/" + ResourcePath;
-                    ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
+            var ParentMaterial= await _context.Materials.FindAsync(Material.ParentId);
+                while (ParentMaterial.ParentType.Equals("RESOURCE")) {
+                    MaterialPath= ParentMaterial.MaterialName +"/" + MaterialPath;
+                    ParentMaterial = await _context.Materials.FindAsync(ParentMaterial.ParentId);
                 }
             }
 	        string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{ResourcePath}\"";
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
             // Create root dir for the App
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -143,9 +143,9 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return NoContent();
         }
-        private bool ResourceManagementExists(string ResourceName)
+        private bool MaterialManagementExists(string MaterialName)
         {
-            return _context.Resources.Any(e => e.ResourceName.Equals(ResourceName));
+            return _context.Materials.Any(e => e.MaterialName.Equals(MaterialName));
         }
     }
 }

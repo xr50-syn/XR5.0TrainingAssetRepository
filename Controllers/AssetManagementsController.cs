@@ -122,9 +122,9 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }                                          
 	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.TennantName.Equals(Asset.TennantName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.TennantName}");                                                              }
-	        if (Asset.ResourceId!=null) {
-	    	    var Resource = await _context.Resources.FindAsync(Asset.ResourceId);
-                Resource.AssetList.Remove(Asset.AssetId);                                                             
+	        if (Asset.MaterialId!=null) {
+	    	    var Material = await _context.Materials.FindAsync(Asset.MaterialId);
+                Material.AssetList.Remove(Asset.AssetId);                                                             
 	        } else {
 		        Training.AssetList.Remove(Asset.AssetId);
 	        }

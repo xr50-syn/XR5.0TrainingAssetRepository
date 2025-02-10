@@ -63,9 +63,9 @@ namespace XR5_0TrainingRepo.Controllers
         }
         // GET: api/XR50Tennant/5
         [HttpGet("{TennantName}/{TrainingName}/Materials")]
-        public async Task<ActionResult<IEnumerable<Material>>> GetTrainingResources(string TennantName,string TrainingName)
+        public async Task<ActionResult<IEnumerable<Material>>> GetTrainingMaterials(string TennantName,string TrainingName)
         {
-            return  _context.Resources.Where(r=>r.TennantName.Equals(TennantName) && r.TrainingName.Equals(TrainingName)).ToList();
+            return  _context.Materials.Where(r=>r.TennantName.Equals(TennantName) && r.TrainingName.Equals(TrainingName)).ToList();
         }
         /*
         // PUT: api/XR50Tennant/5
@@ -231,7 +231,7 @@ namespace XR5_0TrainingRepo.Controllers
         // POST: api/XR50Tennant
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}")]
-        public async Task<ActionResult<Material>> PostResourceManagement(string TennantName, string TrainingName, Material Material)
+        public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, string TrainingName, Material Material)
         {
 
             var XR50Tennant = await _context.Apps.FindAsync(Material.TennantName);
@@ -249,9 +249,9 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Training for {Material.TrainingName}");
             }
-            Material.ResourceId = Guid.NewGuid().ToString();
-            Training.ResourceList.Add(Material.ResourceId);
-            _context.Resources.Add(Material);
+            Material.MaterialId = Guid.NewGuid().ToString();
+            Training.MaterialList.Add(Material.MaterialId);
+            _context.Materials.Add(Material);
             Material.ParentType = "TRAINING";
             await _context.SaveChangesAsync();
            
@@ -281,11 +281,11 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostResourceManagement", Material);
+            return CreatedAtAction("PostMaterialManagement", Material);
         }
 
-         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{ParentResourceId}")]
-        public async Task<ActionResult<Material>> PostResourceManagement(string TennantName, string TrainingName, string ParentResourceId, Material Material)
+         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{ParentMaterialId}")]
+        public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, string TrainingName, string ParentMaterialId, Material Material)
         {
 
             var XR50Tennant = await _context.Apps.FindAsync(TennantName);
@@ -303,28 +303,28 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Training for {Material.TrainingName}");
             }
-            var ParentResource = await _context.Resources.FindAsync(ParentResourceId);
-            if (ParentResource == null) {
-                return NotFound($"Couldnt Find Resource with Id: {ParentResourceId}");
+            var ParentMaterial = await _context.Materials.FindAsync(ParentMaterialId);
+            if (ParentMaterial == null) {
+                return NotFound($"Couldnt Find Material with Id: {ParentMaterialId}");
             }
-            Material.ResourceId = Guid.NewGuid().ToString();
+            Material.MaterialId = Guid.NewGuid().ToString();
             Material.ParentType = "RESOURCE";
-            Material.ParentId =ParentResource.ResourceId;
-            ParentResource.ResourceList.Add(Material.ResourceId);
-            _context.Resources.Add(Material);
+            Material.ParentId =ParentMaterial.MaterialId;
+            ParentMaterial.MaterialList.Add(Material.MaterialId);
+            _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
             
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            string ResourcePath=ParentResource.ResourceName + "/"+ Material.ResourceName;
-            while (ParentResource.ParentType.Equals("RESOURCE")) {
-                ResourcePath= ParentResource.ResourceName + "/" + ResourcePath;
-                ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
+            string MaterialPath=ParentMaterial.MaterialName + "/"+ Material.MaterialName;
+            while (ParentMaterial.ParentType.Equals("RESOURCE")) {
+                MaterialPath= ParentMaterial.MaterialName + "/" + MaterialPath;
+                ParentMaterial = await _context.Materials.FindAsync(ParentMaterial.ParentId);
             }
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{ResourcePath}\"";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
             // Create root dir for the App
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -345,7 +345,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostResourceManagement", Material);
+            return CreatedAtAction("PostMaterialManagement", Material);
         }
 
         // DELETE: api/XR50Tennant/5
@@ -366,9 +366,9 @@ namespace XR5_0TrainingRepo.Controllers
 
             foreach (string trainingId in XR50Tennant.TrainingList) {
               var training= await _context.Trainings.FindAsync(trainingId);
-              foreach (string resourceId in training.ResourceList) {
-                var resource= await _context.Resources.FindAsync(resourceId);
-                _context.Resources.Remove(resource);
+              foreach (string resourceId in training.MaterialList) {
+                var resource= await _context.Materials.FindAsync(resourceId);
+                _context.Materials.Remove(resource);
               }     
               _context.Trainings.Remove(training);
             }
@@ -446,9 +446,9 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {Training.TennantName}");
             }
-            foreach (string resourceId in Training.ResourceList) {
-                var resource= await _context.Resources.FindAsync(resourceId);
-                _context.Resources.Remove(resource);
+            foreach (string resourceId in Training.MaterialList) {
+                var resource= await _context.Materials.FindAsync(resourceId);
+                _context.Materials.Remove(resource);
               }     
             _context.Trainings.Remove(Training);
             XR50Tennant.TrainingList.Remove(Training.TrainingId);
@@ -485,16 +485,16 @@ namespace XR5_0TrainingRepo.Controllers
 
 
         // DELETE: api/XR50Tennant/
-        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{ResourceName}")]
-        public async Task<IActionResult> DeleteMaterial(string TennantName, string TrainingName, string ResourceName)
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{MaterialName}")]
+        public async Task<IActionResult> DeleteMaterial(string TennantName, string TrainingName, string MaterialName)
         {
-            var Material = _context.Resources.FirstOrDefault( r=> r.ResourceName.Equals(ResourceName) && r.TrainingName.Equals(TrainingName) && r.TennantName.Equals(TennantName));
+            var Material = _context.Materials.FirstOrDefault( r=> r.MaterialName.Equals(MaterialName) && r.TrainingName.Equals(TrainingName) && r.TennantName.Equals(TennantName));
             if (Material == null)
             {
                 return NotFound();
             }
 
-            _context.Resources.Remove(Material);
+            _context.Materials.Remove(Material);
             await _context.SaveChangesAsync();
 
 	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.TennantName.Equals(TennantName));
@@ -502,7 +502,7 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-	        Training.ResourceList.Remove(Material.ResourceId);
+	        Training.MaterialList.Remove(Material.MaterialId);
             var XR50Tennant = await _context.Apps.FindAsync(Training.TennantName);
             if (XR50Tennant == null)
             {

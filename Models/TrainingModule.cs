@@ -13,8 +13,8 @@ namespace XR5_0TrainingRepo.Models
         
         public string? UseCase { get; set; }
         public string TrainingId { get; set; }
-        [ForeignKey("Resources")]
-        public virtual List<string>? ResourceList { get; set; }
+        [ForeignKey("Materials")]
+        public virtual List<string>? MaterialList { get; set; }
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
         public string TennantName { get; set; }
@@ -23,7 +23,7 @@ namespace XR5_0TrainingRepo.Models
         public TrainingModule()
         {
             TrainingId= Guid.NewGuid().ToString();;	    
-            ResourceList = new List<string>();
+            MaterialList = new List<string>();
             AssetList = new List<string>();
 
         }

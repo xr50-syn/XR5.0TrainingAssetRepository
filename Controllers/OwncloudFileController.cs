@@ -20,7 +20,7 @@ namespace XR5_0TrainingRepo.Controllers
         public string? OwncloudFileName { get; set; }
         public string? TennantName { get; set; }
         public string? TrainingName { get; set; }
-        public string? ResourceId { get; set; } 
+        public string? MaterialId { get; set; } 
         public string? Type { get; set; }
         public string? Description {get; set;}
         public IFormFile File { get; set; }

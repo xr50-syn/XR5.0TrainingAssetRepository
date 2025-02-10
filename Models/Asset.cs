@@ -12,7 +12,7 @@ namespace XR5_0TrainingRepo.Models
         public string? OwncloudPath { get; set; }
         public string? TennantName { get; set; }
         public string? TrainingName { get; set; }
-        public string? ResourceId { get; set; } 
+        public string? MaterialId { get; set; } 
         public string? ParentId {get; set;}
         public string? ParentType {get; set;}
         public string? Type { get; set; }

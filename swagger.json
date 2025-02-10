@@ -274,14 +274,14 @@
         }
       }
     },
-    "/xr50/training-repo/resource-management/Material/{ResourceName}": {
+    "/xr50/training-repo/resource-management/Material/{MaterialName}": {
       "get": {
         "tags": [
           "Material"
         ],
         "parameters": [
           {
-            "name": "ResourceName",
+            "name": "MaterialName",
             "in": "path",
             "required": true,
             "schema": {
@@ -318,7 +318,7 @@
         ],
         "parameters": [
           {
-            "name": "ResourceName",
+            "name": "MaterialName",
             "in": "path",
             "required": true,
             "schema": {
@@ -357,7 +357,7 @@
         ],
         "parameters": [
           {
-            "name": "ResourceName",
+            "name": "MaterialName",
             "in": "path",
             "required": true,
             "schema": {
