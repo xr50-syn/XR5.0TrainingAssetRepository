@@ -11,7 +11,7 @@ namespace XR5_0TrainingRepo.Models
     public class Share
     {
         [Key]
-        public string ShareId { get; set; }\
+        public string ShareId { get; set; }
         public ShareType Type { get; set;}
         public string Target {get; set;}
         public Share()

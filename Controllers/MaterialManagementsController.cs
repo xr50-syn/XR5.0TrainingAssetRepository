@@ -16,12 +16,12 @@ namespace XR5_0TrainingRepo.Controllers
 {
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
-    public class resource_managementController : ControllerBase
+    public class material_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public resource_managementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
+        public material_managementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;

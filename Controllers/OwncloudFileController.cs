@@ -28,13 +28,13 @@ namespace XR5_0TrainingRepo.Controllers
     
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
-    public class owncloudFile_Controller : ControllerBase
+    public class owncloudFile_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public owncloudFile_Controller(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public owncloudFile_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;

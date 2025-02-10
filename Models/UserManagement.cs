@@ -5,7 +5,7 @@ namespace XR5_0TrainingRepo.Models
 {
     public class User
     {
-        
+        public string TennantName;
         public string? FullName { get; set; }
         public string? UserEmail { get; set; }
         public string? Password { get; set; }

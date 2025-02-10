@@ -22,13 +22,13 @@ namespace XR5_0TrainingRepo.Controllers
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     
-    public class app_managementController : ControllerBase
+    public class tennant_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
      
-        public app_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public tennant_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -62,10 +62,10 @@ namespace XR5_0TrainingRepo.Controllers
             return _context.Trainings.Where(t=>t.TennantName.Equals(TennantName)).ToList();
         }
         // GET: api/XR50Tennant/5
-        [HttpGet("{TennantName}/{trainingName}/Materials")]
-        public async Task<ActionResult<IEnumerable<Material>>> GetTrainingResources(string TennantName,string trainingName)
+        [HttpGet("{TennantName}/{TrainingName}/Materials")]
+        public async Task<ActionResult<IEnumerable<Material>>> GetTrainingResources(string TennantName,string TrainingName)
         {
-            return  _context.Resources.Where(r=>r.TennantName.Equals(TennantName) && r.TrainingName.Equals(trainingName)).ToList();
+            return  _context.Resources.Where(r=>r.TennantName.Equals(TennantName) && r.TrainingName.Equals(TrainingName)).ToList();
         }
         /*
         // PUT: api/XR50Tennant/5
