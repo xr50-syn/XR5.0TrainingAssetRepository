@@ -93,21 +93,21 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Resources.Remove(Material);
             await _context.SaveChangesAsync();
 
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Material.TrainingName) && t.AppName.Equals(Material.AppName));
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Material.TrainingName) && t.TennantName.Equals(Material.TennantName));
             if (Training == null)
             {
                 return NotFound();
             }
 	        Training.ResourceList.Remove(ResourceId);
-            var XR50App = await _context.Apps.FindAsync(Training.AppName);
-            if (XR50App == null)
+            var XR50Tennant = await _context.Apps.FindAsync(Training.TennantName);
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Admin user for {Training.TennantName}");
             }
             string username = admin.UserName;
             string password = admin.Password;
@@ -122,7 +122,7 @@ namespace XR5_0TrainingRepo.Controllers
                 }
             }
 	        string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourcePath}\"";
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{ResourcePath}\"";
             // Create root dir for the App
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo

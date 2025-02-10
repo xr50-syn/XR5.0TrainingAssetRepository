@@ -87,15 +87,15 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var XR50App = await _context.Apps.FindAsync(user.AppName);
-            if (XR50App == null)
+            var XR50Tennant = await _context.Apps.FindAsync(user.TennantName);
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }
             
             if (user.admin)
             {
-                XR50App.AdminList.Add(user.UserName);
+                XR50Tennant.AdminList.Add(user.UserName);
             }
             _context.Users.Add(user);
             _context.SaveChanges();
@@ -105,7 +105,7 @@ namespace XR5_0TrainingRepo.Controllers
             values.Add(new KeyValuePair<string, string>("password", user.Password));
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
-            values.Add(new KeyValuePair<string, string>("groups[]", XR50App.OwncloudGroup));
+            values.Add(new KeyValuePair<string, string>("groups[]", XR50Tennant.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");

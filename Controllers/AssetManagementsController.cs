@@ -1,26 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Net.Http;
+using System.Text;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using XR5_0TrainingRepo.Models;
+using System.Configuration;
+using System.Threading.Tasks;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-     public class AssetUploadFormData
-    {
-        public string? OwncloudFileName { get; set; }
-        public string? AppName { get; set; }
-        public string? TrainingName { get; set; }
-        public string? ResourceId { get; set; } 
-        public string? Type { get; set; }
-        public string? Description {get; set;}
-        public IFormFile Asset { get; set; }
-    }
+    
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     public class asset_managementController : ControllerBase
@@ -91,86 +86,22 @@ namespace XR5_0TrainingRepo.Controllers
         // POST: api/Asset
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Asset>> PostAsset([FromForm] AssetUploadFormData assetUpload)
+        public async Task<ActionResult<Asset>> PostAsset(Asset asset)
         {
 
-	        var XR50App = await _context.Apps.FindAsync(assetUpload.AppName);
-            Asset asset= new Asset();
-            asset.AppName=assetUpload.AppName;
-            asset.OwncloudFileName=assetUpload.OwncloudFileName;
-            asset.TrainingName=assetUpload.TrainingName;
-            asset.ResourceId=assetUpload.ResourceId;
-            asset.Type=assetUpload.Type;
-            asset.Description=assetUpload.Description;
-
-            if (XR50App == null)
+	        var XR50Tennant = await _context.Apps.FindAsync(asset.TennantName);
+           
+            if (XR50Tennant == null)
             {
-                return NotFound($"App {assetUpload.AppName} Not Found");
+                return NotFound($"App {asset.TennantName} Not Found");
             } 
-            var Training = _context.Trainings.FirstOrDefault(t=> t.AppName.Equals(assetUpload.AppName) && t.TrainingName.Equals(assetUpload.TrainingName)); 
-            if (Training == null)
-            {
-                return NotFound($"Couldnt Find Training {assetUpload.TrainingName} Not Found");
-            }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {Training.AppName}");
+                return NotFound($"Couldnt Find Admin user for {asset.TennantName}");
             }
            
-            string username = admin.UserName;
-            string password = admin.Password; ;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
-            if (assetUpload.ResourceId != null)
-            {
-		        var Resource = await _context.Resources.FindAsync(assetUpload.ResourceId);
-		        Resource.AssetList.Add(asset.AssetId);
-                asset.ParentType="RESOURCE";
-                asset.ParentId=assetUpload.ResourceId;
-                var ParentResource = await _context.Resources.FindAsync(assetUpload.ResourceId);
-                 if (ParentResource == null) {
-                    return NotFound($"Couldnt Find Resource with Id: {assetUpload.ResourceId}");
-                }
-                string OwncloudPath= ParentResource.ResourceName;
-                do {
-                    ParentResource = await _context.Resources.FindAsync(ParentResource.ParentId);
-                    OwncloudPath= ParentResource.ResourceName + "/" + OwncloudPath; 
-                } while (ParentResource.ParentType.Equals("RESOURCE"));
-                asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/{OwncloudPath}";
-
-            } else
-            {
-		        Training.AssetList.Add(asset.AssetId);
-                asset.OwncloudPath = $"{XR50App.OwncloudDirectory}/{Training.TrainingName}/";
-                asset.ParentId=Training.TrainingId;
-                asset.ParentType="TRAINING";
-            }
-            string tempFileName=Path.GetTempFileName();
-            using (var stream = System.IO.File.Create(tempFileName))
-            {
-                  await assetUpload.Asset.CopyToAsync(stream);
-            }
-	        string cmd="curl";
-            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{asset.OwncloudPath}/{asset.OwncloudFileName}\"";
-            // Create root dir for the App
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            }
             _context.Assets.Add(asset);
             await _context.SaveChangesAsync();
             return CreatedAtAction("PostAsset", asset);
@@ -185,12 +116,12 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var XR50App = await _context.Apps.FindAsync(Asset.AppName);     
-            if (XR50App == null)
+            var XR50Tennant = await _context.Apps.FindAsync(Asset.TennantName);     
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }                                          
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50App.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.AppName}");                                                              }
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.TennantName.Equals(Asset.TennantName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.TennantName}");                                                              }
 	        if (Asset.ResourceId!=null) {
 	    	    var Resource = await _context.Resources.FindAsync(Asset.ResourceId);
                 Resource.AssetList.Remove(Asset.AssetId);                                                             

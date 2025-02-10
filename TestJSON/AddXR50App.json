@@ -1,5 +1,5 @@
 {
-  "appName": "FairyTale",
+  "TennantName": "FairyTale",
   "OwncloudGroup": "FairyTale",
   "OwncloudDirectory": "Copy_of_Amethysts_Library",
   "Description": "Hijacked by the evil dragon",
@@ -10,7 +10,7 @@
     "userEmail": "evilwyrm666@hisevilness.evil",
     "password": "3v1l",
     "admin": true,
-    "appName": "FairyTale"
+    "TennantName": "FairyTale"
   },
   "adminList": [],
   "trainingList": []

@@ -5,8 +5,8 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models {
     public class Material
-{
-        public string? AppName { get; set; }
+    {
+        public string? TennantName { get; set; }
         public string? Description { get; set; }
         public string? OwncloudFileName { get; set; }
         public string? TrainingName { get; set; }

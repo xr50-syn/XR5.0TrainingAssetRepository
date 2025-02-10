@@ -4,24 +4,37 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using XR5_0TrainingRepo.Models;
 using System.Configuration;
+using System.Threading.Tasks;
 
 namespace XR5_0TrainingRepo.Controllers
 {
+     public class FileUploadFormData
+     {
+        public string? OwncloudFileName { get; set; }
+        public string? TennantName { get; set; }
+        public string? TrainingName { get; set; }
+        public string? ResourceId { get; set; } 
+        public string? Type { get; set; }
+        public string? Description {get; set;}
+        public IFormFile File { get; set; }
+    }
+    
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
-    public class share_managementController : ControllerBase
+    public class owncloudFile_Controller : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public share_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public owncloudFile_Controller(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -51,15 +64,24 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/OwncloudFiles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-      /*  [HttpPut("{id}")]
-        public async Task<IActionResult> PutOwncloudFile(string id, OwncloudFile OwncloudFile)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ShareFile(string id, Share share)
         {
-            if (id != OwncloudFile.ShareId)
+             int shareType;
+            if (share.Type == ShareType.Group)
             {
-                return BadRequest();
+                
+            } else
+            {
+                
             }
-
-            _context.Entry(OwncloudFile).State = EntityState.Modified;
+            var Owncloudfile = _context.OwncloudFiles.FindAsync(id);
+            if (Owncloudfile == null) {
+                Console.WriteLine($"Did not find File with id: {id}");
+                return NotFound();
+            }
+            
+            _context.Entry(Owncloudfile).State = EntityState.Modified;
 
             try
             {
@@ -79,85 +101,63 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-*/
+
         // POST: api/OwncloudFiles
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<OwncloudFile>> PostOwncloudFile(OwncloudFile OwncloudFile)
+        public async Task<ActionResult<OwncloudFile>> PostOwncloudFile([FromForm] FileUploadFormData fileUpload)
         {
-            _context.OwncloudFiles.Add(OwncloudFile);
+            OwncloudFile Owncloudfile= new OwncloudFile();
+            Owncloudfile.Description=fileUpload.Description;
+            Owncloudfile.OwncloudFileName=fileUpload.OwncloudFileName;
+            Owncloudfile.TennantName=fileUpload.TennantName;
+        
+            _context.OwncloudFiles.Add(Owncloudfile);
 
-            var XR50App = await _context.Apps.FindAsync(OwncloudFile.AppName);
-            if (XR50App == null)
+            var XR50Tennant = await _context.Apps.FindAsync(Owncloudfile.TennantName);
+            if (XR50Tennant == null)
             {
-                return NotFound($"App {OwncloudFile.AppName}");
+                return NotFound($"Tennant {Owncloudfile.TennantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {OwncloudFile.AppName}");
+                return NotFound($"Admin user for {Owncloudfile.TennantName}");
             }
-            string shareTarget;
-            int shareType;
-            if (OwncloudFile.Type == "Group")
-            {
-                shareTarget = XR50App.OwncloudGroup;
-                shareType = 1;
-            } else
-            {
-                shareTarget = OwncloudFile.Target;
-                shareType = 0;
-            }
-            string assetId;
-            if (OwncloudFile.AssetId== null)
-            {
-                assetId = "";
-                return NotFound("No Asset ID provided to share");
-            } else
-            {
-                assetId=OwncloudFile.AssetId;
-            }
-            var Asset = await _context.Assets.FindAsync(assetId);
-            if (Asset==null)
-            {
-                    return NotFound($"Asset with {OwncloudFile.AssetId}");
-            }
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.AppName.Equals(Asset.AppName));
-            if (Training == null)
-            {
-                return NotFound($"Training for {OwncloudFile.TrainingName}");
-            }
-            OwncloudFile.OwncloudFileName=Asset.OwncloudFileName;
-            OwncloudFile.Description=Asset.Description;
-            OwncloudFile.TrainingName=Asset.TrainingName;
             
-            var values = new List<KeyValuePair<string, string>>();
-            values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
-            values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
-            values.Add(new KeyValuePair<string, string>("permissions", 1.ToString()));
-
-            values.Add(new KeyValuePair<string, string>("path", $"{Asset.OwncloudPath}/{Asset.OwncloudFileName}"));
-            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = admin.UserName;
-            string password = admin.Password;
-
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_share = _configuration.GetValue<string>("OwncloudSettings:ShareManagementPath");
+            string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            string authenticationString = $"{username}:{password}";
-            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-            var request = new HttpRequestMessage(HttpMethod.Post, uri_share)
+            // Createe root dir for the Training
+            
+            string tempFileName=Path.GetTempFileName();
+            using (var stream = System.IO.File.Create(tempFileName))
             {
-                Content = messageContent
+                  await fileUpload.File.CopyToAsync(stream);
+            }
+	        string cmd="curl";
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{Owncloudfile.Path}/{Owncloudfile.OwncloudFileName}\"";
+            // Create root dir for the App
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
-            _httpClient.BaseAddress = new Uri(uri_base);
-            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
-            var result = _httpClient.SendAsync(request).Result;
-            string resultContent = result.Content.ReadAsStringAsync().Result;
-            //Console.WriteLine(resultContent);
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            
+            }
 	        await _context.SaveChangesAsync();
-            return CreatedAtAction("GetOwncloudFile", new { id = OwncloudFile.ShareId }, OwncloudFile);
+            return CreatedAtAction("PostOwncloudFile", new { id = Owncloudfile.FileId }, Owncloudfile);
         }
 
         // DELETE: api/OwncloudFiles/5
@@ -178,7 +178,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         private bool OwncloudFileExists(string id)
         {
-            return _context.OwncloudFiles.Any(e => e.ShareId == id);
+            return _context.OwncloudFiles.Any(e => e.FileId == id);
         }
     }
 }

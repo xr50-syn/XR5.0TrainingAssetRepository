@@ -698,10 +698,10 @@
         }
       }
     },
-    "/xr50/training-repo/xr50app-management/XR50App": {
+    "/xr50/training-repo/XR50Tennant-management/XR50Tennant": {
       "get": {
         "tags": [
-          "XR50App"
+          "XR50Tennant"
         ],
         "responses": {
           "200": {
@@ -711,7 +711,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/XR50App"
+                    "$ref": "#/components/schemas/XR50Tennant"
                   }
                 }
               },
@@ -719,7 +719,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/XR50App"
+                    "$ref": "#/components/schemas/XR50Tennant"
                   }
                 }
               },
@@ -727,7 +727,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/XR50App"
+                    "$ref": "#/components/schemas/XR50Tennant"
                   }
                 }
               }
@@ -737,23 +737,23 @@
       },
       "post": {
         "tags": [
-          "XR50App"
+          "XR50Tennant"
         ],
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/XR50App"
+                "$ref": "#/components/schemas/XR50Tennant"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/XR50App"
+                "$ref": "#/components/schemas/XR50Tennant"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/XR50App"
+                "$ref": "#/components/schemas/XR50Tennant"
               }
             }
           }
@@ -764,17 +764,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/XR50App"
+                  "$ref": "#/components/schemas/XR50Tennant"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/XR50App"
+                  "$ref": "#/components/schemas/XR50Tennant"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/XR50App"
+                  "$ref": "#/components/schemas/XR50Tennant"
                 }
               }
             }
@@ -782,14 +782,14 @@
         }
       }
     },
-    "/xr50/training-repo/xr50app-management/XR50App/{appName}": {
+    "/xr50/training-repo/XR50Tennant-management/XR50Tennant/{TennantName}": {
       "get": {
         "tags": [
-          "XR50App"
+          "XR50Tennant"
         ],
         "parameters": [
           {
-            "name": "appName",
+            "name": "TennantName",
             "in": "path",
             "required": true,
             "schema": {
@@ -803,17 +803,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/XR50App"
+                  "$ref": "#/components/schemas/XR50Tennant"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/XR50App"
+                  "$ref": "#/components/schemas/XR50Tennant"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/XR50App"
+                  "$ref": "#/components/schemas/XR50Tennant"
                 }
               }
             }
@@ -822,11 +822,11 @@
       },
       "delete": {
         "tags": [
-          "XR50App"
+          "XR50Tennant"
         ],
         "parameters": [
           {
-            "name": "appName",
+            "name": "TennantName",
             "in": "path",
             "required": true,
             "schema": {
@@ -908,7 +908,7 @@
       "TrainingModule": {
         "type": "object",
         "properties": {
-          "appName": {
+          "TennantName": {
             "type": "string",
             "nullable": true
           },
@@ -950,14 +950,14 @@
             "type": "string",
             "nullable": true
           },
-          "appName": {
+          "TennantName": {
             "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "XR50App": {
+      "XR50Tennant": {
         "type": "object",
         "properties": {
           "owncloudGroup": {
@@ -972,7 +972,7 @@
             "type": "string",
             "nullable": true
           },
-          "appName": {
+          "TennantName": {
             "type": "string",
             "nullable": true
           }

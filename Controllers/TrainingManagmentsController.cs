@@ -53,7 +53,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/Training/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-       /* [HttpPut("{AppName}/{TrainingName}")]
+       /* [HttpPut("{TennantName}/{TrainingName}")]
         public async Task<IActionResult> PutTraining(string TrainingName, TrainingModule Training)
         {
             if (!TrainingName.Equals(Training.TrainingName))
@@ -92,22 +92,22 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var XR50App = await _context.Apps.FindAsync(Training.AppName);
-            if (XR50App == null)
+            var XR50Tennant = await _context.Apps.FindAsync(Training.TennantName);
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Admin user for {Training.TennantName}");
             }
             foreach (string resourceId in Training.ResourceList) {
                 var resource= await _context.Resources.FindAsync(resourceId);
                 _context.Resources.Remove(resource);
             }
             _context.Trainings.Remove(Training);
-            XR50App.TrainingList.Remove(Training.TrainingId);
+            XR50Tennant.TrainingList.Remove(Training.TrainingId);
             await _context.SaveChangesAsync();
             //Owncloud stuff
             string username = admin.UserName;
@@ -118,7 +118,7 @@ namespace XR5_0TrainingRepo.Controllers
           
             // Remove root dir for the Training
 	        string cmd= "curl";
-            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
