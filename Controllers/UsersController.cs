@@ -127,6 +127,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/group-management")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
             var XR50Tennant = await _context.Tennants.FindAsync(group.TennantName);
