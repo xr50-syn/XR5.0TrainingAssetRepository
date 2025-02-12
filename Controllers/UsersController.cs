@@ -135,7 +135,11 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Tennant {group.TennantName}");
             } 
-
+            var adminUser = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (adminUser ==null) 
+            {
+                return NotFound($"Couldnt Find Admin user for {group.TennantName}");
+            }
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", group.GroupName));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
@@ -155,10 +159,6 @@ namespace XR5_0TrainingRepo.Controllers
            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            User adminUser = XR50Tennant.Owner;
-            XR50Tennant.OwnerName = adminUser.UserName;
-	        XR50Tennant.AdminList.Add(adminUser.UserName);
-            _context.Users.Add(adminUser);
             _context.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
             //Create the admin User
