@@ -253,6 +253,7 @@ namespace XR5_0TrainingRepo.Controllers
             Training.MaterialList.Add(Material.MaterialId);
             _context.Materials.Add(Material);
             Material.ParentType = "TRAINING";
+            Material.ParentId=Training.TrainingId;
             await _context.SaveChangesAsync();
            
             string username = admin.UserName;

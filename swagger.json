@@ -898,7 +898,7 @@
             "nullable": true,
             "readOnly": true
           },
-          "resourceName": {
+          "materialName": {
             "type": "string",
             "nullable": true
           }
