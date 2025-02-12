@@ -90,7 +90,7 @@ namespace XR5_0TrainingRepo.Controllers
             var XR50Tennant = await _context.Tennants.FindAsync(user.TennantName);
             if (XR50Tennant == null)
             {
-                return NotFound();
+                return NotFound($"Couldnt Find Tennant {user.TennantName}");
             }
             
             if (user.admin)
