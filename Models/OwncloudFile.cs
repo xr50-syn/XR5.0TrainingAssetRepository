@@ -19,19 +19,26 @@ namespace XR5_0TrainingRepo.Models
             ShareId= Guid.NewGuid().ToString();
         }
     }
+    public class OwncloudDirectory {
+        public string? TennantName {get;set;}
+        [Key]
+        public string? OwncloudPath {get;set;}
+        public OwncloudDirectory() {
+
+        }
+    }
     public class OwncloudFile
     {
-        public string TennantName;
-        public string? Path { get; set; }
-        public string? Description { get; set; }
-        public string? OwncloudFileName { get; set; }
-        public virtual List<Share>? ShareList { get; set; }
         
+        public string TennantName;
+        public string? OwncloudPath { get; set; }
+        public string? Description { get; set; }
+        public virtual List<Share>? ShareList { get; set; }
         [Key]
-        public string FileId { get; set; }
+        public string OwncloudFileName { get; set; }
         public OwncloudFile()
         {
-            FileId= Guid.NewGuid().ToString();
+            OwncloudFileName= Guid.NewGuid().ToString();
         }
     }
 }

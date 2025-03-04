@@ -17,10 +17,8 @@ namespace XR5_0TrainingRepo.Controllers
 {
      public class FileUploadFormData
      {
-        public string? OwncloudFileName { get; set; }
         public string? TennantName { get; set; }
-        public string? TrainingName { get; set; }
-        public string? MaterialId { get; set; } 
+        public string? OwncloudPath {get;set;}
         public string? Type { get; set; }
         public string? Description {get; set;}
         public IFormFile File { get; set; }
@@ -109,9 +107,8 @@ namespace XR5_0TrainingRepo.Controllers
         {
             OwncloudFile Owncloudfile= new OwncloudFile();
             Owncloudfile.Description=fileUpload.Description;
-            Owncloudfile.OwncloudFileName=fileUpload.OwncloudFileName;
             Owncloudfile.TennantName=fileUpload.TennantName;
-        
+         
             _context.OwncloudFiles.Add(Owncloudfile);
 
             var XR50Tennant = await _context.Tennants.FindAsync(Owncloudfile.TennantName);
@@ -136,7 +133,7 @@ namespace XR5_0TrainingRepo.Controllers
                   await fileUpload.File.CopyToAsync(stream);
             }
 	        string cmd="curl";
-            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{Owncloudfile.Path}/{Owncloudfile.OwncloudFileName}\"";
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{Owncloudfile.OwncloudPath}/{Owncloudfile.OwncloudFileName}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -157,9 +154,46 @@ namespace XR5_0TrainingRepo.Controllers
             
             }
 	        await _context.SaveChangesAsync();
-            return CreatedAtAction("PostOwncloudFile", new { id = Owncloudfile.FileId }, Owncloudfile);
+            return CreatedAtAction("PostOwncloudFile", new { id = Owncloudfile.OwncloudFileName }, Owncloudfile);
         }
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/directory")]
+        public async Task<IActionResult> PostDirectory(OwncloudDirectory directory){
 
+            var XR50Tennant = await _context.Tennants.FindAsync(directory.TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Tennant {directory.TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {directory.TennantName}");
+            }
+            string username = admin.UserName;
+            string password = admin.Password;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            // Createe root dir for the Training
+	        string cmd="curl";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{directory.OwncloudPath}\"";
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
+            return NoContent();
+        }
         // DELETE: api/OwncloudFiles/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOwncloudFile(string id)
@@ -178,7 +212,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         private bool OwncloudFileExists(string id)
         {
-            return _context.OwncloudFiles.Any(e => e.FileId == id);
+            return _context.OwncloudFiles.Any(e => e.OwncloudFileName == id);
         }
     }
 }

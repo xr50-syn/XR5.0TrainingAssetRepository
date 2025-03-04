@@ -203,35 +203,13 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 
-            string username = admin.UserName;
-            string password = admin.Password;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
-	        string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}\"";
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            }
+           
             return CreatedAtAction("PostTraining", Training);
         }
         // POST: api/XR50Tennant
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}")]
-        public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, string TrainingName, Material Material)
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}")]
+        public async Task<ActionResult<Material>> PostMaterial(string TennantName, string TrainingName, Material Material)
         {
 
             var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);

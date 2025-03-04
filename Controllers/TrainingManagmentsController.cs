@@ -109,32 +109,7 @@ namespace XR5_0TrainingRepo.Controllers
             _context.Trainings.Remove(Training);
             XR50Tennant.TrainingList.Remove(Training.TrainingId);
             await _context.SaveChangesAsync();
-            //Owncloud stuff
-            string username = admin.UserName;
-            string password = admin.Password;
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-          
-            // Remove root dir for the Training
-	        string cmd= "curl";
-            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}\"";
-            Console.WriteLine("Executing command: " + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {                                                                                                                           FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            }
+            
             return NoContent();
         }
 
