@@ -33,6 +33,7 @@ namespace XR5_0TrainingRepo.Models
         public string TennantName;
         public string? OwncloudPath { get; set; }
         public string? Description { get; set; }
+        public string Type {get;set;}
         public virtual List<Share>? ShareList { get; set; }
         [Key]
         public string OwncloudFileName { get; set; }

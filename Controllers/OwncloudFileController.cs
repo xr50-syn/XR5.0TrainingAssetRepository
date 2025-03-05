@@ -108,7 +108,10 @@ namespace XR5_0TrainingRepo.Controllers
             OwncloudFile Owncloudfile= new OwncloudFile();
             Owncloudfile.Description=fileUpload.Description;
             Owncloudfile.TennantName=fileUpload.TennantName;
-         
+            Owncloudfile.OwncloudPath= fileUpload.OwncloudPath;
+            if (fileUpload.Type != null) {
+                Owncloudfile.OwncloudFileName += $".{fileUpload.Type}";
+            }
             _context.OwncloudFiles.Add(Owncloudfile);
 
             var XR50Tennant = await _context.Tennants.FindAsync(Owncloudfile.TennantName);
