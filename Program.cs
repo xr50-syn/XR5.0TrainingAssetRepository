@@ -49,14 +49,6 @@ builder.Services.Configure<KestrelServerOptions>(options =>
 });*/
 builder.Services.AddSwaggerGen();
 builder.Configuration.AddJsonFile("appsettings.json");
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 builder.Services.AddCors(options =>{
             options.AddDefaultPolicy(
                 builder =>
@@ -67,6 +59,15 @@ builder.Services.AddCors(options =>{
                         .AllowAnyOrigin();
                 });
         });
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseCors();        
 app.UseHttpsRedirection();
 app.UseAuthentication();    
