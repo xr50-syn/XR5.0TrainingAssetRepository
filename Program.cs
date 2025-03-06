@@ -57,7 +57,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+builder.Services.AddCors(options =>{
+            options.AddDefaultPolicy(
+                builder =>
+                {
+                    builder
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowAnyOrigin();
+                });
+        });
+app.UseCors();        
 app.UseHttpsRedirection();
 app.UseAuthentication();    
 app.UseAuthorization();
