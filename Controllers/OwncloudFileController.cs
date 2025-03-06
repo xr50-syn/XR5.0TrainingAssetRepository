@@ -59,7 +59,11 @@ namespace XR5_0TrainingRepo.Controllers
 
             return OwncloudFile;
         }
-
+        [HttpGet("/xr50/library_of_reality_altering_knowledge/[controller]/share")]
+        public async Task<ActionResult<IEnumerable<Share>>> GetShare()
+        {
+            return await _context.Shares.ToListAsync();
+        }
         // PUT: api/OwncloudFiles/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -109,6 +113,7 @@ namespace XR5_0TrainingRepo.Controllers
             Owncloudfile.Description=fileUpload.Description;
             Owncloudfile.TennantName=fileUpload.TennantName;
             Owncloudfile.OwncloudPath= fileUpload.OwncloudPath;
+            
             if (fileUpload.Type != null) {
                 Owncloudfile.OwncloudFileName += $".{fileUpload.Type}";
             }
@@ -197,6 +202,91 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return NoContent();
         }
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/share")]
+        public async Task<ActionResult<Share>> PostShare(Share owncloudShare)
+        {
+            _context.Shares.Add(owncloudShare);
+
+            var XR50Tennant = await _context.Tennants.FindAsync(owncloudShare.TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"App {owncloudShare.TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {owncloudShare.TennantName}");
+            }
+            string shareTarget;
+            int shareType;
+            if (owncloudShare.Type == ShareType.Group)
+            {
+                shareTarget = XR50Tennant.OwncloudGroup;
+                shareType = 1;
+            } else
+            {
+                shareTarget = owncloudShare.Target;
+                shareType = 0;
+            }
+            string assetId;
+            if (owncloudShare.FileId== null)
+            {
+                assetId = "";
+                return NotFound("No File ID provided to share");
+            } else
+            {
+                assetId=owncloudShare.FileId;
+            }
+            var Asset = await _context.Assets.FindAsync(assetId);
+            if (Asset==null)
+            {
+                    return NotFound($"File with {owncloudShare.FileId}");
+            }
+	    
+            var values = new List<KeyValuePair<string, string>>();
+            values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
+            values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
+            values.Add(new KeyValuePair<string, string>("permissions", 1.ToString()));
+            values.Add(new KeyValuePair<string, string>("path", $"{Asset.OwncloudPath}/{Asset.OwncloudFileName}"));
+            FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
+            string username = admin.UserName;
+            string password = admin.Password;
+
+            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
+            string uri_share = _configuration.GetValue<string>("OwncloudSettings:ShareManagementPath");
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
+            var request = new HttpRequestMessage(HttpMethod.Post, uri_share)
+            {
+                Content = messageContent
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+            _httpClient.BaseAddress = new Uri(uri_base);
+            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
+            var result = _httpClient.SendAsync(request).Result;
+            string resultContent = result.Content.ReadAsStringAsync().Result;
+            //Console.WriteLine(resultContent);
+	        await _context.SaveChangesAsync();
+            return CreatedAtAction("PostShare", new { id = owncloudShare.ShareId }, owncloudShare);
+        }
+
+        // DELETE: api/Shares/5
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/share/{id}")]
+        public async Task<IActionResult> DeleteShare(string id)
+        {
+            var owncloudShare = await _context.Shares.FindAsync(id);
+            if (owncloudShare == null)
+            {
+                return NotFound();
+            }
+
+            _context.Shares.Remove(owncloudShare);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         // DELETE: api/OwncloudFiles/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOwncloudFile(string id)
@@ -212,7 +302,10 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
-
+        private bool ShareExists(string id)
+        {
+            return _context.Shares.Any(e => e.ShareId == id);
+        }
         private bool OwncloudFileExists(string id)
         {
             return _context.OwncloudFiles.Any(e => e.OwncloudFileName == id);

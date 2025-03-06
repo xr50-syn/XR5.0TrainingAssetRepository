@@ -12,6 +12,8 @@ namespace XR5_0TrainingRepo.Models
     {
         [Key]
         public string ShareId { get; set; }
+        public string? TennantName { get; set; }
+        public string? FileId { get; set; }
         public ShareType Type { get; set;}
         public string Target {get; set;}
         public Share()

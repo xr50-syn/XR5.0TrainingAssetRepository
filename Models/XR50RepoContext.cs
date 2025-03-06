@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGeneration;
 using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models
@@ -16,6 +17,8 @@ namespace XR5_0TrainingRepo.Models
 	    public DbSet<Material> Materials { get; set; } = null!;
 	    public DbSet<OwncloudFile> OwncloudFiles{ get; set; } = null!;
 	    public DbSet<Asset> Assets { get; set; } = null!;
+        public DbSet<Share> Shares {get; set;} = null;
+        
 
     }
 }
