@@ -4,21 +4,26 @@ using System.ComponentModel.DataAnnotations.Schema;
 using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models {
-    public class ResourceBundle
-{
-        public string? AppName { get; set; }
+    public class Material
+    {
+        public string? TennantName { get; set; }
         public string? Description { get; set; }
         public string? OwncloudFileName { get; set; }
         public string? TrainingName { get; set; }
-        public string? ResourceName { get; set; }
+        public string? ParentId {get; set;}
+        public string? ParentType {get; set;}
+        public string? MaterialName { get; set; }
 	    [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
+        [ForeignKey("Materials")]
+        public virtual List<string>? MaterialList {get;set;}
 	    [Key]
-        public string? ResourceId {get; set;}
+        public string? MaterialId {get; set;}
 
-        public ResourceBundle()
+        public Material()
         {
-	        ResourceId= Guid.NewGuid().ToString();
+	        MaterialId= Guid.NewGuid().ToString();
+            MaterialList = new List<string>();
             AssetList = new List<string>();
         }
     }

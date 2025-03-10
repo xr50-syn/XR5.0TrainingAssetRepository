@@ -6,24 +6,24 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models
 {
+    [PrimaryKey(nameof(TennantName), nameof(TrainingName))]
     public class TrainingModule
     {
 
         
         public string? UseCase { get; set; }
-	    [Key]
         public string TrainingId { get; set; }
-        [ForeignKey("Resources")]
-        public virtual List<string>? ResourceList { get; set; }
+        [ForeignKey("Materials")]
+        public virtual List<string>? MaterialList { get; set; }
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
-        public string AppName { get; set; }
+        public string TennantName { get; set; }
         public string TrainingName { get; set; }
          
         public TrainingModule()
         {
             TrainingId= Guid.NewGuid().ToString();;	    
-            ResourceList = new List<string>();
+            MaterialList = new List<string>();
             AssetList = new List<string>();
 
         }

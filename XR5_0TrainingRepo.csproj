@@ -9,7 +9,7 @@
   <ItemGroup>
     <Compile Remove="TestJSON\Share\**" />
     <Content Remove="TestJSON\Share\**" />
-    <EmbeddedResource Remove="TestJSON\Share\**" />
+    <EmbeddedMaterial Remove="TestJSON\Share\**" />
     <None Remove="TestJSON\Share\**" />
   </ItemGroup>
 
@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="TestJSON\Resources\" />
+    <Folder Include="TestJSON\Materials\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties testjson_4resources_4resource_1json__JsonSchema="https://api.app-prg1.zerops.io/api/rest/public/settings/zerops-yml-json-schema.json" /></VisualStudio></ProjectExtensions>

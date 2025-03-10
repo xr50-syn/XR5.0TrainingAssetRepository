@@ -18,66 +18,67 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace XR5_0TrainingRepo.Controllers
 {
+
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     
-    public class app_managementController : ControllerBase
+    public class tennant_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
      
-        public app_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public tennant_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
             _configuration= configuration;
         }
 
-        // GET: api/XR50App
+        // GET: api/XR50Tennant
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<XR50App>>> GetApps()
+        public async Task<ActionResult<IEnumerable<XR50Tennant>>> GetTennants()
         {
-            return await _context.Apps.ToListAsync();
+            return await _context.Tennants.ToListAsync();
         }
         
-        // GET: api/XR50App/5
-        [HttpGet("{appName}")]
-        public async Task<ActionResult<XR50App>> GetXR50App(string appName)
+        // GET: api/XR50Tennant/5
+        [HttpGet("{TennantName}")]
+        public async Task<ActionResult<XR50Tennant>> GetXR50Tennant(string TennantName)
         {
-            var XR50App = await _context.Apps.FindAsync(appName);
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
 
-            if (XR50App == null)
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }
 
-            return XR50App;
+            return XR50Tennant;
         }
-        // GET: api/XR50App/5
-        [HttpGet("{appName}/TrainingModules")]
-        public async Task<ActionResult<IEnumerable<TrainingModule>>> GetAppTrainings(string appName)
+        // GET: api/XR50Tennant/5
+        [HttpGet("{TennantName}/TrainingModules")]
+        public async Task<ActionResult<IEnumerable<TrainingModule>>> GetTennantTrainings(string TennantName)
         {
-            return  _context.Trainings.Where(t=>t.AppName.Equals(appName)).ToList();
+            return _context.Trainings.Where(t=>t.TennantName.Equals(TennantName)).ToList();
         }
-        // GET: api/XR50App/5
-        [HttpGet("{appName}/{trainingName}/ResourceBundles")]
-        public async Task<ActionResult<IEnumerable<ResourceBundle>>> GetTrainingResources(string appName,string trainingName)
+        // GET: api/XR50Tennant/5
+        [HttpGet("{TennantName}/{TrainingName}/Materials")]
+        public async Task<ActionResult<IEnumerable<Material>>> GetTrainingMaterials(string TennantName,string TrainingName)
         {
-            return  _context.Resources.Where(r=>r.AppName.Equals(appName) && r.TrainingName.Equals(trainingName)).ToList();
+            return  _context.Materials.Where(r=>r.TennantName.Equals(TennantName) && r.TrainingName.Equals(TrainingName)).ToList();
         }
         /*
-        // PUT: api/XR50App/5
+        // PUT: api/XR50Tennant/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutXR50App(long id, XR50App XR50App)
+        public async Task<IActionResult> PutXR50Tennant(long id, XR50Tennant XR50Tennant)
         {
-            if (id != XR50App.AppId)
+            if (id != XR50Tennant.TennantId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(XR50App).State = EntityState.Modified;
+            _context.Entry(XR50Tennant).State = EntityState.Modified;
 
             try
             {
@@ -85,7 +86,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!XR50AppExists(id))
+                if (!XR50TennantExists(id))
                 {
                     return NotFound();
                 }
@@ -99,16 +100,16 @@ namespace XR5_0TrainingRepo.Controllers
         }
         */
 
-        // POST: api/XR50App
+        // POST: api/XR50Tennant
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<XR50App>> PostXR50App(XR50App XR50App)
+        public async Task<ActionResult<XR50Tennant>> PostXR50Tennant(XR50Tennant XR50Tennant)
         {
 
-            _context.Apps.Add(XR50App);
+            _context.Tennants.Add(XR50Tennant);
 
             var values = new List<KeyValuePair<string, string>>();
-            values.Add(new KeyValuePair<string, string>("groupid", XR50App.OwncloudGroup));
+            values.Add(new KeyValuePair<string, string>("groupid", XR50Tennant.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
@@ -126,9 +127,9 @@ namespace XR5_0TrainingRepo.Controllers
            // _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            User adminUser = XR50App.Owner;
-            XR50App.OwnerName = adminUser.UserName;
-	        XR50App.AdminList.Add(adminUser.UserName);
+            User adminUser = XR50Tennant.Owner;
+            XR50Tennant.OwnerName = adminUser.UserName;
+	        XR50Tennant.AdminList.Add(adminUser.UserName);
             _context.Users.Add(adminUser);
             _context.SaveChanges();
             //Console.WriteLine($"Response content: {resultContent}");
@@ -138,7 +139,7 @@ namespace XR5_0TrainingRepo.Controllers
             valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
             valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
             valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
-            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50App.OwncloudGroup));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tennant.OwncloudGroup));
             //Target The User Interface
             uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
             FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
@@ -154,10 +155,10 @@ namespace XR5_0TrainingRepo.Controllers
             string resultAdminContent = resultAdmin.Content.ReadAsStringAsync().Result;
             Console.WriteLine($"Response content: {resultAdminContent}");
 
-            // Create root dir for the App, owned by Admin
+            // Create root dir for the Tennant, owned by Admin
 	        string cmd="curl";
-            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
-            // Create root dir for the App
+            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/\"";
+            // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
@@ -176,81 +177,61 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Error: " + error);
             }
             _context.SaveChanges();
-            return CreatedAtAction("PostXR50App", XR50App);
+            return CreatedAtAction("PostXR50Tennant", XR50Tennant);
         }
-        // POST: api/XR50App/
+        // POST: api/XR50Tennant/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/training-management/{AppName}")]
-        public async Task<ActionResult<TrainingModule>> PostTraining(string AppName,TrainingModule Training)
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/training-management/{TennantName}")]
+        public async Task<ActionResult<TrainingModule>> PostTraining(string TennantName,TrainingModule Training)
         {
-	        if (!AppName.Equals(Training.AppName)) {
-		        return NotFound($"App {Training.AppName} is not our parent");
+	        if (!TennantName.Equals(Training.TennantName)) {
+		        return NotFound($"Couldnt Find Tennant {Training.TennantName} is not our parent");
 	        }
-            var XR50App = await _context.Apps.FindAsync(Training.AppName);
-            if (XR50App == null)
+            var XR50Tennant = await _context.Tennants.FindAsync(Training.TennantName);
+            if (XR50Tennant == null)
             {
-                return NotFound($"App {Training.AppName}");
+                return NotFound($"Couldnt Find Tennant {Training.TennantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin ==null) 
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Training.TennantName}");
             }
             Training.TrainingId= Guid.NewGuid().ToString();; 
                 
-            XR50App.TrainingList.Add(Training.TrainingId); 
+            XR50Tennant.TrainingList.Add(Training.TrainingId); 
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 
-            string username = admin.UserName;
-            string password = admin.Password;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
-	    string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            }
+           
             return CreatedAtAction("PostTraining", Training);
         }
-        // POST: api/XR50App
+        // POST: api/XR50Tennant
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}")]
-        public async Task<ActionResult<ResourceBundle>> PostResourceManagement(string AppName, string TrainingName, ResourceBundle ResourceBundle)
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}")]
+        public async Task<ActionResult<Material>> PostMaterial(string TennantName, string TrainingName, Material Material)
         {
 
-            var XR50App = await _context.Apps.FindAsync(ResourceBundle.AppName);
-            if (XR50App == null)
+            var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
+            if (XR50Tennant == null)
             {
-                return NotFound($"App {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find Tennant {Material.TennantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {ResourceBundle.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
             }
-            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
             if (Training == null)
             {
-                return NotFound($"Training for {ResourceBundle.TrainingName}");
+                return NotFound($"Couldnt Find Training for {Material.TrainingName}");
             }
-            ResourceBundle.ResourceId = Guid.NewGuid().ToString();
-            Training.ResourceList.Add(ResourceBundle.ResourceId);
-            _context.Resources.Add(ResourceBundle);
+            Material.MaterialId = Guid.NewGuid().ToString();
+            Training.MaterialList.Add(Material.MaterialId);
+            _context.Materials.Add(Material);
+            Material.ParentType = "TRAINING";
+            Material.ParentId=Training.TrainingId;
             await _context.SaveChangesAsync();
            
             string username = admin.UserName;
@@ -258,8 +239,8 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
-            // Create root dir for the App
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
+            // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
@@ -279,25 +260,98 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostResourceManagement", ResourceBundle);
+            return CreatedAtAction("PostMaterialManagement", Material);
         }
 
-        // DELETE: api/XR50App/5
-        [HttpDelete("{appName}")]
-        public async Task<IActionResult> DeleteXR50App(string appName)
+         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{ParentMaterialId}")]
+        public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, string TrainingName, string ParentMaterialId, Material Material)
         {
-            var XR50App = await _context.Apps.FindAsync(appName);
-            if (XR50App == null)
+
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
+            if (XR50Tennant == null)
             {
-                Console.WriteLine($"Did not find XR app with id: {appName}");
+                return NotFound($"Couldnt Find Tennant {TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+            }
+            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
+            if (Training == null)
+            {
+                return NotFound($"Couldnt Find Training for {Material.TrainingName}");
+            }
+            var ParentMaterial = await _context.Materials.FindAsync(ParentMaterialId);
+            if (ParentMaterial == null) {
+                return NotFound($"Couldnt Find Material with Id: {ParentMaterialId}");
+            }
+            Material.MaterialId = Guid.NewGuid().ToString();
+            Material.ParentType = "RESOURCE";
+            Material.ParentId =ParentMaterial.MaterialId;
+            ParentMaterial.MaterialList.Add(Material.MaterialId);
+            _context.Materials.Add(Material);
+            await _context.SaveChangesAsync();
+            
+            string username = admin.UserName;
+            string password = admin.Password;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string MaterialPath=ParentMaterial.MaterialName + "/"+ Material.MaterialName;
+            while (ParentMaterial.ParentType.Equals("RESOURCE")) {
+                MaterialPath= ParentMaterial.MaterialName + "/" + MaterialPath;
+                ParentMaterial = await _context.Materials.FindAsync(ParentMaterial.ParentId);
+            }
+            // Createe root dir for the Training
+            string cmd="curl";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
+            // Create root dir for the Tennant
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            } 
+            
+            _context.SaveChanges();
+            return CreatedAtAction("PostMaterialManagement", Material);
+        }
+
+        // DELETE: api/XR50Tennant/5
+        [HttpDelete("{TennantName}")]
+        public async Task<IActionResult> DeleteXR50Tennant(string TennantName)
+        {
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
+            if (XR50Tennant == null)
+            {
+                Console.WriteLine($"Did not find XR app with id: {TennantName}");
                 return NotFound();
             }
-            var adminUser = await _context.Users.FindAsync(XR50App.OwnerName); 
+            var adminUser = await _context.Users.FindAsync(XR50Tennant.OwnerName); 
 	        if (adminUser == null) {
-		        Console.WriteLine($"Did not find Owner: {XR50App.OwnerName}");
+		        Console.WriteLine($"Did not find Owner: {XR50Tennant.OwnerName}");
                 return NotFound();
             }
-            _context.Apps.Remove(XR50App);
+
+            foreach (string trainingId in XR50Tennant.TrainingList) {
+              var training= await _context.Trainings.FindAsync(trainingId);
+              foreach (string resourceId in training.MaterialList) {
+                var resource= await _context.Materials.FindAsync(resourceId);
+                _context.Materials.Remove(resource);
+              }     
+              _context.Trainings.Remove(training);
+            }
+            _context.Tennants.Remove(XR50Tennant);
 	        _context.Users.Remove(adminUser);
             await _context.SaveChangesAsync();
 
@@ -312,19 +366,19 @@ namespace XR5_0TrainingRepo.Controllers
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_group}/{XR50App.OwncloudGroup}")
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_group}/{XR50Tennant.OwncloudGroup}")
             {
                 Content = messageContent
             };
-            Console.WriteLine(XR50App.OwncloudGroup);
+            Console.WriteLine(XR50Tennant.OwncloudGroup);
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
             _httpClient.BaseAddress = new Uri(uri_base);
             //_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
             var result = _httpClient.SendAsync(request).Result;
             string resultContent = result.Content.ReadAsStringAsync().Result;
-            // Delete root dir for the App
+            // Delete root dir for the Tennant
 	        string cmd= "curl";
-            string Arg=  $"-X DELETE -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50App.OwncloudDirectory}/\"";
+            string Arg=  $"-X DELETE -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
@@ -341,7 +395,7 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Output: " + output);
                 Console.WriteLine("Error: " + error);
             }
-            request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_user}/{XR50App.OwnerName}")
+            request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_user}/{XR50Tennant.OwnerName}")
             {
                 Content = messageContent
             };
@@ -352,36 +406,43 @@ namespace XR5_0TrainingRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
-        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/training-management/{AppName}/{TrainingName}")]
-        public async Task<IActionResult> DeleteTraining(string AppName,string TrainingName)
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/training-management/{TennantName}/{TrainingName}")]
+        public async Task<IActionResult> DeleteTraining(string TennantName,string TrainingName)
         {
-            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
             if (Training == null)           
             {
                 return NotFound($"Did not find training {TrainingName}");
             }
 
-            var XR50App = await _context.Apps.FindAsync(AppName);
-            if (XR50App == null)
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Training.TennantName}");
             }
+            foreach (string resourceId in Training.MaterialList) {
+                var resource= await _context.Materials.FindAsync(resourceId);
+                _context.Materials.Remove(resource);
+              }     
+            _context.Trainings.Remove(Training);
+            XR50Tennant.TrainingList.Remove(Training.TrainingId);
+            await _context.SaveChangesAsync();
+
+            //Owncloud stuff
             string username = admin.UserName;
             string password = admin.Password;
             string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
             string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            _context.Trainings.Remove(Training);
-            XR50App.TrainingList.Remove(Training.TrainingId);
-            await _context.SaveChangesAsync();
+            
             // Remove root dir for the Training
 	        string cmd= "curl";
-            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}\"";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
@@ -402,42 +463,42 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
 
-        // DELETE: api/XR50App/
-        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{AppName}/{TrainingName}/{ResourceName}")]
-        public async Task<IActionResult> DeleteResourceBundle(string AppName, string TrainingName, string ResourceName)
+        // DELETE: api/XR50Tennant/
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{MaterialName}")]
+        public async Task<IActionResult> DeleteMaterial(string TennantName, string TrainingName, string MaterialName)
         {
-            var ResourceBundle = _context.Resources.FirstOrDefault( r=> r.ResourceName.Equals(ResourceName) && r.TrainingName.Equals(TrainingName) && r.AppName.Equals(AppName));
-            if (ResourceBundle == null)
+            var Material = _context.Materials.FirstOrDefault( r=> r.MaterialName.Equals(MaterialName) && r.TrainingName.Equals(TrainingName) && r.TennantName.Equals(TennantName));
+            if (Material == null)
             {
                 return NotFound();
             }
 
-            _context.Resources.Remove(ResourceBundle);
+            _context.Materials.Remove(Material);
             await _context.SaveChangesAsync();
 
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.AppName.Equals(AppName));
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(TrainingName) && t.TennantName.Equals(TennantName));
             if (Training == null)
             {
                 return NotFound();
             }
-	        Training.ResourceList.Remove(ResourceBundle.ResourceId);
-            var XR50App = await _context.Apps.FindAsync(Training.AppName);
-            if (XR50App == null)
+	        Training.MaterialList.Remove(Material.MaterialId);
+            var XR50Tennant = await _context.Tennants.FindAsync(Training.TennantName);
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Couldnt Find Admin user for {Training.TennantName}");
             }
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	        string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
-            // Create root dir for the App
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
+            // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
@@ -457,9 +518,9 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return NoContent();
         }
-        private bool XR50AppExists(string appName)
+        private bool XR50TennantExists(string TennantName)
         {
-            return _context.Apps.Any(e => e.AppName.Equals(appName));
+            return _context.Tennants.Any(e => e.TennantName.Equals(TennantName));
         }
     }
 }

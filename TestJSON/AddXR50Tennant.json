@@ -1,6 +1,6 @@
 {
-  "appName": "FairyTale",
-  "OwncloudGroup": "FairyTale",
+  "TennantName": "DECEIT Library of Forbidden Texts",
+  "OwncloudGroup": "DECEIT Library of Forbidden Texts",
   "OwncloudDirectory": "Copy_of_Amethysts_Library",
   "Description": "Hijacked by the evil dragon",
   "OwnerName":  "evilwyrm666",
@@ -10,7 +10,7 @@
     "userEmail": "evilwyrm666@hisevilness.evil",
     "password": "3v1l",
     "admin": true,
-    "appName": "FairyTale"
+    "TennantName": "DECEIT Library of Forbidden Texts"
   },
   "adminList": [],
   "trainingList": []

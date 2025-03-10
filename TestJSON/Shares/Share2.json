@@ -3,10 +3,10 @@
   "description": "string",
   "owncloudFileName": "string",
   "trainingName": "Advanced_Arcana",
-  "resourceName": "Epic_Spellbook",
-  "appName": "FairyTale",
+  "materialName": "Epic_Spellbook",
+  "TennantName": "DECEIT Library of Forbidden Texts",
   "assetId": "ec8697a7-f122-421d-bbad-bd660a480707",
   "type": "Group",
-  "target": "FairyTale",
+  "target": "DECEIT Library of Forbidden Texts",
   "shareId": "string"
 }

@@ -16,50 +16,50 @@ namespace XR5_0TrainingRepo.Controllers
 {
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
-    public class resource_managementController : ControllerBase
+    public class material_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public resource_managementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
+        public material_managementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
             _configuration = configuration; 
         }
 
-        // GET: api/ResourceManagements
+        // GET: api/MaterialManagements
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ResourceBundle>>> GetResource()
+        public async Task<ActionResult<IEnumerable<Material>>> GetMaterial()
         {
-            return await _context.Resources.ToListAsync();
+            return await _context.Materials.ToListAsync();
         }
 
-        // GET: api/ResourceManagements/5
-        [HttpGet("{ResourceId}")]
-        public async Task<ActionResult<ResourceBundle>> GetResourceManagement(string ResourceId)
+        // GET: api/MaterialManagements/5
+        [HttpGet("{MaterialId}")]
+        public async Task<ActionResult<Material>> GetMaterialManagement(string MaterialId)
         {
-            var ResourceBundle = await _context.Resources.FindAsync(ResourceId);
+            var Material = await _context.Materials.FindAsync(MaterialId);
 
-            if (ResourceBundle == null)
+            if (Material == null)
             {
                 return NotFound();
             }
 
-            return ResourceBundle;
+            return Material;
         }
 
-       /* // PUT: api/ResourceManagements/5
+       /* // PUT: api/MaterialManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{ResourceId}")]
-        public async Task<IActionResult> PutResourceManagement(string ResourceId, ResourceBundle ResourceBundle)
+        [HttpPut("{MaterialId}")]
+        public async Task<IActionResult> PutMaterialManagement(string MaterialId, Material Material)
         {
-            if (!ResourceId.Equals(ResourceBundle.ResourceId))
+            if (!MaterialId.Equals(Material.MaterialId))
             {
                 return BadRequest();
             }
 
-            _context.Entry(ResourceBundle).State = EntityState.Modified;
+            _context.Entry(Material).State = EntityState.Modified;
 
             try
             {
@@ -67,7 +67,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ResourceManagementExists(ResourceId))
+                if (!MaterialManagementExists(MaterialId))
                 {
                     return NotFound();
                 }
@@ -80,42 +80,50 @@ namespace XR5_0TrainingRepo.Controllers
             return NoContent();
         }
 */
-        // DELETE: api/ResourceManagements/5
-        [HttpDelete("{ResourceId}")]
-        public async Task<IActionResult> DeleteResourceBundleById(string ResourceId)
+        // DELETE: api/MaterialManagements/5
+        [HttpDelete("{MaterialId}")]
+        public async Task<IActionResult> DeleteMaterialById(string MaterialId)
         {
-            var ResourceBundle = await _context.Resources.FindAsync(ResourceId);
-            if (ResourceBundle == null)
+            var Material = await _context.Materials.FindAsync(MaterialId);
+            if (Material == null)
             {
                 return NotFound();
             }
 
-            _context.Resources.Remove(ResourceBundle);
+            _context.Materials.Remove(Material);
             await _context.SaveChangesAsync();
 
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(ResourceBundle.TrainingName) && t.AppName.Equals(ResourceBundle.AppName));
+	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Material.TrainingName) && t.TennantName.Equals(Material.TennantName));
             if (Training == null)
             {
                 return NotFound();
             }
-	        Training.ResourceList.Remove(ResourceId);
-            var XR50App = await _context.Apps.FindAsync(Training.AppName);
-            if (XR50App == null)
+	        Training.MaterialList.Remove(MaterialId);
+            var XR50Tennant = await _context.Tennants.FindAsync(Training.TennantName);
+            if (XR50Tennant == null)
             {
                 return NotFound();
             }
-            var admin = await _context.Users.FindAsync(XR50App.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.AppName}");
+                return NotFound($"Admin user for {Training.TennantName}");
             }
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
+            string MaterialPath= Material.MaterialName;
+            if (Material.ParentType.Equals("RESOURCE")) {
+            var ParentMaterial= await _context.Materials.FindAsync(Material.ParentId);
+                while (ParentMaterial.ParentType.Equals("RESOURCE")) {
+                    MaterialPath= ParentMaterial.MaterialName +"/" + MaterialPath;
+                    ParentMaterial = await _context.Materials.FindAsync(ParentMaterial.ParentId);
+                }
+            }
 	        string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50App.OwncloudDirectory}/{Training.TrainingName}/{ResourceBundle.OwncloudFileName}\"";
-            // Create root dir for the App
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
+            // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
@@ -135,9 +143,9 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return NoContent();
         }
-        private bool ResourceManagementExists(string ResourceName)
+        private bool MaterialManagementExists(string MaterialName)
         {
-            return _context.Resources.Any(e => e.ResourceName.Equals(ResourceName));
+            return _context.Materials.Any(e => e.MaterialName.Equals(MaterialName));
         }
     }
 }
