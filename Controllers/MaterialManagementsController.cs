@@ -48,6 +48,134 @@ namespace XR5_0TrainingRepo.Controllers
 
             return Material;
         }
+        
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/{MaterialId}")]
+        public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, Material Material)
+        {
+
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Couldnt Find Tennant {TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+            }
+            switch (Material.MaterialType) {
+                case MaterialType.Checklist:
+
+                break;
+                case MaterialType.Image:
+
+                break;
+                case MaterialType.Workflow:
+
+                break;
+                case MaterialType.Video:
+
+                break;
+
+            } 
+            Material.MaterialId = Guid.NewGuid().ToString();
+            _context.Materials.Add(Material);
+            await _context.SaveChangesAsync();
+            
+            string username = admin.UserName;
+            string password = admin.Password;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string MaterialPath= Material.MaterialName;
+            
+            // Createe root dir for the Training
+            string cmd="curl";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{MaterialPath}\"";
+            // Create root dir for the Tennant
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            } 
+            
+            _context.SaveChanges();
+            return CreatedAtAction("PostMaterialManagement", Material);
+        }
+
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/workflow")]
+        public async Task<ActionResult<Material>> PostWorkflowMaterial(string TennantName, Material Material)
+        {
+
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Couldnt Find Tennant {TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+            }
+            switch (Material.MaterialType) {
+                case MaterialType.Checklist:
+
+                break;
+                case MaterialType.Image:
+
+                break;
+                case MaterialType.Workflow:
+
+                break;
+                case MaterialType.Video:
+
+                break;
+
+            } 
+            Material.MaterialId = Guid.NewGuid().ToString();
+            _context.Materials.Add(Material);
+            await _context.SaveChangesAsync();
+            
+            string username = admin.UserName;
+            string password = admin.Password;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string MaterialPath= Material.MaterialName;
+            
+            // Createe root dir for the Training
+            string cmd="curl";
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{MaterialPath}\"";
+            // Create root dir for the Tennant
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            } 
+            
+            _context.SaveChanges();
+            return CreatedAtAction("PostMaterialManagement", Material);
+        }
 
        /* // PUT: api/MaterialManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -114,13 +242,7 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string MaterialPath= Material.MaterialName;
-            if (Material.ParentType.Equals("RESOURCE")) {
-            var ParentMaterial= await _context.Materials.FindAsync(Material.ParentId);
-                while (ParentMaterial.ParentType.Equals("RESOURCE")) {
-                    MaterialPath= ParentMaterial.MaterialName +"/" + MaterialPath;
-                    ParentMaterial = await _context.Materials.FindAsync(ParentMaterial.ParentId);
-                }
-            }
+            
 	        string cmd="curl";
             string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
             // Create root dir for the Tennant

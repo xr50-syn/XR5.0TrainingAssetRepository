@@ -12,7 +12,6 @@ namespace XR5_0TrainingRepo.Models
         public string? OwncloudFileName { get; set; }
         public string? TrainingName { get; set; }
         public string? ParentId { get; set; }
-        public string? ParentType { get; set; }
         public string? MaterialName { get; set; }
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
@@ -20,7 +19,6 @@ namespace XR5_0TrainingRepo.Models
         public virtual List<string>? MaterialList { get; set; }
         [Key]
         public string? MaterialId { get; set; }
-
         [Required]
         public MaterialType MaterialType { get; set; }
 

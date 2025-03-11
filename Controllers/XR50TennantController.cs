@@ -157,7 +157,8 @@ namespace XR5_0TrainingRepo.Controllers
 
             // Create root dir for the Tennant, owned by Admin
 	        string cmd="curl";
-            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/\"";
+            string url=System.Web.HttpUtility.UrlEncode($"{webdav_base}/{XR50Tennant.OwncloudDirectory}/");
+            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{url}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -230,7 +231,6 @@ namespace XR5_0TrainingRepo.Controllers
             Material.MaterialId = Guid.NewGuid().ToString();
             Training.MaterialList.Add(Material.MaterialId);
             _context.Materials.Add(Material);
-            Material.ParentType = "TRAINING";
             Material.ParentId=Training.TrainingId;
             await _context.SaveChangesAsync();
            
@@ -287,7 +287,6 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound($"Couldnt Find Material with Id: {ParentMaterialId}");
             }
             Material.MaterialId = Guid.NewGuid().ToString();
-            Material.ParentType = "RESOURCE";
             Material.ParentId =ParentMaterial.MaterialId;
             ParentMaterial.MaterialList.Add(Material.MaterialId);
             _context.Materials.Add(Material);
@@ -297,11 +296,8 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             string MaterialPath=ParentMaterial.MaterialName + "/"+ Material.MaterialName;
-            while (ParentMaterial.ParentType.Equals("RESOURCE")) {
-                MaterialPath= ParentMaterial.MaterialName + "/" + MaterialPath;
-                ParentMaterial = await _context.Materials.FindAsync(ParentMaterial.ParentId);
-            }
-            // Createe root dir for the Training
+        
+            // Create root dir for the Training
             string cmd="curl";
             string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
             // Create root dir for the Tennant
