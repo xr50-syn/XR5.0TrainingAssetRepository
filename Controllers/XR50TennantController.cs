@@ -157,8 +157,8 @@ namespace XR5_0TrainingRepo.Controllers
 
             // Create root dir for the Tennant, owned by Admin
 	        string cmd="curl";
-            string url=System.Web.HttpUtility.UrlEncode($"{webdav_base}/{XR50Tennant.OwncloudDirectory}/");
-            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{url}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{dirl}/\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
