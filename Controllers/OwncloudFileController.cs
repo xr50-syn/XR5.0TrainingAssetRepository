@@ -182,7 +182,8 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	        string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{directory.OwncloudPath}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{directory.OwncloudPath}\"";
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {

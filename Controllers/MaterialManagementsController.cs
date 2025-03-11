@@ -89,7 +89,8 @@ namespace XR5_0TrainingRepo.Controllers
             
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{MaterialPath}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{MaterialPath}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -153,7 +154,8 @@ namespace XR5_0TrainingRepo.Controllers
             
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{MaterialPath}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{MaterialPath}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -244,7 +246,8 @@ namespace XR5_0TrainingRepo.Controllers
             string MaterialPath= Material.MaterialName;
             
 	        string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{Training.TrainingName}/{MaterialPath}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo

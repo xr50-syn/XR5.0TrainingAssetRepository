@@ -239,7 +239,8 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -299,7 +300,8 @@ namespace XR5_0TrainingRepo.Controllers
         
             // Create root dir for the Training
             string cmd="curl";
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{MaterialPath}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{Training.TrainingName}/{MaterialPath}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -374,7 +376,8 @@ namespace XR5_0TrainingRepo.Controllers
             string resultContent = result.Content.ReadAsStringAsync().Result;
             // Delete root dir for the Tennant
 	        string cmd= "curl";
-            string Arg=  $"-X DELETE -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg=  $"-X DELETE -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{dirl}/\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
@@ -438,7 +441,8 @@ namespace XR5_0TrainingRepo.Controllers
             
             // Remove root dir for the Training
 	        string cmd= "curl";
-            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{Training.TrainingName}\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
@@ -493,7 +497,8 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	        string cmd="curl";
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{XR50Tennant.OwncloudDirectory}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{Training.TrainingName}/{Material.OwncloudFileName}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
