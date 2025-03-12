@@ -111,7 +111,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostMaterialManagement", Material);
+            return CreatedAtAction("PostMaterialManagement",TennantName, Material);
         }
 
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/workflow")]

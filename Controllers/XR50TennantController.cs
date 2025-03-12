@@ -212,7 +212,6 @@ namespace XR5_0TrainingRepo.Controllers
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}")]
         public async Task<ActionResult<Material>> PostMaterial(string TennantName, string TrainingName, Material Material)
         {
-
             var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
             if (XR50Tennant == null)
             {
@@ -264,7 +263,7 @@ namespace XR5_0TrainingRepo.Controllers
             return CreatedAtAction("PostMaterialManagement", Material);
         }
 
-         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{ParentMaterialId}")]
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}/{ParentMaterialId}")]
         public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, string TrainingName, string ParentMaterialId, Material Material)
         {
 
@@ -464,7 +463,7 @@ namespace XR5_0TrainingRepo.Controllers
 
 
         // DELETE: api/XR50Tennant/
-        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/resource-management/{TennantName}/{TrainingName}/{MaterialName}")]
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}/{MaterialName}")]
         public async Task<IActionResult> DeleteMaterial(string TennantName, string TrainingName, string MaterialName)
         {
             var Material = _context.Materials.FirstOrDefault( r=> r.MaterialName.Equals(MaterialName) && r.TrainingName.Equals(TrainingName) && r.TennantName.Equals(TennantName));
