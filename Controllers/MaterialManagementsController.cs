@@ -176,7 +176,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostMaterialManagement", Material);
+            return CreatedAtAction("PostWorkflowMaterial", TennantName, Material);
         }
 
        /* // PUT: api/MaterialManagements/5

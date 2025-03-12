@@ -260,7 +260,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostMaterialManagement", Material);
+            return CreatedAtAction("PostMaterialManagement", TrainingName, Material);
         }
 
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}/{ParentMaterialId}")]
@@ -321,7 +321,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostMaterialManagement", Material);
+            return CreatedAtAction("PostMaterialManagement", TennantName, TrainingName, Material);
         }
 
         // DELETE: api/XR50Tennant/5
