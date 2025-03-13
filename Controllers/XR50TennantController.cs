@@ -230,7 +230,7 @@ namespace XR5_0TrainingRepo.Controllers
             Material.MaterialId = Guid.NewGuid().ToString();
             Training.MaterialList.Add(Material.MaterialId);
             _context.Materials.Add(Material);
-            Material.ParentId=Training.TrainingId;
+            
             await _context.SaveChangesAsync();
            
             string username = admin.UserName;
@@ -264,7 +264,7 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}/{ParentMaterialId}")]
-        public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, string TrainingName, string ParentMaterialId, Material Material)
+        public async Task<ActionResult<Material>> PostChildMaterial(string TennantName, string TrainingName, string ParentMaterialId, Material Material)
         {
 
             var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
@@ -321,7 +321,7 @@ namespace XR5_0TrainingRepo.Controllers
             } 
             
             _context.SaveChanges();
-            return CreatedAtAction("PostMaterialManagement", TennantName, TrainingName, Material);
+            return CreatedAtAction("PostChildMaterial", TennantName, Material);
         }
 
         // DELETE: api/XR50Tennant/5
