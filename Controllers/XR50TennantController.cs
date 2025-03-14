@@ -198,9 +198,9 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {Training.TennantName}");
             }
-            Training.TrainingId= Guid.NewGuid().ToString();; 
+
                 
-            XR50Tennant.TrainingList.Add(Training.TrainingId); 
+            XR50Tennant.TrainingList.Add(Training.TrainingName); 
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
 
@@ -340,8 +340,8 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
 
-            foreach (string trainingId in XR50Tennant.TrainingList) {
-              var training= await _context.Trainings.FindAsync(trainingId);
+            foreach (string trainingName in XR50Tennant.TrainingList) {
+              var training= await _context.Trainings.FindAsync(trainingName);
               foreach (string resourceId in training.MaterialList) {
                 var resource= await _context.Materials.FindAsync(resourceId);
                 _context.Materials.Remove(resource);
@@ -428,7 +428,7 @@ namespace XR5_0TrainingRepo.Controllers
                 _context.Materials.Remove(resource);
               }     
             _context.Trainings.Remove(Training);
-            XR50Tennant.TrainingList.Remove(Training.TrainingId);
+            XR50Tennant.TrainingList.Remove(Training.TrainingName);
             await _context.SaveChangesAsync();
 
             //Owncloud stuff
