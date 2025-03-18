@@ -107,7 +107,7 @@ namespace XR5_0TrainingRepo.Controllers
                 _context.Materials.Remove(resource);
             }
             _context.Trainings.Remove(Training);
-            XR50Tennant.TrainingList.Remove(Training.TrainingId);
+            XR50Tennant.TrainingList.Remove(Training.TrainingName);
             await _context.SaveChangesAsync();
             
             return NoContent();
