@@ -199,7 +199,6 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound($"Couldnt Find Admin user for {Training.TennantName}");
             }
 
-                
             XR50Tennant.TrainingList.Add(Training.TrainingName); 
             _context.Trainings.Add(Training);
             await _context.SaveChangesAsync();
@@ -341,7 +340,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
 
             foreach (string trainingName in XR50Tennant.TrainingList) {
-              var training= await _context.Trainings.FindAsync(trainingName);
+              var training= await _context.Trainings.FindAsync(TennantName,trainingName);
               foreach (string resourceId in training.MaterialList) {
                 var resource= await _context.Materials.FindAsync(resourceId);
                 _context.Materials.Remove(resource);

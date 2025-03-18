@@ -39,10 +39,10 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // GET: api/Training/5
-        [HttpGet("{TrainingId}")]
-        public async Task<ActionResult<TrainingModule>> GetTraining(string TrainingId)
+        [HttpGet("{TennantName}/{TrainingId}")]
+        public async Task<ActionResult<TrainingModule>> GetTraining(string TennantName,string TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(TrainingId);
+            var Training = await _context.Trainings.FindAsync(TrainingName);
 
             if (Training == null)
             {
@@ -84,10 +84,10 @@ namespace XR5_0TrainingRepo.Controllers
 */
         
         // DELETE: api/Training/5
-        [HttpDelete("{TrainingId}")]
-        public async Task<IActionResult> DeleteTraining(string TrainingId)
+        [HttpDelete("{TennantName}/{TrainingId}")]
+        public async Task<IActionResult> DeleteTraining(string TennantName,string TrainingId)
         {
-            var Training = await _context.Trainings.FindAsync(TrainingId);
+            var Training = await _context.Trainings.FindAsync(TennantName,TrainingId);
             if (Training == null)
             {
                 return NotFound();
@@ -96,15 +96,6 @@ namespace XR5_0TrainingRepo.Controllers
             if (XR50Tennant == null)
             {
                 return NotFound();
-            }
-            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
-            if (admin == null)
-            {
-                return NotFound($"Admin user for {Training.TennantName}");
-            }
-            foreach (string resourceId in Training.MaterialList) {
-                var resource= await _context.Materials.FindAsync(resourceId);
-                _context.Materials.Remove(resource);
             }
             _context.Trainings.Remove(Training);
             XR50Tennant.TrainingList.Remove(Training.TrainingName);
