@@ -62,11 +62,7 @@ namespace XR5_0TrainingRepo.Controllers
             return _context.Trainings.Where(t=>t.TennantName.Equals(TennantName)).ToList();
         }
         // GET: api/XR50Tennant/5
-        [HttpGet("{TennantName}/{TrainingName}/Materials")]
-        public async Task<ActionResult<IEnumerable<Material>>> GetTrainingMaterials(string TennantName,string TrainingName)
-        {
-            return  _context.Materials.Where(r=>r.TennantName.Equals(TennantName) && r.TrainingName.Equals(TrainingName)).ToList();
-        }
+
         /*
         // PUT: api/XR50Tennant/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -224,9 +220,10 @@ namespace XR5_0TrainingRepo.Controllers
             var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
             if (Training == null)
             {
-                return NotFound($"Couldnt Find Training for {Material.TrainingName}");
+                return NotFound($"Couldnt Find Training for {TrainingName}");
             }
             Material.MaterialId = Guid.NewGuid().ToString();
+            Material.TrainingList.Add(Training.TrainingName);
             Training.MaterialList.Add(Material.MaterialId);
             _context.Materials.Add(Material);
             
@@ -279,13 +276,15 @@ namespace XR5_0TrainingRepo.Controllers
             var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
             if (Training == null)
             {
-                return NotFound($"Couldnt Find Training for {Material.TrainingName}");
+                return NotFound($"Couldnt Find Training for {TrainingName}");
             }
             var ParentMaterial = await _context.Materials.FindAsync(ParentMaterialId);
             if (ParentMaterial == null) {
                 return NotFound($"Couldnt Find Material with Id: {ParentMaterialId}");
             }
             Material.MaterialId = Guid.NewGuid().ToString();
+            Material.TrainingList.Add(TrainingName);
+            Training.MaterialList.Add(Material.MaterialId);
             Material.ParentId =ParentMaterial.MaterialId;
             ParentMaterial.MaterialList.Add(Material.MaterialId);
             _context.Materials.Add(Material);
@@ -462,10 +461,10 @@ namespace XR5_0TrainingRepo.Controllers
 
 
         // DELETE: api/XR50Tennant/
-        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}/{MaterialName}")]
-        public async Task<IActionResult> DeleteMaterial(string TennantName, string TrainingName, string MaterialName)
+        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}/{MateriaId}")]
+        public async Task<IActionResult> DeleteMaterial(string TennantName, string TrainingName, string MaterialId)
         {
-            var Material = _context.Materials.FirstOrDefault( r=> r.MaterialName.Equals(MaterialName) && r.TrainingName.Equals(TrainingName) && r.TennantName.Equals(TennantName));
+            var Material = await _context.Materials.FindAsync(MaterialId);
             if (Material == null)
             {
                 return NotFound();
