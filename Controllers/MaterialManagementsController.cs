@@ -159,46 +159,66 @@ namespace XR5_0TrainingRepo.Controllers
             return CreatedAtAction("PostChecklistMaterial", TennantName, Material);
         }
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/image")]
-        public async Task<ActionResult<Material>> PostImageMaterial([FromForm] FileUploadFormData fileUpload, Material Material)
+        public async Task<ActionResult<Material>> PostImageMaterial([FromForm] FileUploadFormData fileUpload)
         {
-
-            var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
+            Material material = new Material();
+            material.TennantName=fileUpload.TennantName;
+            if (fileUpload.TrainingName != null) {
+                material.TrainingList.Add(fileUpload.TrainingName);
+                var training= await _context.Trainings.FindAsync(fileUpload.TrainingName);
+                if (training == null) {
+                    training.MaterialList.Add(material.MaterialId);
+                }
+            }
+            material.Description=fileUpload.Description;
+            material.MaterialType= MaterialType.Image;
+            var XR50Tennant = await _context.Tennants.FindAsync(material.TennantName);
             if (XR50Tennant == null)
             {
-                return NotFound($"Couldnt Find Tennant {Material.TennantName}");
+                return NotFound($"Couldnt Find Tennant {material.TennantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+                return NotFound($"Couldnt Find Admin user for {material.TennantName}");
             }
             
-            Material.MaterialId = Guid.NewGuid().ToString();
-            _context.Materials.Add(Material);
+            
+            _context.Materials.Add(material);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostImageMaterial", Material);
+            return CreatedAtAction("PostImageMaterial", material);
         }
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/video")]
-        public async Task<ActionResult<Material>> PostVideoMaterial([FromForm] FileUploadFormData fileUpload, Material Material)
+        public async Task<ActionResult<Material>> PostVideoMaterial([FromForm] FileUploadFormData fileUpload)
         {
-
-            var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
+            Material material = new Material();
+            material.TennantName=fileUpload.TennantName;
+            if (fileUpload.TrainingName != null) {
+                material.TrainingList.Add(fileUpload.TrainingName);
+                var training= await _context.Trainings.FindAsync(fileUpload.TrainingName);
+                if (training == null) {
+                    training.MaterialList.Add(material.MaterialId);
+                }
+            }
+            material.Description=fileUpload.Description;
+            material.MaterialType= MaterialType.Video;
+            var XR50Tennant = await _context.Tennants.FindAsync(material.TennantName);
             if (XR50Tennant == null)
             {
-                return NotFound($"Couldnt Find Tennant {Material.TennantName}");
+                return NotFound($"Couldnt Find Tennant {material.TennantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+                return NotFound($"Couldnt Find Admin user for {material.TennantName}");
             }
             
-            Material.MaterialId = Guid.NewGuid().ToString();
-            _context.Materials.Add(Material);
+            _context.Materials.Add(material);
+           
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostVideoMaterial", Material);
+            return CreatedAtAction("PostVideoMaterial", material);
         }
        /* // PUT: api/MaterialManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -241,16 +261,16 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
 
-            _context.Materials.Remove(Material);
-            await _context.SaveChangesAsync();
+            foreach (string trainingId in Material.TrainingList) {
 
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Material.TrainingName) && t.TennantName.Equals(Material.TennantName));
-            if (Training == null)
-            {
-                return NotFound();
+	            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(trainingId) && t.TennantName.Equals(Material.TennantName));
+                if (Training == null)
+                {
+                    return NotFound();
+                }
+	            Training.MaterialList.Remove(MaterialId);
             }
-	        Training.MaterialList.Remove(MaterialId);
-            var XR50Tennant = await _context.Tennants.FindAsync(Training.TennantName);
+            var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
             if (XR50Tennant == null)
             {
                 return NotFound();
@@ -258,35 +278,11 @@ namespace XR5_0TrainingRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Training.TennantName}");
+                return NotFound($"Admin user for {Material.TennantName}");
             }
-            string username = admin.UserName;
-            string password = admin.Password;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
-            string MaterialPath= Material.MaterialName;
-            
-	        string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
-            string Arg= $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{Training.TrainingName}/{MaterialPath}\"";
-            // Create root dir for the Tennant
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            }
+            _context.Materials.Remove(Material);
+            await _context.SaveChangesAsync();
+
             return NoContent();
         }
         private bool MaterialManagementExists(string MaterialName)

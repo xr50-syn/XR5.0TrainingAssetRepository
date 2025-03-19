@@ -10,13 +10,14 @@ namespace XR5_0TrainingRepo.Models
         public string? TennantName { get; set; }
         public string? Description { get; set; }
         public string? OwncloudFileName { get; set; }
-        public string? TrainingName { get; set; }
         public string? ParentId { get; set; }
         public string? MaterialName { get; set; }
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; }
+         [ForeignKey("Trainings")]
+        public virtual List<string>? TrainingList { get; set; }
         [Key]
         public string? MaterialId { get; set; }
         [Required]
@@ -27,6 +28,7 @@ namespace XR5_0TrainingRepo.Models
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
             AssetList = new List<string>();
+            TrainingList = new List<string>();
         }
     }
     public enum MaterialType
