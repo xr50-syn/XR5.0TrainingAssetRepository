@@ -14,6 +14,7 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
+    
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     public class material_managementController : ControllerBase
@@ -128,57 +129,77 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
             }
-            switch (Material.MaterialType) {
-                case MaterialType.Checklist:
-
-                break;
-                case MaterialType.Image:
-
-                break;
-                case MaterialType.Workflow:
-
-                break;
-                case MaterialType.Video:
-
-                break;
-
-            } 
+             
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
             
-            string username = admin.UserName;
-            string password = admin.Password;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            string MaterialPath= Material.MaterialName;
-            
-            // Createe root dir for the Training
-            string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{MaterialPath}\"";
-            // Create root dir for the Tennant
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            } 
-            
-            _context.SaveChanges();
             return CreatedAtAction("PostWorkflowMaterial", TennantName, Material);
         }
+        
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/checklist")]
+        public async Task<ActionResult<Material>> PostChecklistMaterial(string TennantName, Material Material)
+        {
 
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Couldnt Find Tennant {TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+            }
+            
+            Material.MaterialId = Guid.NewGuid().ToString();
+            _context.Materials.Add(Material);
+            await _context.SaveChangesAsync();
+            
+            return CreatedAtAction("PostChecklistMaterial", TennantName, Material);
+        }
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/image")]
+        public async Task<ActionResult<Material>> PostImageMaterial([FromForm] FileUploadFormData fileUpload, Material Material)
+        {
+
+            var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Couldnt Find Tennant {Material.TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+            }
+            
+            Material.MaterialId = Guid.NewGuid().ToString();
+            _context.Materials.Add(Material);
+            await _context.SaveChangesAsync();
+            
+            return CreatedAtAction("PostImageMaterial", Material);
+        }
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/video")]
+        public async Task<ActionResult<Material>> PostVideoMaterial([FromForm] FileUploadFormData fileUpload, Material Material)
+        {
+
+            var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Couldnt Find Tennant {Material.TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+            }
+            
+            Material.MaterialId = Guid.NewGuid().ToString();
+            _context.Materials.Add(Material);
+            await _context.SaveChangesAsync();
+            
+            return CreatedAtAction("PostVideoMaterial", Material);
+        }
        /* // PUT: api/MaterialManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{MaterialId}")]
