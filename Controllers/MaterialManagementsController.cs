@@ -165,7 +165,7 @@ namespace XR5_0TrainingRepo.Controllers
             material.TennantName=fileUpload.TennantName;
             if (fileUpload.TrainingName != null) {
                 material.TrainingList.Add(fileUpload.TrainingName);
-                var training= await _context.Trainings.FindAsync(fileUpload.TrainingName);
+                var training= await _context.Trainings.FindAsync(fileUpload.TennantName,fileUpload.TrainingName);
                 if (training == null) {
                     training.MaterialList.Add(material.MaterialId);
                 }
@@ -182,11 +182,51 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {material.TennantName}");
             }
+            OwncloudFile Owncloudfile= new OwncloudFile();
+            Owncloudfile.Description=fileUpload.Description;
+            Owncloudfile.TennantName=fileUpload.TennantName;
+            Owncloudfile.OwncloudPath= fileUpload.OwncloudPath;
             
+            if (fileUpload.Type != null) {
+                Owncloudfile.OwncloudFileName += $".{fileUpload.Type}";
+            }
+            _context.OwncloudFiles.Add(Owncloudfile);
+            
+            string username = admin.UserName;
+            string password = admin.Password; ;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            // Createe root dir for the Training
+            
+            string tempFileName=Path.GetTempFileName();
+            using (var stream = System.IO.File.Create(tempFileName))
+            {
+                  await fileUpload.File.CopyToAsync(stream);
+            }
+	        string cmd="curl";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{Owncloudfile.OwncloudFileName}\"";
+            // Create root dir for the Tennant
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            
+            }
             
             _context.Materials.Add(material);
             await _context.SaveChangesAsync();
-            
             return CreatedAtAction("PostImageMaterial", material);
         }
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/video")]
@@ -196,7 +236,7 @@ namespace XR5_0TrainingRepo.Controllers
             material.TennantName=fileUpload.TennantName;
             if (fileUpload.TrainingName != null) {
                 material.TrainingList.Add(fileUpload.TrainingName);
-                var training= await _context.Trainings.FindAsync(fileUpload.TrainingName);
+                var training= await _context.Trainings.FindAsync(fileUpload.TennantName,fileUpload.TrainingName);
                 if (training == null) {
                     training.MaterialList.Add(material.MaterialId);
                 }
@@ -213,11 +253,51 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {material.TennantName}");
             }
+                        OwncloudFile Owncloudfile= new OwncloudFile();
+            Owncloudfile.Description=fileUpload.Description;
+            Owncloudfile.TennantName=fileUpload.TennantName;
+            Owncloudfile.OwncloudPath= fileUpload.OwncloudPath;
+            
+            if (fileUpload.Type != null) {
+                Owncloudfile.OwncloudFileName += $".{fileUpload.Type}";
+            }
+            _context.OwncloudFiles.Add(Owncloudfile);
+            
+            string username = admin.UserName;
+            string password = admin.Password; ;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            // Createe root dir for the Training
+            
+            string tempFileName=Path.GetTempFileName();
+            using (var stream = System.IO.File.Create(tempFileName))
+            {
+                  await fileUpload.File.CopyToAsync(stream);
+            }
+	        string cmd="curl";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{Owncloudfile.OwncloudFileName}\"";
+            // Create root dir for the Tennant
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            
+            }
             
             _context.Materials.Add(material);
-           
             await _context.SaveChangesAsync();
-            
             return CreatedAtAction("PostVideoMaterial", material);
         }
        /* // PUT: api/MaterialManagements/5
@@ -263,7 +343,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             foreach (string trainingId in Material.TrainingList) {
 
-	            var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(trainingId) && t.TennantName.Equals(Material.TennantName));
+	            var Training = await _context.Trainings.FindAsync(Material.TennantName,trainingId);
                 if (Training == null)
                 {
                     return NotFound();
