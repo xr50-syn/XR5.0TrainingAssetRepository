@@ -18,6 +18,7 @@ namespace XR5_0TrainingRepo.Controllers
      public class FileUploadFormData
      {
         public string? TennantName { get; set; }
+        public string? ParentId { get; set; }
         public string TrainingName {get; set;} 
         public string? OwncloudPath {get;set;}
         public string? Type { get; set; }

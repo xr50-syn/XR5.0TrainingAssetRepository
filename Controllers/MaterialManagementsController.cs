@@ -49,8 +49,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return Material;
         }
-        
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/{MaterialId}")]
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}")]
         public async Task<ActionResult<Material>> PostMaterialManagement(string TennantName, Material Material)
         {
 
@@ -79,6 +78,44 @@ namespace XR5_0TrainingRepo.Controllers
                 break;
 
             } 
+            
+            Material.MaterialId = Guid.NewGuid().ToString();
+            _context.Materials.Add(Material);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction("PostMaterialManagement",TennantName, Material);
+        }
+        
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/{ParentMaterialId}")]
+        public async Task<ActionResult<Material>> PostChildMaterialManagement(string TennantName, string ParentMaterialId, Material Material)
+        {
+
+            var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Couldnt Find Tennant {TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
+            }
+            switch (Material.MaterialType) {
+                case MaterialType.Checklist:
+
+                break;
+                case MaterialType.Image:
+
+                break;
+                case MaterialType.Workflow:
+
+                break;
+                case MaterialType.Video:
+
+                break;
+
+            } 
+
+            Material.ParentId=ParentMaterialId;
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
@@ -170,6 +207,15 @@ namespace XR5_0TrainingRepo.Controllers
                     training.MaterialList.Add(material.MaterialId);
                 }
             }
+            if (fileUpload.ParentId != null) {
+                material.ParentId = fileUpload.ParentId;
+                var parent = await _context.Materials.FindAsync(fileUpload.ParentId);
+                if (parent ==null) {
+                    return NotFound($"Parent Material with {fileUpload.ParentId}");
+                } else {
+                    parent.MaterialList.Add(material.MaterialId);
+                }
+            }
             material.Description=fileUpload.Description;
             material.MaterialType= MaterialType.Image;
             var XR50Tennant = await _context.Tennants.FindAsync(material.TennantName);
@@ -241,6 +287,15 @@ namespace XR5_0TrainingRepo.Controllers
                     training.MaterialList.Add(material.MaterialId);
                 }
             }
+            if (fileUpload.ParentId != null) {
+                material.ParentId = fileUpload.ParentId;
+                var parent = await _context.Materials.FindAsync(fileUpload.ParentId);
+                if (parent ==null) {
+                    return NotFound($"Parent Material with {fileUpload.ParentId}");
+                } else {
+                    parent.MaterialList.Add(material.MaterialId);
+                }
+            }
             material.Description=fileUpload.Description;
             material.MaterialType= MaterialType.Video;
             var XR50Tennant = await _context.Tennants.FindAsync(material.TennantName);
@@ -295,7 +350,7 @@ namespace XR5_0TrainingRepo.Controllers
                 Console.WriteLine("Error: " + error);
             
             }
-            
+
             _context.Materials.Add(material);
             await _context.SaveChangesAsync();
             return CreatedAtAction("PostVideoMaterial", material);
