@@ -61,7 +61,7 @@ namespace XR5_0TrainingRepo.Controllers
         {
             return _context.Trainings.Where(t=>t.TennantName.Equals(TennantName)).ToList();
         }
-        [HttpGet("{TennantName}/Modules")]
+        [HttpGet("{TennantName}/Materials")]
         public async Task<ActionResult<IEnumerable<Material>>> GetTennantMaterials(string TennantName)
         {
             return _context.Materials.Where(t=>t.TennantName.Equals(TennantName)).ToList();
