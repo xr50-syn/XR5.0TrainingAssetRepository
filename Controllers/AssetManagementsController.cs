@@ -121,13 +121,11 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }                                          
-	        var Training = _context.Trainings.FirstOrDefault(t=> t.TrainingName.Equals(Asset.TrainingName) && t.TennantName.Equals(Asset.TennantName));                                                                                                             if (Training == null)                                                                                                   {                                                                                                                           return NotFound();                                                                                                  }                                                                                                                       var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);                                                          if (admin == null)                                                                                                      {                                                                                                                           return NotFound($"Admin user for {Training.TennantName}");                                                              }
-	        if (Asset.MaterialId!=null) {
-	    	    var Material = await _context.Materials.FindAsync(Asset.MaterialId);
-                Material.AssetList.Remove(Asset.AssetId);                                                             
-	        } else {
-		        Training.AssetList.Remove(Asset.AssetId);
-	        }
+	        var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {Asset.TennantName}");
+            }
 
             string username = admin.UserName;
             string password = admin.Password;
