@@ -39,10 +39,10 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // GET: api/Training/5
-        [HttpGet("{TennantName}/{TrainingId}")]
+        [HttpGet("{TennantName}/{TrainingName}")]
         public async Task<ActionResult<TrainingModule>> GetTraining(string TennantName,string TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(TrainingName);
+            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
 
             if (Training == null)
             {
@@ -84,10 +84,10 @@ namespace XR5_0TrainingRepo.Controllers
 */
         
         // DELETE: api/Training/5
-        [HttpDelete("{TennantName}/{TrainingId}")]
-        public async Task<IActionResult> DeleteTraining(string TennantName,string TrainingId)
+        [HttpDelete("{TennantName}/{TrainingName}")]
+        public async Task<IActionResult> DeleteTraining(string TennantName,string TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(TennantName,TrainingId);
+            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
             if (Training == null)
             {
                 return NotFound();
