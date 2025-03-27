@@ -5,21 +5,49 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models
 {
+     public enum ShareType{
+        Group,
+        User
+    }
+    public class Share
+    {
+        [Key]
+        public string ShareId { get; set; }
+        public string? TennantName { get; set; }
+        public string? FileId { get; set; }
+        public ShareType Type { get; set;}
+        public string Target {get; set;}
+        public Share()
+        {
+            ShareId= Guid.NewGuid().ToString();
+        }
+    }
+    public class OwncloudDirectory {
+        public string? TennantName {get;set;}
+        [Key]
+        public string? OwncloudPath {get;set;}
+        public OwncloudDirectory() {
+
+        }
+    }
+
 
     public class Asset
     {
-        public string? Description { get; set; }
-        public string? OwncloudFileName { get; set; }
-        public string? OwncloudPath { get; set; }
         public string? TennantName { get; set; }
+        public string? Description { get; set; }
+        public string? OwncloudPath { get; set; }
+        
+        [ForeignKey("Shares")]
+        public virtual List<string>? ShareList { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; } 
         public string? Type { get; set; }
 	    [Key]
-        public string? AssetId { get; set; }
+        public string? OwncloudFileName { get; set; }
         public Asset ()
         {
-            AssetId = Guid.NewGuid().ToString();
+            OwncloudFileName = Guid.NewGuid().ToString();
             
         }
     }

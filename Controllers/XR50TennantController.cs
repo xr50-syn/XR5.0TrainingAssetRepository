@@ -265,8 +265,8 @@ namespace XR5_0TrainingRepo.Controllers
             return CreatedAtAction("PostMaterial", TrainingName, Material);
         }
 
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}/{ParentMaterialId}")]
-        public async Task<ActionResult<Material>> PostChildMaterial(string TennantName, string TrainingName, string ParentMaterialId, Material Material)
+        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{ParentMaterialId}")]
+        public async Task<ActionResult<Material>> PostChildMaterial(string TennantName, string ParentMaterialId, Material Material)
         {
 
             var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
@@ -279,52 +279,18 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
             }
-            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
-            if (Training == null)
-            {
-                return NotFound($"Couldnt Find Training for {TrainingName}");
-            }
+           
             var ParentMaterial = await _context.Materials.FindAsync(ParentMaterialId);
             if (ParentMaterial == null) {
                 return NotFound($"Couldnt Find Material with Id: {ParentMaterialId}");
             }
             Material.MaterialId = Guid.NewGuid().ToString();
-            Material.TrainingList.Add(TrainingName);
-            Training.MaterialList.Add(Material.MaterialId);
+            
             Material.ParentId =ParentMaterial.MaterialId;
             ParentMaterial.MaterialList.Add(Material.MaterialId);
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
             
-            string username = admin.UserName;
-            string password = admin.Password;
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            string MaterialPath=ParentMaterial.MaterialName + "/"+ Material.MaterialName;
-        
-            // Create root dir for the Training
-            string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
-            string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{Training.TrainingName}/{MaterialPath}\"";
-            // Create root dir for the Tennant
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            } 
-            
-            _context.SaveChanges();
             return CreatedAtAction("PostChildMaterial", TennantName, Material);
         }
 

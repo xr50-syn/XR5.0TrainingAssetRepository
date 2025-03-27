@@ -867,7 +867,7 @@
             "type": "string",
             "nullable": true
           },
-          "assetId": {
+          "OwncloudFileName": {
             "type": "integer",
             "format": "int64",
             "nullable": true
