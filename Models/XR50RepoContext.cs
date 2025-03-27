@@ -15,7 +15,6 @@ namespace XR5_0TrainingRepo.Models
 	    public DbSet<User> Users { get; set; } = null!;
 	    public DbSet<TrainingModule> Trainings { get; set; } = null!;
 	    public DbSet<Material> Materials { get; set; } = null!;
-	    public DbSet<OwncloudFile> OwncloudFiles{ get; set; } = null!;
 	    public DbSet<Asset> Assets { get; set; } = null!;
         public DbSet<Share> Shares {get; set;} = null;
         public DbSet<ChecklistEntry> ChecklistEntries { get; set; } = null!;

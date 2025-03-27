@@ -228,15 +228,15 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {material.TennantName}");
             }
-            OwncloudFile Owncloudfile= new OwncloudFile();
-            Owncloudfile.Description=fileUpload.Description;
-            Owncloudfile.TennantName=fileUpload.TennantName;
-            Owncloudfile.OwncloudPath= fileUpload.OwncloudPath;
+            Asset asset= new Asset();
+            asset.Description=fileUpload.Description;
+            asset.TennantName=fileUpload.TennantName;
+            asset.OwncloudPath= fileUpload.OwncloudPath;
             
             if (fileUpload.Type != null) {
-                Owncloudfile.OwncloudFileName += $".{fileUpload.Type}";
+                asset.OwncloudFileName += $".{fileUpload.Type}";
             }
-            _context.OwncloudFiles.Add(Owncloudfile);
+            _context.Assets.Add(asset);
             
             string username = admin.UserName;
             string password = admin.Password; ;
@@ -250,7 +250,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
 	        string cmd="curl";
             string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
-            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{Owncloudfile.OwncloudFileName}\"";
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{asset.OwncloudFileName}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -308,15 +308,15 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {material.TennantName}");
             }
-                        OwncloudFile Owncloudfile= new OwncloudFile();
-            Owncloudfile.Description=fileUpload.Description;
-            Owncloudfile.TennantName=fileUpload.TennantName;
-            Owncloudfile.OwncloudPath= fileUpload.OwncloudPath;
+                        Asset asset= new Asset();
+            asset.Description=fileUpload.Description;
+            asset.TennantName=fileUpload.TennantName;
+            asset.OwncloudPath= fileUpload.OwncloudPath;
             
             if (fileUpload.Type != null) {
-                Owncloudfile.OwncloudFileName += $".{fileUpload.Type}";
+                asset.OwncloudFileName += $".{fileUpload.Type}";
             }
-            _context.OwncloudFiles.Add(Owncloudfile);
+            _context.Assets.Add(asset);
             
             string username = admin.UserName;
             string password = admin.Password; ;
@@ -330,7 +330,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
 	        string cmd="curl";
             string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
-            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{Owncloudfile.OwncloudFileName}\"";
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{asset.OwncloudFileName}\"";
             // Create root dir for the Tennant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo

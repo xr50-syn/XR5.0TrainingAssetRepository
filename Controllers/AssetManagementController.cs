@@ -28,13 +28,13 @@ namespace XR5_0TrainingRepo.Controllers
     
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
-    public class owncloudFile_managementController : ControllerBase
+    public class asset_managementController : ControllerBase
     {
         private readonly XR50RepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public owncloudFile_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public asset_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -79,13 +79,13 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 
             }
-            var Owncloudfile = _context.Assets.FindAsync(id);
-            if (Owncloudfile == null) {
+            var asset = _context.Assets.FindAsync(id);
+            if (asset == null) {
                 Console.WriteLine($"Did not find File with id: {id}");
                 return NotFound();
             }
             
-            _context.Entry(Owncloudfile).State = EntityState.Modified;
+            _context.Entry(asset).State = EntityState.Modified;
 
             try
             {

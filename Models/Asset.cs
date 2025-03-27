@@ -48,6 +48,8 @@ namespace XR5_0TrainingRepo.Models
         public Asset ()
         {
             OwncloudFileName = Guid.NewGuid().ToString();
+            ShareList = new List<string>();
+            MaterialList= new List<string>();
             
         }
     }
