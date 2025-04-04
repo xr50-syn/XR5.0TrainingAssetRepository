@@ -317,6 +317,122 @@ namespace XR5_0TrainingRepo.Controllers
         {
             return _context.Materials.Any(e => e.MaterialName.Equals(MaterialName));
         }
+
+        // GET: /xr50/library_of_reality_altering_knowledge/material_management/workflow
+        [HttpGet("workflow")]
+        public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterials()
+        {
+            var workflowMaterials = await _context.Materials
+                .Where(m => m.MaterialType == MaterialType.Workflow)
+                .Include(m => m.MaterialList)
+                .Include(m => m.AssetList)
+                .Include(m => m.TrainingList)
+                .Select(m => new WorkflowMaterial
+                {
+                    MaterialId = m.MaterialId,
+                    TennantName = m.TennantName,
+                    Description = m.Description,
+                    MaterialName = m.MaterialName,
+                    ParentId = m.ParentId,
+                    MaterialList = m.MaterialList,
+                    AssetList = m.AssetList,
+                    TrainingList = m.TrainingList,
+                    MaterialType = MaterialType.Workflow,
+                    Steps = _context.WorkflowSteps
+                        .Where(ws => ws.WorkflowStepId.ToString() == m.MaterialId)
+                        .ToList()
+                })
+                .ToListAsync();
+
+            if (!workflowMaterials.Any())
+            {
+                return NotFound("No workflow materials found");
+            }
+
+            return workflowMaterials;
+        }
+
+        // GET: /xr50/library_of_reality_altering_knowledge/material_management/workflow/{tennantName}
+        [HttpGet("workflow/{tennantName}")]
+        public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterialsByTennant(string tennantName)
+        {
+            var tennant = await _context.Tennants.FindAsync(tennantName);
+            if (tennant == null)
+            {
+                return NotFound($"Tennant {tennantName} not found");
+            }
+
+            var workflowMaterials = await _context.Materials
+                .Where(m => m.MaterialType == MaterialType.Workflow && m.TennantName == tennantName)
+                .Include(m => m.MaterialList)
+                .Include(m => m.AssetList)
+                .Include(m => m.TrainingList)
+                .Select(m => new WorkflowMaterial
+                {
+                    MaterialId = m.MaterialId,
+                    TennantName = m.TennantName,
+                    Description = m.Description,
+                    MaterialName = m.MaterialName,
+                    ParentId = m.ParentId,
+                    MaterialList = m.MaterialList,
+                    AssetList = m.AssetList,
+                    TrainingList = m.TrainingList,
+                    MaterialType = MaterialType.Workflow,
+                    Steps = _context.WorkflowSteps
+                        .Where(ws => ws.WorkflowStepId.ToString() == m.MaterialId)
+                        .ToList()
+                })
+                .ToListAsync();
+
+            if (!workflowMaterials.Any())
+            {
+                return NotFound($"No workflow materials found for tennant {tennantName}");
+            }
+
+            return workflowMaterials;
+        }
+
+        // GET: /xr50/library_of_reality_altering_knowledge/material_management/workflow/{tennantName}/{materialId}
+        [HttpGet("workflow/{tennantName}/{materialId}")]
+        public async Task<ActionResult<WorkflowMaterial>> GetWorkflowMaterial(string tennantName, string materialId)
+        {
+            var tennant = await _context.Tennants.FindAsync(tennantName);
+            if (tennant == null)
+            {
+                return NotFound($"Tennant {tennantName} not found");
+            }
+
+            var material = await _context.Materials
+                .Where(m => m.MaterialType == MaterialType.Workflow && 
+                           m.TennantName == tennantName && 
+                           m.MaterialId == materialId)
+                .Include(m => m.MaterialList)
+                .Include(m => m.AssetList)
+                .Include(m => m.TrainingList)
+                .Select(m => new WorkflowMaterial
+                {
+                    MaterialId = m.MaterialId,
+                    TennantName = m.TennantName,
+                    Description = m.Description,
+                    MaterialName = m.MaterialName,
+                    ParentId = m.ParentId,
+                    MaterialList = m.MaterialList,
+                    AssetList = m.AssetList,
+                    TrainingList = m.TrainingList,
+                    MaterialType = MaterialType.Workflow,
+                    Steps = _context.WorkflowSteps
+                        .Where(ws => ws.WorkflowStepId.ToString() == m.MaterialId)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (material == null)
+            {
+                return NotFound($"Workflow material with ID {materialId} not found for tennant {tennantName}");
+            }
+
+            return material;
+        }
     }
 
 
