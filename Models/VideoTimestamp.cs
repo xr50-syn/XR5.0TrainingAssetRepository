@@ -8,7 +8,8 @@ namespace XR5_0TrainingRepo.Models
     public class VideoTimestamp
     {
         [Key]
-        public int VideoTimestampId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public string VideoTimestampId { get; set; }
 
         
         public string Title { get; set; } = null!;
@@ -17,7 +18,7 @@ namespace XR5_0TrainingRepo.Models
 
         public VideoTimestamp()
         {
-            
+           VideoTimestampId = Guid.NewGuid().ToString();
         }
     }
 }

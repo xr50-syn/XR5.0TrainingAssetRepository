@@ -8,14 +8,14 @@ namespace XR5_0TrainingRepo.Models
     public class WorkflowStep
     {
         [Key]
-        public int WorkflowStepId { get; set; }
-
+        
+        public string WorkflowStepId { get; set; }
         public string Title { get; set; } = null!;
         public string? Content { get; set; }
 
         public WorkflowStep()
         {
-           
+           WorkflowStepId = Guid.NewGuid().ToString();
         }
     }
 

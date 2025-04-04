@@ -4,5 +4,23 @@
   "trainingName": "Advanced_Arcana",
   "TennantName": "DECEIT Library of Forbidden Texts",
   "materialName": "Epic_Spellbook",
-  "materialType": 0
+  "materialType": 3,
+  "steps": [
+      {
+          "title": "Necromancy",
+          "content": "Soul Eater"
+      },
+      {
+          "title": "Enchantment",
+          "content": "EmmieDeification"
+      },
+      {
+        "title": "Enchantment",
+        "content": "Divine Dreamscape"
+      },
+      {
+          "title": "Transmutation",
+          "content": "MassCutification"
+      }
+  ]
 }

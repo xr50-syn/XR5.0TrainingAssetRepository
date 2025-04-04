@@ -9,14 +9,15 @@ namespace XR5_0TrainingRepo.Models
     public class ChecklistEntry
     {
         [Key]
-        public int ChecklistEntryId { get; set; }
+
+        public string ChecklistEntryId { get; set; }
 
         public string Text { get; set; } = null!;
         public string? Description { get; set; }
 
         public ChecklistEntry()
         {
-            
+            ChecklistEntryId = Guid.NewGuid().ToString();
         }
 
 

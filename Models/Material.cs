@@ -44,15 +44,17 @@ namespace XR5_0TrainingRepo.Models
     public class ChecklistMaterial : Material
     {
         // Implementation specific to checklist materials
-        public List<string> Entries { get; set; }
-        
+        public List<ChecklistEntry> Entries { get; set; }
+        [ForeignKey("ChecklistEntries")]
+        public List<int> EntryId { get; set; }
         public ChecklistMaterial()
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
             AssetList = new List<string>();
             TrainingList = new List<string>();
-            Entries = new List<string>();
+            Entries = new List<ChecklistEntry>();
+            EntryId = new List<int>();
             MaterialType = MaterialType.Checklist;
         }
         
@@ -75,14 +77,17 @@ namespace XR5_0TrainingRepo.Models
     public class VideoMaterial : Material
     {
         // Implementation specific to video materials
-        public List<string> Timestamps { get; set; }
+        public List<VideoTimestamp> Timestamps { get; set; }
+        [ForeignKey("VideoTimestamps")]
+        public List<string> TimestapId { get; set; }
         public VideoMaterial()
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
             AssetList = new List<string>();
             TrainingList = new List<string>();
-            Timestamps = new List<string>();
+            Timestamps = new List<VideoTimestamp>();
+            TimestapId= new List<string>();
             MaterialType = MaterialType.Video;
         }
     }
@@ -91,6 +96,8 @@ namespace XR5_0TrainingRepo.Models
     {
         // Implementation specific to workflow materials
         public List<WorkflowStep> Steps { get; set; }
+        [ForeignKey("WorkflowSteps")]
+        public List<string> StepIds { get; set; }
         public WorkflowMaterial()
         {
             MaterialId = Guid.NewGuid().ToString();
@@ -98,6 +105,7 @@ namespace XR5_0TrainingRepo.Models
             AssetList = new List<string>();
             TrainingList = new List<string>();
             Steps = new List<WorkflowStep>();
+            StepIds= new List<string>();
             MaterialType = MaterialType.Workflow;
         }
     }
