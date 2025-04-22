@@ -184,7 +184,6 @@ namespace XR5_0TrainingRepo.Controllers
             Material.MaterialType = MaterialType.Workflow;
             Material.MaterialName = workflowMaterial.MaterialName;
             Material.ParentId = workflowMaterial.ParentId;
-            Material.AssetList = workflowMaterial.AssetList;
             Material.TrainingList = workflowMaterial.TrainingList;
             Material.MaterialId = workflowMaterial.MaterialId;
 
@@ -214,8 +213,18 @@ namespace XR5_0TrainingRepo.Controllers
         }
         
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/checklist")]
-        public async Task<ActionResult<Material>> PostChecklistMaterial(string TennantName, Material Material)
+        public async Task<ActionResult<Material>> PostChecklistMaterial(string TennantName, ChecklistMaterial checklistMaterial)
         {
+            Material Material = new Material();
+            Material.MaterialType = MaterialType.Checklist;
+            Material.MaterialName = checklistMaterial.MaterialName;
+            Material.ParentId = checklistMaterial.ParentId;
+            Material.TrainingList = checklistMaterial.TrainingList;
+            Material.MaterialId = checklistMaterial.MaterialId;
+            checklistMaterial.Entries.ForEach(entry => {
+                entry.ChecklistEntryId = Guid.NewGuid().ToString();
+                _context.ChecklistEntries.Add(entry);
+            });
 
             var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
             if (XR50Tennant == null)
@@ -230,13 +239,28 @@ namespace XR5_0TrainingRepo.Controllers
             
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
+            _context.Checklists.Add(checklistMaterial);
             await _context.SaveChangesAsync();
             
             return CreatedAtAction("PostChecklistMaterial", TennantName, Material);
         }
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/image")]
-        public async Task<ActionResult<Material>> PostImageMaterial(string TennantName, Material Material)
+        public async Task<ActionResult<Material>> PostImageMaterial(string TennantName, ImageMaterial imageMaterial)
         {
+            Material Material = new Material();
+            Material.MaterialType = MaterialType.Image;
+            Material.MaterialName = imageMaterial.MaterialName;
+            Material.ParentId = imageMaterial.ParentId;
+            Material.TrainingList = imageMaterial.TrainingList;
+            Material.MaterialId = imageMaterial.MaterialId;
+            if (imageMaterial.AssetId != null) {
+                var Asset= await _context.Assets.FindAsync(imageMaterial.AssetId);
+                if (Asset == null)
+                {
+                    return NotFound($"Couldnt Find Asset {imageMaterial.AssetId}");
+                }
+                
+            }
             var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
             if (XR50Tennant == null)
             {
@@ -250,13 +274,32 @@ namespace XR5_0TrainingRepo.Controllers
             
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
+             _context.Images.Add(imageMaterial);
             await _context.SaveChangesAsync();
             
             return CreatedAtAction("PostImageMaterial", TennantName, Material);
         }
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/{TennantName}/video")]
-        public async Task<ActionResult<Material>> PostVideoMaterial(string TennantName, Material Material)
+        public async Task<ActionResult<Material>> PostVideoMaterial(string TennantName, VideoMaterial videoMaterial)
         {
+            Material Material = new Material();
+            Material.MaterialType = MaterialType.Video;
+            Material.MaterialName = videoMaterial.MaterialName;
+            Material.ParentId = videoMaterial.ParentId;
+            Material.TrainingList = videoMaterial.TrainingList;
+            Material.MaterialId = videoMaterial.MaterialId;
+            videoMaterial.Timestamps.ForEach(timestamp=> {
+                timestamp.VideoTimestampId = Guid.NewGuid().ToString();
+                _context.VideoTimestamps.Add(timestamp);
+            });
+            if (videoMaterial.AssetId != null) {
+                var Asset= await _context.Assets.FindAsync(videoMaterial.AssetId);
+                if (Asset == null)
+                {
+                    return NotFound($"Couldnt Find Asset {videoMaterial.AssetId}");
+                }
+                
+            }
             var XR50Tennant = await _context.Tennants.FindAsync(TennantName);
             if (XR50Tennant == null)
             {
@@ -270,6 +313,7 @@ namespace XR5_0TrainingRepo.Controllers
             
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
+            _context.Videos.Add(videoMaterial);
             await _context.SaveChangesAsync();
             
             return CreatedAtAction("PostVideoMaterial", TennantName, Material);

@@ -19,7 +19,6 @@ namespace XR5_0TrainingRepo.Controllers
      {
         public string? TennantName { get; set; }
         public string? ParentId { get; set; }
-        public string TrainingName {get; set;} 
         public string? OwncloudPath {get;set;}
         public string? Type { get; set; }
         public string? Description {get; set;}
@@ -131,6 +130,19 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound($"Admin user for {Owncloudfile.TennantName}");
             }
+           /* if (fileUpload.ParentId != null) {
+                var Parent = await _context.Materials.FindAsync(fileUpload.ParentId);
+                if (Parent == null)
+                {
+                    return NotFound($"Parent {fileUpload.ParentId}");
+                } else {
+                    Parent.AssetId=Owncloudfile.OwncloudFileName;
+
+                }
+                
+            }*/
+
+            await _context.SaveChangesAsync();
             
             string username = admin.UserName;
             string password = admin.Password; ;

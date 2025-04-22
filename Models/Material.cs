@@ -13,8 +13,6 @@ namespace XR5_0TrainingRepo.Models
         public string? Description { get; set; }
         public string? MaterialName { get; set; }
         public string? ParentId { get; set; }
-        [ForeignKey("Assets")]
-        public virtual List<string>? AssetList { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; }
          [ForeignKey("Trainings")]
@@ -28,7 +26,6 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            AssetList = new List<string>();
             TrainingList = new List<string>();
         }
     }
@@ -51,7 +48,6 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            AssetList = new List<string>();
             TrainingList = new List<string>();
             Entries = new List<ChecklistEntry>();
             EntryId = new List<int>();
@@ -64,11 +60,11 @@ namespace XR5_0TrainingRepo.Models
     
     {
         // Implementation specific to image materials
+        public string? AssetId { get; set; }
         public ImageMaterial()
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            AssetList = new List<string>();
             TrainingList = new List<string>();
             MaterialType = MaterialType.Image;
         }
@@ -77,6 +73,7 @@ namespace XR5_0TrainingRepo.Models
     public class VideoMaterial : Material
     {
         // Implementation specific to video materials
+        public string? AssetId { get; set; }
         public List<VideoTimestamp> Timestamps { get; set; }
         [ForeignKey("VideoTimestamps")]
         public List<string> TimestapId { get; set; }
@@ -84,7 +81,6 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            AssetList = new List<string>();
             TrainingList = new List<string>();
             Timestamps = new List<VideoTimestamp>();
             TimestapId= new List<string>();
@@ -102,7 +98,6 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            AssetList = new List<string>();
             TrainingList = new List<string>();
             Steps = new List<WorkflowStep>();
             StepIds= new List<string>();

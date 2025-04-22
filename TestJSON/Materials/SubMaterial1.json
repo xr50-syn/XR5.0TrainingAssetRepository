@@ -1,9 +1,8 @@
 {
   "description": "A non-rigorous description of Amethyst's custom-made epic spells'",
-  "owncloudFileName": "Epic_Spellbook",
   "trainingName": "Advanced_Arcana",
   "TennantName": "DECEIT Library of Forbidden Texts",
-  "materialName": "Enchantment",
-  "parentId": "69a1299b-f7a0-473b-adf4-21995e2cc9bd",
+  "materialName": "Epic_Spellbook",
+  "parentId": "",
   "materialType": 0
 }
