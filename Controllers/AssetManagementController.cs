@@ -72,7 +72,7 @@ namespace XR5_0TrainingRepo.Controllers
         }
         // PUT: api/Assets/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
+        [HttpPut("/xr50/library_of_reality_altering_knowledge/[controller]/share/{id}")]
         public async Task<IActionResult> ShareFile(string id, Share share)
         {
              int shareType;
@@ -382,6 +382,41 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
+            var XR50Tennant = await _context.Tennants.FindAsync(Asset.TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Tennant {Asset.TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Asset.TennantName}");
+            }
+            string username = admin.UserName;
+            string password = admin.Password;
+             _context.Assets.Remove(Asset);                                                                                          await _context.SaveChangesAsync(); 
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            // Createe root dir for the Training
+	        string cmd= "curl";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{Asset.OwncloudFileName}\"";
+            Console.WriteLine("Executing command: " + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {                                                                                                                           FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            }
+            return NoContent();
 
             _context.Assets.Remove(Asset);
             await _context.SaveChangesAsync();
