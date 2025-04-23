@@ -19,12 +19,17 @@ namespace XR5_0TrainingRepo.Controllers
      {
         public string? TennantName { get; set; }
         public string? ParentId { get; set; }
-        public string? OwncloudPath {get;set;}
+
         public string? Type { get; set; }
         public string? Description {get; set;}
         public IFormFile File { get; set; }
     }
-    
+    public class FileUpdateFormData
+    {
+        public string? TennantName { get; set; }
+        public string? OwncloudFileName { get; set; }
+        public IFormFile File { get; set; }
+    }
     [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
     [ApiController]
     public class asset_managementController : ControllerBase
@@ -104,7 +109,70 @@ namespace XR5_0TrainingRepo.Controllers
 
             return NoContent();
         }
+        [HttpPut]
+        public async Task<ActionResult<Asset>> UpdateAsset([FromForm] FileUpdateFormData fileUpdate)
+        {
+            var Owncloudfile = await _context.Assets.FindAsync(fileUpdate.OwncloudFileName);
+            if (Owncloudfile == null) {
+                return NotFound($"File {fileUpdate.OwncloudFileName} not found");
+            }
 
+            var XR50Tennant = await _context.Tennants.FindAsync(Owncloudfile.TennantName);
+            if (XR50Tennant == null)
+            {
+                return NotFound($"Tennant {Owncloudfile.TennantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Admin user for {Owncloudfile.TennantName}");
+            }
+           /* if (fileUpload.ParentId != null) {
+                var Parent = await _context.Materials.FindAsync(fileUpload.ParentId);
+                if (Parent == null)
+                {
+                    return NotFound($"Parent {fileUpload.ParentId}");
+                } else {
+                    Parent.AssetId=Owncloudfile.OwncloudFileName;
+
+                }
+                
+            }*/
+            string username = admin.UserName;
+            string password = admin.Password; ;
+            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            // Createe root dir for the Training
+            
+            string tempFileName=Path.GetTempFileName();
+            using (var stream = System.IO.File.Create(tempFileName))
+            {
+                  await fileUpdate.File.CopyToAsync(stream);
+            }
+	        string cmd="curl";
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{Owncloudfile.OwncloudFileName}\"";
+            // Create root dir for the Tennant
+            Console.WriteLine("Executing command:" + cmd + " " + Arg);
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = cmd,
+                Arguments = Arg,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            using (var process = Process.Start(startInfo))
+            {
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+                Console.WriteLine("Output: " + output);
+                Console.WriteLine("Error: " + error);
+            
+            }
+	        await _context.SaveChangesAsync();
+            return CreatedAtAction("PostAsset", new { id = Owncloudfile.OwncloudFileName }, Owncloudfile);
+        }
         // POST: api/Assets
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -113,7 +181,9 @@ namespace XR5_0TrainingRepo.Controllers
             Asset Owncloudfile= new Asset();
             Owncloudfile.Description=fileUpload.Description;
             Owncloudfile.TennantName=fileUpload.TennantName;
-            Owncloudfile.OwncloudPath= fileUpload.OwncloudPath;
+
+            Owncloudfile.Type = fileUpload.Type;
+            
             
             if (fileUpload.Type != null) {
                 Owncloudfile.OwncloudFileName += $".{fileUpload.Type}";
@@ -263,7 +333,7 @@ namespace XR5_0TrainingRepo.Controllers
             values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
             values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
             values.Add(new KeyValuePair<string, string>("permissions", 1.ToString()));
-            values.Add(new KeyValuePair<string, string>("path", $"{Asset.OwncloudPath}/{Asset.OwncloudFileName}"));
+            values.Add(new KeyValuePair<string, string>("path", $"{XR50Tennant.OwncloudDirectory}/{Asset.OwncloudFileName}"));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = admin.UserName;
             string password = admin.Password;

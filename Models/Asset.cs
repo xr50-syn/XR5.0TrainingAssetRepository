@@ -36,8 +36,6 @@ namespace XR5_0TrainingRepo.Models
     {
         public string? TennantName { get; set; }
         public string? Description { get; set; }
-        public string? OwncloudPath { get; set; }
-        
         [ForeignKey("Shares")]
         public virtual List<string>? ShareList { get; set; }
         [ForeignKey("Materials")]

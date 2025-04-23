@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -208,37 +208,6 @@ namespace XR5_0TrainingRepo.Controllers
            
             return CreatedAtAction("PostTraining", Training);
         }
-        // POST: api/XR50Tennant
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{TrainingName}")]
-        public async Task<ActionResult<Material>> PostMaterial(string TennantName, string TrainingName, Material Material)
-        {
-            var XR50Tennant = await _context.Tennants.FindAsync(Material.TennantName);
-            if (XR50Tennant == null)
-            {
-                return NotFound($"Couldnt Find Tennant {Material.TennantName}");
-            }
-            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
-            if (admin == null)
-            {
-                return NotFound($"Couldnt Find Admin user for {Material.TennantName}");
-            }
-            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
-            if (Training == null)
-            {
-                return NotFound($"Couldnt Find Training for {TrainingName}");
-            }
-            Material.MaterialId = Guid.NewGuid().ToString();
-            Material.TrainingList.Add(Training.TrainingName);
-            Training.MaterialList.Add(Material.MaterialId);
-            _context.Materials.Add(Material);
-            
-            await _context.SaveChangesAsync();
-           
-            _context.SaveChanges();
-            return CreatedAtAction("PostMaterial", TrainingName, Material);
-        }
-
         [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/material-management/{TennantName}/{ParentMaterialId}")]
         public async Task<ActionResult<Material>> PostChildMaterial(string TennantName, string ParentMaterialId, Material Material)
         {

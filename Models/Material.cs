@@ -34,7 +34,8 @@ namespace XR5_0TrainingRepo.Models
         Checklist,
         Image,
         Video,
-        Workflow
+        Workflow,
+        Default
     }
 
 
@@ -102,6 +103,18 @@ namespace XR5_0TrainingRepo.Models
             Steps = new List<WorkflowStep>();
             StepIds= new List<string>();
             MaterialType = MaterialType.Workflow;
+        }
+    }
+    public class DefaultMaterial : Material
+    {
+        // Implementation specific to image materials
+        public string? AssetId { get; set; }
+        public DefaultMaterial()
+        {
+            MaterialId = Guid.NewGuid().ToString();
+            MaterialList = new List<string>();
+            TrainingList = new List<string>();
+            MaterialType = MaterialType.Default;
         }
     }
 }
