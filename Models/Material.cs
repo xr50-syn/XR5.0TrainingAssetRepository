@@ -9,7 +9,7 @@ namespace XR5_0TrainingRepo.Models
 {
     public class Material
     {
-        public string? TennantName { get; set; }
+        public string? TenantName { get; set; }
         public string? Description { get; set; }
         public string? MaterialName { get; set; }
         public string? ParentId { get; set; }

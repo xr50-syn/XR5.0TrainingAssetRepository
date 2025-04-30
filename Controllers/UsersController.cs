@@ -12,7 +12,7 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
+    [Route("/xr50/Training_Asset_Repository/[controller]")]
     [ApiController]
     public class user_managementController : ControllerBase
     {
@@ -87,15 +87,15 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var XR50Tennant = await _context.Tennants.FindAsync(user.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(user.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tennant {user.TennantName}");
+                return NotFound($"Couldnt Find Tenant {user.TenantName}");
             }
             
             if (user.admin)
             {
-                XR50Tennant.AdminList.Add(user.UserName);
+                XR50Tenant.AdminList.Add(user.UserName);
             }
             _context.Users.Add(user);
             _context.SaveChanges();
@@ -105,7 +105,7 @@ namespace XR5_0TrainingRepo.Controllers
             values.Add(new KeyValuePair<string, string>("password", user.Password));
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
-            values.Add(new KeyValuePair<string, string>("groups[]", XR50Tennant.OwncloudGroup));
+            values.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.OwncloudGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
             string password = _configuration.GetValue<string>("OwncloudSettings:Password");
@@ -127,18 +127,18 @@ namespace XR5_0TrainingRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/group-management")]
+        [HttpPost("/xr50/Training_Asset_Repository/[controller]/group-management")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
-            var XR50Tennant = await _context.Tennants.FindAsync(group.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(group.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tennant {group.TennantName}");
+                return NotFound($"Couldnt Find Tenant {group.TenantName}");
             } 
-            var adminUser = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            var adminUser = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (adminUser ==null) 
             {
-                return NotFound($"Couldnt Find Admin user for {group.TennantName}");
+                return NotFound($"Couldnt Find Admin user for {group.TenantName}");
             }
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", group.GroupName));
@@ -167,7 +167,7 @@ namespace XR5_0TrainingRepo.Controllers
             valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
             valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
             valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
-            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tennant.OwncloudGroup));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.OwncloudGroup));
             //Target The User Interface
             uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
             FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);

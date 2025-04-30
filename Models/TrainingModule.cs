@@ -6,7 +6,7 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Models
 {
-    [PrimaryKey(nameof(TennantName), nameof(TrainingName))]
+    [PrimaryKey(nameof(TenantName), nameof(TrainingName))]
     public class TrainingModule
     {
 
@@ -15,7 +15,7 @@ namespace XR5_0TrainingRepo.Models
         public virtual List<string>? MaterialList { get; set; }
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
-        public string TennantName { get; set; }
+        public string TenantName { get; set; }
         public string TrainingName { get; set; }
          
         public TrainingModule()

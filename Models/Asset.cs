@@ -13,7 +13,7 @@ namespace XR5_0TrainingRepo.Models
     {
         [Key]
         public string ShareId { get; set; }
-        public string? TennantName { get; set; }
+        public string? TenantName { get; set; }
         public string? FileId { get; set; }
         public ShareType Type { get; set;}
         public string Target {get; set;}
@@ -23,7 +23,7 @@ namespace XR5_0TrainingRepo.Models
         }
     }
     public class OwncloudDirectory {
-        public string? TennantName {get;set;}
+        public string? TenantName {get;set;}
         [Key]
         public string? OwncloudPath {get;set;}
         public OwncloudDirectory() {
@@ -34,7 +34,7 @@ namespace XR5_0TrainingRepo.Models
 
     public class Asset
     {
-        public string? TennantName { get; set; }
+        public string? TenantName { get; set; }
         public string? Description { get; set; }
         [ForeignKey("Shares")]
         public virtual List<string>? ShareList { get; set; }

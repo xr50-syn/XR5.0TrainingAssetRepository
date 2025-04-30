@@ -17,7 +17,7 @@ namespace XR5_0TrainingRepo.Controllers
 {
      public class FileUploadFormData
      {
-        public string? TennantName { get; set; }
+        public string? TenantName { get; set; }
         public string? ParentId { get; set; }
 
         public string? Type { get; set; }
@@ -26,11 +26,11 @@ namespace XR5_0TrainingRepo.Controllers
     }
     public class FileUpdateFormData
     {
-        public string? TennantName { get; set; }
+        public string? TenantName { get; set; }
         public string? OwncloudFileName { get; set; }
         public IFormFile File { get; set; }
     }
-    [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
+    [Route("/xr50/Training_Asset_Repository/[controller]")]
     [ApiController]
     public class asset_managementController : ControllerBase
     {
@@ -65,14 +65,14 @@ namespace XR5_0TrainingRepo.Controllers
 
             return Asset;
         }
-        [HttpGet("/xr50/library_of_reality_altering_knowledge/[controller]/share")]
+        [HttpGet("/xr50/Training_Asset_Repository/[controller]/share")]
         public async Task<ActionResult<IEnumerable<Share>>> GetShare()
         {
             return await _context.Shares.ToListAsync();
         }
         // PUT: api/Assets/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("/xr50/library_of_reality_altering_knowledge/[controller]/share/{id}")]
+        [HttpPut("/xr50/Training_Asset_Repository/[controller]/share/{id}")]
         public async Task<IActionResult> ShareFile(string id, Share share)
         {
              int shareType;
@@ -117,15 +117,15 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound($"File {fileUpdate.OwncloudFileName} not found");
             }
 
-            var XR50Tennant = await _context.Tennants.FindAsync(Owncloudfile.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(Owncloudfile.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Tennant {Owncloudfile.TennantName}");
+                return NotFound($"Tenant {Owncloudfile.TenantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Owncloudfile.TennantName}");
+                return NotFound($"Admin user for {Owncloudfile.TenantName}");
             }
            /* if (fileUpload.ParentId != null) {
                 var Parent = await _context.Materials.FindAsync(fileUpload.ParentId);
@@ -149,9 +149,9 @@ namespace XR5_0TrainingRepo.Controllers
                   await fileUpdate.File.CopyToAsync(stream);
             }
 	        string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
             string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{Owncloudfile.OwncloudFileName}\"";
-            // Create root dir for the Tennant
+            // Create root dir for the Tenant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
@@ -180,7 +180,7 @@ namespace XR5_0TrainingRepo.Controllers
         {
             Asset Owncloudfile= new Asset();
             Owncloudfile.Description=fileUpload.Description;
-            Owncloudfile.TennantName=fileUpload.TennantName;
+            Owncloudfile.TenantName=fileUpload.TenantName;
 
             Owncloudfile.Type = fileUpload.Type;
             
@@ -190,15 +190,15 @@ namespace XR5_0TrainingRepo.Controllers
             }
             _context.Assets.Add(Owncloudfile);
 
-            var XR50Tennant = await _context.Tennants.FindAsync(Owncloudfile.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(Owncloudfile.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Tennant {Owncloudfile.TennantName}");
+                return NotFound($"Tenant {Owncloudfile.TenantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Owncloudfile.TennantName}");
+                return NotFound($"Admin user for {Owncloudfile.TenantName}");
             }
            /* if (fileUpload.ParentId != null) {
                 var Parent = await _context.Materials.FindAsync(fileUpload.ParentId);
@@ -225,9 +225,9 @@ namespace XR5_0TrainingRepo.Controllers
                   await fileUpload.File.CopyToAsync(stream);
             }
 	        string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
             string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{Owncloudfile.OwncloudFileName}\"";
-            // Create root dir for the Tennant
+            // Create root dir for the Tenant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {
@@ -249,25 +249,25 @@ namespace XR5_0TrainingRepo.Controllers
 	        await _context.SaveChangesAsync();
             return CreatedAtAction("PostAsset", new { id = Owncloudfile.OwncloudFileName }, Owncloudfile);
         }
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/directory")]
+        [HttpPost("/xr50/Training_Asset_Repository/[controller]/directory")]
         public async Task<IActionResult> PostDirectory(OwncloudDirectory directory){
 
-            var XR50Tennant = await _context.Tennants.FindAsync(directory.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(directory.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Tennant {directory.TennantName}");
+                return NotFound($"Tenant {directory.TenantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {directory.TennantName}");
+                return NotFound($"Admin user for {directory.TenantName}");
             }
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	        string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
             string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{directory.OwncloudPath}\"";
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -288,26 +288,26 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return NoContent();
         }
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/share")]
+        [HttpPost("/xr50/Training_Asset_Repository/[controller]/share")]
         public async Task<ActionResult<Share>> PostShare(Share owncloudShare)
         {
             _context.Shares.Add(owncloudShare);
 
-            var XR50Tennant = await _context.Tennants.FindAsync(owncloudShare.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(owncloudShare.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"App {owncloudShare.TennantName}");
+                return NotFound($"App {owncloudShare.TenantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {owncloudShare.TennantName}");
+                return NotFound($"Admin user for {owncloudShare.TenantName}");
             }
             string shareTarget;
             int shareType;
             if (owncloudShare.Type == ShareType.Group)
             {
-                shareTarget = XR50Tennant.OwncloudGroup;
+                shareTarget = XR50Tenant.OwncloudGroup;
                 shareType = 1;
             } else
             {
@@ -333,7 +333,7 @@ namespace XR5_0TrainingRepo.Controllers
             values.Add(new KeyValuePair<string, string>("shareType", shareType.ToString()));
             values.Add(new KeyValuePair<string, string>("shareWith", shareTarget));
             values.Add(new KeyValuePair<string, string>("permissions", 1.ToString()));
-            values.Add(new KeyValuePair<string, string>("path", $"{XR50Tennant.OwncloudDirectory}/{Asset.OwncloudFileName}"));
+            values.Add(new KeyValuePair<string, string>("path", $"{XR50Tenant.OwncloudDirectory}/{Asset.OwncloudFileName}"));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = admin.UserName;
             string password = admin.Password;
@@ -358,7 +358,7 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // DELETE: api/Shares/5
-        [HttpDelete("/xr50/library_of_reality_altering_knowledge/[controller]/share/{id}")]
+        [HttpDelete("/xr50/Training_Asset_Repository/[controller]/share/{id}")]
         public async Task<IActionResult> DeleteShare(string id)
         {
             var owncloudShare = await _context.Shares.FindAsync(id);
@@ -382,15 +382,15 @@ namespace XR5_0TrainingRepo.Controllers
             {
                 return NotFound();
             }
-            var XR50Tennant = await _context.Tennants.FindAsync(Asset.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(Asset.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Tennant {Asset.TennantName}");
+                return NotFound($"Tenant {Asset.TenantName}");
             }
-            var admin = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Admin user for {Asset.TennantName}");
+                return NotFound($"Admin user for {Asset.TenantName}");
             }
             string username = admin.UserName;
             string password = admin.Password;
@@ -398,7 +398,7 @@ namespace XR5_0TrainingRepo.Controllers
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
             // Createe root dir for the Training
 	        string cmd= "curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tennant.OwncloudDirectory);
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
             string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{Asset.OwncloudFileName}\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo

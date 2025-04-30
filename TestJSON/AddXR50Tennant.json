@@ -1,5 +1,5 @@
 {
-  "TennantName": "DECEIT Library of Forbidden Texts",
+  "TenantName": "DECEIT Library of Forbidden Texts",
   "OwncloudGroup": "DECEIT Library of Forbidden Texts",
   "OwncloudDirectory": "Copy of Amethysts Library",
   "Description": "Hijacked by the evil dragon",
@@ -10,7 +10,7 @@
     "userEmail": "I_prank_my_students@deceit.hl",
     "password": "123",
     "admin": true,
-    "TennantName": "DECEIT Library of Forbidden Texts"
+    "TenantName": "DECEIT Library of Forbidden Texts"
   },
   "adminList": [],
   "trainingList": []

@@ -6,7 +6,7 @@ namespace XR5_0TrainingRepo.Models
 {
     public class User
     {
-        public string TennantName { get; set; }
+        public string TenantName { get; set; }
         public string? FullName { get; set; }
         public string? UserEmail { get; set; }
         public string? Password { get; set; }
@@ -19,7 +19,7 @@ namespace XR5_0TrainingRepo.Models
     public class Group {
         [ForeignKey("Users")]
         public virtual List<string>? UserList { get; set; }
-        public string? TennantName {get; set;}
+        public string? TenantName {get; set;}
          [Key]
          public string? GroupName { get; set; }
 

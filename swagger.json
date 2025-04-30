@@ -5,10 +5,10 @@
     "version": "1.0"
   },
   "paths": {
-    "/xr50/training-repo/asset-management/Asset": {
+    "/xr50/Training_Asset_Repository/asset_management": {
       "get": {
         "tags": [
-          "Asset"
+          "asset_management"
         ],
         "responses": {
           "200": {
@@ -42,25 +42,109 @@
           }
         }
       },
-      "post": {
+      "put": {
         "tags": [
-          "Asset"
+          "asset_management"
         ],
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Asset"
+                "type": "object",
+                "properties": {
+                  "TenantName": {
+                    "type": "string"
+                  },
+                  "OwncloudFileName": {
+                    "type": "string"
+                  },
+                  "File": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "TenantName": {
+                  "style": "form"
+                },
+                "OwncloudFileName": {
+                  "style": "form"
+                },
+                "File": {
+                  "style": "form"
+                }
               }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Asset"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Asset"
+                }
               }
-            },
-            "application/*+json": {
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "asset_management"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Asset"
+                "type": "object",
+                "properties": {
+                  "TenantName": {
+                    "type": "string"
+                  },
+                  "ParentId": {
+                    "type": "string"
+                  },
+                  "Type": {
+                    "type": "string"
+                  },
+                  "Description": {
+                    "type": "string"
+                  },
+                  "File": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              },
+              "encoding": {
+                "TenantName": {
+                  "style": "form"
+                },
+                "ParentId": {
+                  "style": "form"
+                },
+                "Type": {
+                  "style": "form"
+                },
+                "Description": {
+                  "style": "form"
+                },
+                "File": {
+                  "style": "form"
+                }
               }
             }
           }
@@ -89,10 +173,10 @@
         }
       }
     },
-    "/xr50/training-repo/asset-management/Asset/{id}": {
+    "/xr50/Training_Asset_Repository/asset_management/{id}": {
       "get": {
         "tags": [
-          "Asset"
+          "asset_management"
         ],
         "parameters": [
           {
@@ -100,8 +184,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
             }
           }
         ],
@@ -128,9 +211,9 @@
           }
         }
       },
-      "put": {
+      "delete": {
         "tags": [
-          "Asset"
+          "asset_management"
         ],
         "parameters": [
           {
@@ -138,8 +221,113 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/asset_management/share": {
+      "get": {
+        "tags": [
+          "asset_management"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Share"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Share"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Share"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "asset_management"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Share"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Share"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Share"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Share"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Share"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Share"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/asset_management/share/{id}": {
+      "put": {
+        "tags": [
+          "asset_management"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -147,17 +335,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Asset"
+                "$ref": "#/components/schemas/Share"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/Asset"
+                "$ref": "#/components/schemas/Share"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/Asset"
+                "$ref": "#/components/schemas/Share"
               }
             }
           }
@@ -170,7 +358,7 @@
       },
       "delete": {
         "tags": [
-          "Asset"
+          "asset_management"
         ],
         "parameters": [
           {
@@ -178,8 +366,7 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
             }
           }
         ],
@@ -190,10 +377,41 @@
         }
       }
     },
-    "/xr50/training-repo/resource-management/Material": {
+    "/xr50/Training_Asset_Repository/asset_management/directory": {
+      "post": {
+        "tags": [
+          "asset_management"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwncloudDirectory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwncloudDirectory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwncloudDirectory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management": {
       "get": {
         "tags": [
-          "Material"
+          "material_management"
         ],
         "responses": {
           "200": {
@@ -226,62 +444,16 @@
             }
           }
         }
-      },
-      "post": {
-        "tags": [
-          "Material"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Material"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Material"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/Material"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/Material"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Material"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Material"
-                }
-              }
-            }
-          }
-        }
       }
     },
-    "/xr50/training-repo/resource-management/Material/{MaterialName}": {
+    "/xr50/Training_Asset_Repository/material_management/{MaterialId}": {
       "get": {
         "tags": [
-          "Material"
+          "material_management"
         ],
         "parameters": [
           {
-            "name": "MaterialName",
+            "name": "MaterialId",
             "in": "path",
             "required": true,
             "schema": {
@@ -306,371 +478,6 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Material"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Material"
-        ],
-        "parameters": [
-          {
-            "name": "MaterialName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Material"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Material"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/Material"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Material"
-        ],
-        "parameters": [
-          {
-            "name": "MaterialName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/xr50/training-repo/training-management/Training": {
-      "get": {
-        "tags": [
-          "Training"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingModule"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingModule"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingModule"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Training"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrainingModule"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrainingModule"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrainingModule"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingModule"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingModule"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingModule"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/xr50/training-repo/training-management/Training/{TrainingName}": {
-      "get": {
-        "tags": [
-          "Training"
-        ],
-        "parameters": [
-          {
-            "name": "TrainingName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingModule"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingModule"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingModule"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "Training"
-        ],
-        "parameters": [
-          {
-            "name": "TrainingName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrainingModule"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrainingModule"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrainingModule"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Training"
-        ],
-        "parameters": [
-          {
-            "name": "TrainingName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/xr50/training-repo/user-management/Users": {
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/User"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "Users"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/User"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/xr50/training-repo/user-management/Users/{userName}": {
-      "get": {
-        "tags": [
-          "Users"
-        ],
-        "parameters": [
-          {
-            "name": "userName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/User"
                 }
               }
             }
@@ -679,11 +486,11 @@
       },
       "delete": {
         "tags": [
-          "Users"
+          "material_management"
         ],
         "parameters": [
           {
-            "name": "userName",
+            "name": "MaterialId",
             "in": "path",
             "required": true,
             "schema": {
@@ -698,10 +505,499 @@
         }
       }
     },
-    "/xr50/training-repo/XR50Tenant-management/XR50Tenant": {
+    "/xr50/Training_Asset_Repository/material_management/workflow/{tenantName}": {
       "get": {
         "tags": [
-          "XR50Tenant"
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "tenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowMaterial"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowMaterial"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowMaterial"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/workflow": {
+      "get": {
+        "tags": [
+          "material_management"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowMaterial"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowMaterial"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowMaterial"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/workflow/{tenantName}/{materialId}": {
+      "get": {
+        "tags": [
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "tenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowMaterial"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowMaterial"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowMaterial"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/{TenantName}": {
+      "post": {
+        "tags": [
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/{TenantName}/{ParentMaterialId}": {
+      "post": {
+        "tags": [
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ParentMaterialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/{TenantName}/workflow": {
+      "post": {
+        "tags": [
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowMaterial"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowMaterial"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowMaterial"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/{TenantName}/checklist": {
+      "post": {
+        "tags": [
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistMaterial"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistMaterial"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistMaterial"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/{TenantName}/image": {
+      "post": {
+        "tags": [
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageMaterial"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageMaterial"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageMaterial"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/material_management/{TenantName}/video": {
+      "post": {
+        "tags": [
+          "material_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoMaterial"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoMaterial"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/VideoMaterial"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/tenant_management": {
+      "get": {
+        "tags": [
+          "tenant_management"
         ],
         "responses": {
           "200": {
@@ -737,7 +1033,7 @@
       },
       "post": {
         "tags": [
-          "XR50Tenant"
+          "tenant_management"
         ],
         "requestBody": {
           "content": {
@@ -782,10 +1078,10 @@
         }
       }
     },
-    "/xr50/training-repo/XR50Tenant-management/XR50Tenant/{TenantName}": {
+    "/xr50/Training_Asset_Repository/tenant_management/{TenantName}": {
       "get": {
         "tags": [
-          "XR50Tenant"
+          "tenant_management"
         ],
         "parameters": [
           {
@@ -822,7 +1118,7 @@
       },
       "delete": {
         "tags": [
-          "XR50Tenant"
+          "tenant_management"
         ],
         "parameters": [
           {
@@ -837,6 +1133,605 @@
         "responses": {
           "200": {
             "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/tenant_management/{TenantName}/TrainingModules": {
+      "get": {
+        "tags": [
+          "tenant_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingModule"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingModule"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingModule"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/tenant_management/{TenantName}/Materials": {
+      "get": {
+        "tags": [
+          "tenant_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Material"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Material"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Material"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/tenant_management/training-management/{TenantName}": {
+      "post": {
+        "tags": [
+          "tenant_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingModule"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingModule"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingModule"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingModule"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingModule"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingModule"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/tenant_management/material-management/{TenantName}/{ParentMaterialId}": {
+      "post": {
+        "tags": [
+          "tenant_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ParentMaterialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Material"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/tenant_management/training-management/{TenantName}/{TrainingName}": {
+      "delete": {
+        "tags": [
+          "tenant_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TrainingName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/tenant_management/material-management/{TenantName}/{TrainingName}/{MateriaId}": {
+      "delete": {
+        "tags": [
+          "tenant_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TrainingName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MaterialId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "MateriaId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/training_management": {
+      "get": {
+        "tags": [
+          "training_management"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingModule"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingModule"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingModule"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/training_management/{TenantName}/{TrainingName}": {
+      "get": {
+        "tags": [
+          "training_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TrainingName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingModule"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingModule"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingModule"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "training_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "TrainingName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/user_management": {
+      "get": {
+        "tags": [
+          "user_management"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "user_management"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/user_management/{userName}": {
+      "get": {
+        "tags": [
+          "user_management"
+        ],
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "user_management"
+        ],
+        "parameters": [
+          {
+            "name": "userName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/Training_Asset_Repository/user_management/group-management": {
+      "post": {
+        "tags": [
+          "user_management"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Group"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Group"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/Group"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
           }
         }
       }
@@ -847,7 +1742,7 @@
       "Asset": {
         "type": "object",
         "properties": {
-          "path": {
+          "tenantName": {
             "type": "string",
             "nullable": true
           },
@@ -855,74 +1750,309 @@
             "type": "string",
             "nullable": true
           },
+          "shareList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "materialList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
           "owncloudFileName": {
             "type": "string",
             "nullable": true
-          },
-          "trainingId": {
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChecklistEntry": {
+        "type": "object",
+        "properties": {
+          "checklistEntryId": {
             "type": "string",
             "nullable": true
           },
-          "resourceId": {
+          "text": {
             "type": "string",
             "nullable": true
           },
-          "OwncloudFileName": {
-            "type": "integer",
-            "format": "int64",
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChecklistMaterial": {
+        "required": [
+          "materialType"
+        ],
+        "type": "object",
+        "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialName": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "trainingList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "materialId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialType": {
+            "$ref": "#/components/schemas/MaterialType"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistEntry"
+            },
+            "nullable": true
+          },
+          "entryId": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Group": {
+        "type": "object",
+        "properties": {
+          "userList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "groupName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ImageMaterial": {
+        "required": [
+          "materialType"
+        ],
+        "type": "object",
+        "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialName": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "trainingList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "materialId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialType": {
+            "$ref": "#/components/schemas/MaterialType"
+          },
+          "assetId": {
+            "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
       "Material": {
+        "required": [
+          "materialType"
+        ],
         "type": "object",
         "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
           "description": {
             "type": "string",
             "nullable": true
           },
-          "owncloudFileName": {
+          "materialName": {
             "type": "string",
             "nullable": true
           },
-          "trainingId": {
+          "parentId": {
             "type": "string",
             "nullable": true
           },
-          "assetList": {
+          "materialList": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Asset"
+              "type": "string"
             },
-            "nullable": true,
-            "readOnly": true
+            "nullable": true
           },
-          "materialName": {
+          "trainingList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "materialId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialType": {
+            "$ref": "#/components/schemas/MaterialType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MaterialType": {
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "OwncloudDirectory": {
+        "type": "object",
+        "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "owncloudPath": {
             "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "TrainingModule": {
+      "Share": {
         "type": "object",
         "properties": {
-          "TenantName": {
+          "shareId": {
             "type": "string",
             "nullable": true
           },
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileId": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/ShareType"
+          },
+          "target": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ShareType": {
+        "enum": [
+          0,
+          1
+        ],
+        "type": "integer",
+        "format": "int32"
+      },
+      "TrainingModule": {
+        "type": "object",
+        "properties": {
           "useCase": {
             "type": "string",
             "nullable": true
           },
-          "resourceList": {
+          "materialList": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Material"
+              "type": "string"
             },
-            "nullable": true,
-            "readOnly": true
+            "nullable": true
+          },
+          "assetList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "tenantName": {
+            "type": "string",
+            "nullable": true
           },
           "trainingName": {
             "type": "string",
@@ -934,7 +2064,7 @@
       "User": {
         "type": "object",
         "properties": {
-          "userName": {
+          "tenantName": {
             "type": "string",
             "nullable": true
           },
@@ -950,7 +2080,174 @@
             "type": "string",
             "nullable": true
           },
-          "TenantName": {
+          "admin": {
+            "type": "boolean"
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VideoMaterial": {
+        "required": [
+          "materialType"
+        ],
+        "type": "object",
+        "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialName": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "trainingList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "materialId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialType": {
+            "$ref": "#/components/schemas/MaterialType"
+          },
+          "assetId": {
+            "type": "string",
+            "nullable": true
+          },
+          "timestamps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VideoTimestamp"
+            },
+            "nullable": true
+          },
+          "timestapId": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "VideoTimestamp": {
+        "type": "object",
+        "properties": {
+          "videoTimestampId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "time": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowMaterial": {
+        "required": [
+          "materialType"
+        ],
+        "type": "object",
+        "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialName": {
+            "type": "string",
+            "nullable": true
+          },
+          "parentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "trainingList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "materialId": {
+            "type": "string",
+            "nullable": true
+          },
+          "materialType": {
+            "$ref": "#/components/schemas/MaterialType"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStep"
+            },
+            "nullable": true
+          },
+          "stepIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkflowStep": {
+        "type": "object",
+        "properties": {
+          "workflowStepId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
             "type": "string",
             "nullable": true
           }
@@ -960,6 +2257,17 @@
       "XR50Tenant": {
         "type": "object",
         "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "trainingList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
           "owncloudGroup": {
             "type": "string",
             "nullable": true
@@ -972,8 +2280,18 @@
             "type": "string",
             "nullable": true
           },
-          "TenantName": {
+          "ownerName": {
             "type": "string",
+            "nullable": true
+          },
+          "owner": {
+            "$ref": "#/components/schemas/User"
+          },
+          "adminList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           }
         },

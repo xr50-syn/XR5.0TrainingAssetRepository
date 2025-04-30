@@ -17,7 +17,7 @@ using XR5_0TrainingRepo.Models;
 
 namespace XR5_0TrainingRepo.Controllers
 {
-    [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
+    [Route("/xr50/Training_Asset_Repository/[controller]")]
     [ApiController]
     public class training_managementController : ControllerBase
     {
@@ -39,10 +39,10 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // GET: api/Training/5
-        [HttpGet("{TennantName}/{TrainingName}")]
-        public async Task<ActionResult<TrainingModule>> GetTraining(string TennantName,string TrainingName)
+        [HttpGet("{TenantName}/{TrainingName}")]
+        public async Task<ActionResult<TrainingModule>> GetTraining(string TenantName,string TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
+            var Training = await _context.Trainings.FindAsync(TenantName,TrainingName);
 
             if (Training == null)
             {
@@ -53,7 +53,7 @@ namespace XR5_0TrainingRepo.Controllers
 
         // PUT: api/Training/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-       /* [HttpPut("{TennantName}/{TrainingName}")]
+       /* [HttpPut("{TenantName}/{TrainingName}")]
         public async Task<IActionResult> PutTraining(string TrainingName, TrainingModule Training)
         {
             if (!TrainingName.Equals(Training.TrainingName))
@@ -84,21 +84,21 @@ namespace XR5_0TrainingRepo.Controllers
 */
         
         // DELETE: api/Training/5
-        [HttpDelete("{TennantName}/{TrainingName}")]
-        public async Task<IActionResult> DeleteTraining(string TennantName,string TrainingName)
+        [HttpDelete("{TenantName}/{TrainingName}")]
+        public async Task<IActionResult> DeleteTraining(string TenantName,string TrainingName)
         {
-            var Training = await _context.Trainings.FindAsync(TennantName,TrainingName);
+            var Training = await _context.Trainings.FindAsync(TenantName,TrainingName);
             if (Training == null)
             {
                 return NotFound();
             }
-            var XR50Tennant = await _context.Tennants.FindAsync(Training.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(Training.TenantName);
+            if (XR50Tenant == null)
             {
                 return NotFound();
             }
             _context.Trainings.Remove(Training);
-            XR50Tennant.TrainingList.Remove(Training.TrainingName);
+            XR50Tenant.TrainingList.Remove(Training.TrainingName);
             await _context.SaveChangesAsync();
             
             return NoContent();

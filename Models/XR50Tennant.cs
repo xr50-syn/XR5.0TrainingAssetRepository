@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 using XR5_0TrainingRepo.Models;
 namespace XR5_0TrainingRepo.Models
 {
-    public class XR50Tennant
+    public class XR50Tenant
     { 
         [Key]
-        public string TennantName { get; set; }
+        public string TenantName { get; set; }
 	    [ForeignKey("Trainings")]
         public virtual List<string>? TrainingList { get; set; }
 
@@ -18,7 +18,7 @@ namespace XR5_0TrainingRepo.Models
 	    public User? Owner {get; set;}
         public virtual List<string>? AdminList { get; set; }
         
-        public XR50Tennant(){ }
+        public XR50Tenant(){ }
 
     }
 }

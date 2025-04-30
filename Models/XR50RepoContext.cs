@@ -11,7 +11,7 @@ namespace XR5_0TrainingRepo.Models
         {
         }
 
-        public DbSet<XR50Tennant> Tennants { get; set; } = null!;
+        public DbSet<XR50Tenant> Tenants { get; set; } = null!;
 	    public DbSet<User> Users { get; set; } = null!;
 	    public DbSet<TrainingModule> Trainings { get; set; } = null!;
 	    public DbSet<Material> Materials { get; set; } = null!;
