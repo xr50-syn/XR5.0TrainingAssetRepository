@@ -42,10 +42,10 @@ namespace XR5_0TrainingRepo.Models
         public virtual List<string>? MaterialList { get; set; } 
         public string? Type { get; set; }
 	    [Key]
-        public string? OwncloudFileName { get; set; }
+        public string? FileName { get; set; }
         public Asset ()
         {
-            OwncloudFileName = Guid.NewGuid().ToString();
+            FileName = Guid.NewGuid().ToString();
             ShareList = new List<string>();
             MaterialList= new List<string>();
             
