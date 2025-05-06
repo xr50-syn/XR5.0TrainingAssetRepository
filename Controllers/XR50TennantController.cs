@@ -43,7 +43,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         
         // GET: api/XR50Tenant/5
-        [HttpGet("{TenantName}")]
+        [HttpGet("{tenantName}")]
         public async Task<ActionResult<XR50Tenant>> GetXR50Tenant(string TenantName)
         {
             var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
@@ -56,12 +56,12 @@ namespace XR50TrainingAssetRepo.Controllers
             return XR50Tenant;
         }
         // GET: api/XR50Tenant/5
-        [HttpGet("{TenantName}/TrainingPrograms")]
+        [HttpGet("{tenantName}/trainingPrograms")]
         public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTenantTrainingPrograms(string TenantName)
         {
             return _context.TrainingPrograms.Where(t=>t.TenantName.Equals(TenantName)).ToList();
         }
-        [HttpGet("{TenantName}/Materials")]
+        [HttpGet("{tenantName}/materials")]
         public async Task<ActionResult<IEnumerable<Material>>> GetTenantMaterials(string TenantName)
         {
             return _context.Materials.Where(t=>t.TenantName.Equals(TenantName)).ToList();
@@ -184,7 +184,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         // POST: api/XR50Tenant/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/training-management/{TenantName}")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/training-management/{tenantName}")]
         public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string TenantName,TrainingProgram TrainingProgram)
         {
 	        if (!TenantName.Equals(TrainingProgram.TenantName)) {
@@ -208,7 +208,7 @@ namespace XR50TrainingAssetRepo.Controllers
            
             return CreatedAtAction("PostTrainingProgram", TrainingProgram);
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/material-management/{TenantName}/{ParentMaterialId}")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/materialManagement/{tenantName}/{parentMaterialId}")]
         public async Task<ActionResult<Material>> PostChildMaterial(string TenantName, string ParentMaterialId, Material Material)
         {
 
@@ -238,7 +238,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         // DELETE: api/XR50Tenant/5
-        [HttpDelete("{TenantName}")]
+        [HttpDelete("{tenantName}")]
         public async Task<IActionResult> DeleteXR50Tenant(string TenantName)
         {
             var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
@@ -317,7 +317,7 @@ namespace XR50TrainingAssetRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
-        [HttpDelete("/xr50/trainingAssetRepository/[controller]/training-management/{TenantName}/{ProgramName }")]
+        [HttpDelete("/xr50/trainingAssetRepository/[controller]/trainingManagement/{tenantName}/{programName}")]
         public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string ProgramName )
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName );
@@ -376,7 +376,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
 
         // DELETE: api/XR50Tenant/
-        [HttpDelete("/xr50/trainingAssetRepository/[controller]/material-management/{TenantName}/{ProgramName }/{MateriaId}")]
+        [HttpDelete("/xr50/trainingAssetRepository/[controller]/materialManagement/{tenantName}/{programName}/{materialId}")]
         public async Task<IActionResult> DeleteMaterial(string TenantName, string ProgramName , string MaterialId)
         {
             var Material = await _context.Materials.FindAsync(MaterialId);

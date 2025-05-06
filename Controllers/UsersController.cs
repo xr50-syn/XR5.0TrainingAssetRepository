@@ -127,7 +127,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/group-management")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/groupManagement")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
             var XR50Tenant = await _context.Tenants.FindAsync(group.TenantName);

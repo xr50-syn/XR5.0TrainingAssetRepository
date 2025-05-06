@@ -39,7 +39,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         // GET: api/TrainingProgram/5
-        [HttpGet("{TenantName}/{ProgramName}")]
+        [HttpGet("{tenantName}/{programName}")]
         public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string TenantName,string ProgramName)
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName);
@@ -84,7 +84,7 @@ namespace XR50TrainingAssetRepo.Controllers
 */
         
         // DELETE: api/TrainingProgram/5
-        [HttpDelete("{TenantName}/{ProgramName}")]
+        [HttpDelete("{tenantName}/{programName}")]
         public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string ProgramName)
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName);
