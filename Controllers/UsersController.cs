@@ -12,7 +12,7 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/TrainingProgram_Asset_Repository/[controller]")]
+    [Route("/xr50/TrainingAssetRepository/[controller]")]
     [ApiController]
     public class user_managementController : ControllerBase
     {
@@ -127,7 +127,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/group-management")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/group-management")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
             var XR50Tenant = await _context.Tenants.FindAsync(group.TenantName);

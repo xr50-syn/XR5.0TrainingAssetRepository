@@ -5,7 +5,7 @@
     "version": "1.0"
   },
   "paths": {
-    "/xr50/TrainingProgram_Asset_Repository/asset_management": {
+    "/xr50/TrainingAssetRepository/asset_management": {
       "get": {
         "tags": [
           "asset_management"
@@ -173,7 +173,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/asset_management/{id}": {
+    "/xr50/TrainingAssetRepository/asset_management/{id}": {
       "get": {
         "tags": [
           "asset_management"
@@ -232,7 +232,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/asset_management/share": {
+    "/xr50/TrainingAssetRepository/asset_management/share": {
       "get": {
         "tags": [
           "asset_management"
@@ -316,7 +316,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/asset_management/share/{id}": {
+    "/xr50/TrainingAssetRepository/asset_management/share/{id}": {
       "put": {
         "tags": [
           "asset_management"
@@ -377,7 +377,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/asset_management/directory": {
+    "/xr50/TrainingAssetRepository/asset_management/directory": {
       "post": {
         "tags": [
           "asset_management"
@@ -408,7 +408,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management": {
+    "/xr50/TrainingAssetRepository/material_management": {
       "get": {
         "tags": [
           "material_management"
@@ -446,7 +446,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/{MaterialId}": {
+    "/xr50/TrainingAssetRepository/material_management/{MaterialId}": {
       "get": {
         "tags": [
           "material_management"
@@ -505,7 +505,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/workflow/{tenantName}": {
+    "/xr50/TrainingAssetRepository/material_management/workflow/{tenantName}": {
       "get": {
         "tags": [
           "material_management"
@@ -553,7 +553,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/workflow": {
+    "/xr50/TrainingAssetRepository/material_management/workflow": {
       "get": {
         "tags": [
           "material_management"
@@ -591,7 +591,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/workflow/{tenantName}/{materialId}": {
+    "/xr50/TrainingAssetRepository/material_management/workflow/{tenantName}/{materialId}": {
       "get": {
         "tags": [
           "material_management"
@@ -638,7 +638,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/{TenantName}": {
+    "/xr50/TrainingAssetRepository/material_management/{TenantName}": {
       "post": {
         "tags": [
           "material_management"
@@ -696,7 +696,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/{TenantName}/{ParentMaterialId}": {
+    "/xr50/TrainingAssetRepository/material_management/{TenantName}/{ParentMaterialId}": {
       "post": {
         "tags": [
           "material_management"
@@ -762,7 +762,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/{TenantName}/workflow": {
+    "/xr50/TrainingAssetRepository/material_management/{TenantName}/workflow": {
       "post": {
         "tags": [
           "material_management"
@@ -820,7 +820,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/{TenantName}/checklist": {
+    "/xr50/TrainingAssetRepository/material_management/{TenantName}/checklist": {
       "post": {
         "tags": [
           "material_management"
@@ -878,7 +878,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/{TenantName}/image": {
+    "/xr50/TrainingAssetRepository/material_management/{TenantName}/image": {
       "post": {
         "tags": [
           "material_management"
@@ -936,7 +936,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/material_management/{TenantName}/video": {
+    "/xr50/TrainingAssetRepository/material_management/{TenantName}/video": {
       "post": {
         "tags": [
           "material_management"
@@ -994,7 +994,134 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management": {
+    "/xr50/TrainingAssetRepository/program_management": {
+      "get": {
+        "tags": [
+          "program_management"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingProgram"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingProgram"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingProgram"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/TrainingAssetRepository/program_management/{TenantName}/{ProgramName }": {
+      "get": {
+        "tags": [
+          "program_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ProgramName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ProgramName ",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "program_management"
+        ],
+        "parameters": [
+          {
+            "name": "TenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ProgramName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ProgramName ",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/TrainingAssetRepository/tenant_management": {
       "get": {
         "tags": [
           "tenant_management"
@@ -1078,7 +1205,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management/{TenantName}": {
+    "/xr50/TrainingAssetRepository/tenant_management/{TenantName}": {
       "get": {
         "tags": [
           "tenant_management"
@@ -1137,7 +1264,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management/{TenantName}/TrainingPrograms": {
+    "/xr50/TrainingAssetRepository/tenant_management/{TenantName}/TrainingPrograms": {
       "get": {
         "tags": [
           "tenant_management"
@@ -1185,7 +1312,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management/{TenantName}/Materials": {
+    "/xr50/TrainingAssetRepository/tenant_management/{TenantName}/Materials": {
       "get": {
         "tags": [
           "tenant_management"
@@ -1233,7 +1360,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management/training-management/{TenantName}": {
+    "/xr50/TrainingAssetRepository/tenant_management/training-management/{TenantName}": {
       "post": {
         "tags": [
           "tenant_management"
@@ -1291,7 +1418,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management/material-management/{TenantName}/{ParentMaterialId}": {
+    "/xr50/TrainingAssetRepository/tenant_management/material-management/{TenantName}/{ParentMaterialId}": {
       "post": {
         "tags": [
           "tenant_management"
@@ -1357,7 +1484,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management/training-management/{TenantName}/{TrainingProgramName}": {
+    "/xr50/TrainingAssetRepository/tenant_management/training-management/{TenantName}/{ProgramName }": {
       "delete": {
         "tags": [
           "tenant_management"
@@ -1372,7 +1499,14 @@
             }
           },
           {
-            "name": "TrainingProgramName",
+            "name": "ProgramName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ProgramName ",
             "in": "path",
             "required": true,
             "schema": {
@@ -1387,7 +1521,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/tenant_management/material-management/{TenantName}/{TrainingProgramName}/{MateriaId}": {
+    "/xr50/TrainingAssetRepository/tenant_management/material-management/{TenantName}/{ProgramName }/{MateriaId}": {
       "delete": {
         "tags": [
           "tenant_management"
@@ -1402,9 +1536,8 @@
             }
           },
           {
-            "name": "TrainingProgramName",
-            "in": "path",
-            "required": true,
+            "name": "ProgramName",
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -1412,6 +1545,14 @@
           {
             "name": "MaterialId",
             "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ProgramName ",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1432,120 +1573,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/training_management": {
-      "get": {
-        "tags": [
-          "training_management"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingProgram"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingProgram"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingProgram"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/xr50/TrainingProgram_Asset_Repository/training_management/{TenantName}/{TrainingProgramName}": {
-      "get": {
-        "tags": [
-          "training_management"
-        ],
-        "parameters": [
-          {
-            "name": "TenantName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "TrainingProgramName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingProgram"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingProgram"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingProgram"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "training_management"
-        ],
-        "parameters": [
-          {
-            "name": "TenantName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "TrainingProgramName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/xr50/TrainingProgram_Asset_Repository/user_management": {
+    "/xr50/TrainingAssetRepository/user_management": {
       "get": {
         "tags": [
           "user_management"
@@ -1629,7 +1657,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/user_management/{userName}": {
+    "/xr50/TrainingAssetRepository/user_management/{userName}": {
       "get": {
         "tags": [
           "user_management"
@@ -1688,7 +1716,7 @@
         }
       }
     },
-    "/xr50/TrainingProgram_Asset_Repository/user_management/group-management": {
+    "/xr50/TrainingAssetRepository/user_management/group-management": {
       "post": {
         "tags": [
           "user_management"
@@ -1822,7 +1850,7 @@
             },
             "nullable": true
           },
-          "trainingList": {
+          "trainingProgramList": {
             "type": "array",
             "items": {
               "type": "string"
@@ -1904,7 +1932,7 @@
             },
             "nullable": true
           },
-          "trainingList": {
+          "trainingProgramList": {
             "type": "array",
             "items": {
               "type": "string"
@@ -1954,7 +1982,7 @@
             },
             "nullable": true
           },
-          "trainingList": {
+          "trainingProgramList": {
             "type": "array",
             "items": {
               "type": "string"
@@ -2054,7 +2082,7 @@
             "type": "string",
             "nullable": true
           },
-          "trainingName": {
+          "programName": {
             "type": "string",
             "nullable": true
           }
@@ -2119,7 +2147,7 @@
             },
             "nullable": true
           },
-          "trainingList": {
+          "trainingProgramList": {
             "type": "array",
             "items": {
               "type": "string"
@@ -2205,7 +2233,7 @@
             },
             "nullable": true
           },
-          "trainingList": {
+          "trainingProgramList": {
             "type": "array",
             "items": {
               "type": "string"
@@ -2261,7 +2289,7 @@
             "type": "string",
             "nullable": true
           },
-          "trainingList": {
+          "trainingProgramList": {
             "type": "array",
             "items": {
               "type": "string"

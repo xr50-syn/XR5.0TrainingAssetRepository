@@ -6,7 +6,7 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Models
 {
-    //[PrimaryKey(nameof(TenantName), nameof(TrainingProgramName))]
+    [PrimaryKey(nameof(TenantName), nameof(ProgramName ))]
     public class TrainingProgram
     {
 
@@ -16,7 +16,7 @@ namespace XR50TrainingAssetRepo.Models
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
         public string TenantName { get; set; }
-        public string TrainingProgramName { get; set; }
+        public string ProgramName  { get; set; }
          
         public TrainingProgram()
         {   

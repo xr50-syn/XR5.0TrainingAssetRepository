@@ -19,7 +19,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace XR50TrainingAssetRepo.Controllers
 {
 
-    [Route("/xr50/TrainingProgram_Asset_Repository/[controller]")]
+    [Route("/xr50/TrainingAssetRepository/[controller]")]
     [ApiController]
     
     public class tenant_managementController : ControllerBase
@@ -184,7 +184,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         // POST: api/XR50Tenant/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/training-management/{TenantName}")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/training-management/{TenantName}")]
         public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string TenantName,TrainingProgram TrainingProgram)
         {
 	        if (!TenantName.Equals(TrainingProgram.TenantName)) {
@@ -201,14 +201,14 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound($"Couldnt Find Admin user for {TrainingProgram.TenantName}");
             }
 
-            XR50Tenant.TrainingProgramList.Add(TrainingProgram.TrainingProgramName); 
+            XR50Tenant.TrainingProgramList.Add(TrainingProgram.ProgramName ); 
             _context.TrainingPrograms.Add(TrainingProgram);
             await _context.SaveChangesAsync();
 
            
             return CreatedAtAction("PostTrainingProgram", TrainingProgram);
         }
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/material-management/{TenantName}/{ParentMaterialId}")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/material-management/{TenantName}/{ParentMaterialId}")]
         public async Task<ActionResult<Material>> PostChildMaterial(string TenantName, string ParentMaterialId, Material Material)
         {
 
@@ -317,13 +317,13 @@ namespace XR50TrainingAssetRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
-        [HttpDelete("/xr50/TrainingProgram_Asset_Repository/[controller]/training-management/{TenantName}/{TrainingProgramName}")]
-        public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string TrainingProgramName)
+        [HttpDelete("/xr50/TrainingAssetRepository/[controller]/training-management/{TenantName}/{ProgramName }")]
+        public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string ProgramName )
         {
-            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,TrainingProgramName);
+            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName );
             if (TrainingProgram == null)           
             {
-                return NotFound($"Did not find training {TrainingProgramName}");
+                return NotFound($"Did not find training {ProgramName }");
             }
 
             var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
@@ -341,7 +341,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 _context.Materials.Remove(resource);
               }     
             _context.TrainingPrograms.Remove(TrainingProgram);
-            XR50Tenant.TrainingProgramList.Remove(TrainingProgram.TrainingProgramName);
+            XR50Tenant.TrainingProgramList.Remove(TrainingProgram.ProgramName );
             await _context.SaveChangesAsync();
 
             //Owncloud stuff
@@ -354,7 +354,7 @@ namespace XR50TrainingAssetRepo.Controllers
             // Remove root dir for the TrainingProgram
 	        string cmd= "curl";
             string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
-            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{TrainingProgram.TrainingProgramName}\"";
+            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{TrainingProgram.ProgramName }\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
             {                                                                                                                           FileName = cmd,
@@ -376,8 +376,8 @@ namespace XR50TrainingAssetRepo.Controllers
 
 
         // DELETE: api/XR50Tenant/
-        [HttpDelete("/xr50/TrainingProgram_Asset_Repository/[controller]/material-management/{TenantName}/{TrainingProgramName}/{MateriaId}")]
-        public async Task<IActionResult> DeleteMaterial(string TenantName, string TrainingProgramName, string MaterialId)
+        [HttpDelete("/xr50/TrainingAssetRepository/[controller]/material-management/{TenantName}/{ProgramName }/{MateriaId}")]
+        public async Task<IActionResult> DeleteMaterial(string TenantName, string ProgramName , string MaterialId)
         {
             var Material = await _context.Materials.FindAsync(MaterialId);
             if (Material == null)
@@ -388,7 +388,7 @@ namespace XR50TrainingAssetRepo.Controllers
             _context.Materials.Remove(Material);
             await _context.SaveChangesAsync();
 
-	        var TrainingProgram = _context.TrainingPrograms.FirstOrDefault(t=> t.TrainingProgramName.Equals(TrainingProgramName) && t.TenantName.Equals(TenantName));
+	        var TrainingProgram = _context.TrainingPrograms.FirstOrDefault(t=> t.ProgramName .Equals(ProgramName ) && t.TenantName.Equals(TenantName));
             if (TrainingProgram == null)
             {
                 return NotFound();

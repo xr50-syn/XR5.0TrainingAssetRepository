@@ -6,7 +6,6 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Models
 {
-    [PrimaryKey(nameof(TenantName), nameof(TrainingProgramName))]
     public class LearningPath
     {
 
@@ -16,10 +15,12 @@ namespace XR50TrainingAssetRepo.Models
         [ForeignKey("TrainingPrograms")]
         public virtual List<string>? TrainingProgramList { get; set; }
         public string TenantName { get; set; }
-        public string TrainingProgramName { get; set; }
+        [Key]
+        public string LearningPathId { get; set; }
          
         public LearningPath()
         {   
+            LearningPathId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
             TrainingProgramList = new List<string>();
 

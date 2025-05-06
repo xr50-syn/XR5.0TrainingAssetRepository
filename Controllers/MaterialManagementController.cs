@@ -16,7 +16,7 @@ using System.ComponentModel.DataAnnotations;
 namespace XR50TrainingAssetRepo.Controllers
 {
     
-    [Route("/xr50/TrainingProgram_Asset_Repository/[controller]")]
+    [Route("/xr50/TrainingAssetRepository/[controller]")]
     [ApiController]
     public class material_managementController : ControllerBase
     {
@@ -50,7 +50,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Material;
         }
-        // GET: /xr50/TrainingProgram_Asset_Repository/material_management/workflow/{tenantName}
+        // GET: /xr50/TrainingAssetRepository/material_management/workflow/{tenantName}
         [HttpGet("workflow/{tenantName}")]
         public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterialsByTenant(string tenantName)
         {
@@ -66,7 +66,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             return workflows;
         }
-        // GET: /xr50/TrainingProgram_Asset_Repository/material_management/workflow
+        // GET: /xr50/TrainingAssetRepository/material_management/workflow
         [HttpGet("workflow")]
         public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterials()
         {
@@ -83,7 +83,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return workflows;
 
         }
-        // GET: /xr50/TrainingProgram_Asset_Repository/material_management/workflow/{tenantName}/{materialId}
+        // GET: /xr50/TrainingAssetRepository/material_management/workflow/{tenantName}/{materialId}
         [HttpGet("workflow/{tenantName}/{materialId}")]
         public async Task<ActionResult<WorkflowMaterial>> GetWorkflowMaterial(string tenantName, string materialId)
         {
@@ -103,7 +103,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return material;
         }
 
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/{TenantName}")]
         public async Task<ActionResult<Material>> PostMaterialManagement(string TenantName, Material Material)
         {
 
@@ -139,7 +139,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return CreatedAtAction("PostMaterialManagement",TenantName, Material);
         }
         
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/{ParentMaterialId}")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/{TenantName}/{ParentMaterialId}")]
         public async Task<ActionResult<Material>> PostChildMaterialManagement(string TenantName, string ParentMaterialId, Material Material)
         {
 
@@ -176,7 +176,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return CreatedAtAction("PostMaterialManagement",TenantName, Material);
         }
 
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/workflow")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/{TenantName}/workflow")]
         public async Task<ActionResult<Material>> PostWorkflowMaterial(string TenantName, WorkflowMaterial workflowMaterial)
         {
 
@@ -212,7 +212,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return CreatedAtAction("PostWorkflowMaterial", TenantName, Material);
         }
         
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/checklist")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/{TenantName}/checklist")]
         public async Task<ActionResult<Material>> PostChecklistMaterial(string TenantName, ChecklistMaterial checklistMaterial)
         {
             Material Material = new Material();
@@ -244,7 +244,7 @@ namespace XR50TrainingAssetRepo.Controllers
             
             return CreatedAtAction("PostChecklistMaterial", TenantName, Material);
         }
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/image")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/{TenantName}/image")]
         public async Task<ActionResult<Material>> PostImageMaterial(string TenantName, ImageMaterial imageMaterial)
         {
             Material Material = new Material();
@@ -279,7 +279,7 @@ namespace XR50TrainingAssetRepo.Controllers
             
             return CreatedAtAction("PostImageMaterial", TenantName, Material);
         }
-        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/video")]
+        [HttpPost("/xr50/TrainingAssetRepository/[controller]/{TenantName}/video")]
         public async Task<ActionResult<Material>> PostVideoMaterial(string TenantName, VideoMaterial videoMaterial)
         {
             Material Material = new Material();

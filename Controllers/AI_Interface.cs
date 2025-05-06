@@ -10,7 +10,7 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/TrainingProgram_Asset_Repository/XR50AIAPI/[controller]")]
+    [Route("/xr50/TrainingAssetRepository/XR50AIAPI/[controller]")]
     [ApiController]
     public class AI_Interface : ControllerBase
     {

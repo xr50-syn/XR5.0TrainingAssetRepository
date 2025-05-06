@@ -17,14 +17,14 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/TrainingProgram_Asset_Repository/[controller]")]
+    [Route("/xr50/TrainingAssetRepository/[controller]")]
     [ApiController]
-    public class training_managementController : ControllerBase
+    public class program_managementController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public training_managementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public program_managementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -39,10 +39,10 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         // GET: api/TrainingProgram/5
-        [HttpGet("{TenantName}/{TrainingProgramName}")]
-        public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string TenantName,string TrainingProgramName)
+        [HttpGet("{TenantName}/{ProgramName}")]
+        public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string TenantName,string ProgramName)
         {
-            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,TrainingProgramName);
+            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName);
 
             if (TrainingProgram == null)
             {
@@ -53,10 +53,10 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // PUT: api/TrainingProgram/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-       /* [HttpPut("{TenantName}/{TrainingProgramName}")]
-        public async Task<IActionResult> PutTrainingProgram(string TrainingProgramName, TrainingProgram TrainingProgram)
+       /* [HttpPut("{TenantName}/{ProgramName}")]
+        public async Task<IActionResult> PutTrainingProgram(string ProgramName, TrainingProgram TrainingProgram)
         {
-            if (!TrainingProgramName.Equals(TrainingProgram.TrainingProgramName))
+            if (!ProgramName.Equals(TrainingProgram.ProgramName))
             {
                 return BadRequest();
             }
@@ -69,7 +69,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TrainingProgramExists(TrainingProgramName))
+                if (!TrainingProgramExists(ProgramName))
                 {
                     return NotFound();
                 }
@@ -84,10 +84,10 @@ namespace XR50TrainingAssetRepo.Controllers
 */
         
         // DELETE: api/TrainingProgram/5
-        [HttpDelete("{TenantName}/{TrainingProgramName}")]
-        public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string TrainingProgramName)
+        [HttpDelete("{TenantName}/{ProgramName}")]
+        public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string ProgramName)
         {
-            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,TrainingProgramName);
+            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName);
             if (TrainingProgram == null)
             {
                 return NotFound();
@@ -98,15 +98,15 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound();
             }
             _context.TrainingPrograms.Remove(TrainingProgram);
-            XR50Tenant.TrainingProgramList.Remove(TrainingProgram.TrainingProgramName);
+            XR50Tenant.TrainingProgramList.Remove(TrainingProgram.ProgramName);
             await _context.SaveChangesAsync();
             
             return NoContent();
         }
 
-        private bool TrainingProgramExists(string TrainingProgramName)
+        private bool TrainingProgramExists(string ProgramName)
         {
-            return _context.TrainingPrograms.Any(e => e.TrainingProgramName.Equals(TrainingProgramName));
+            return _context.TrainingPrograms.Any(e => e.ProgramName.Equals(ProgramName));
         }
     }
 }
