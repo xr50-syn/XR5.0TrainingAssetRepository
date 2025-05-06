@@ -30,15 +30,15 @@ namespace XR50TrainingAssetRepo.Controllers
         public string? FileName { get; set; }
         public IFormFile File { get; set; }
     }
-    [Route("/xr50/TrainingAssetRepository/[controller]")]
+    [Route("/xr50/trainingAssetRepository/[controller]")]
     [ApiController]
-    public class asset_managementController : ControllerBase
+    public class assetManagementController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public asset_managementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public assetManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -65,14 +65,14 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Asset;
         }
-        [HttpGet("/xr50/TrainingAssetRepository/[controller]/share")]
+        [HttpGet("/xr50/trainingAssetRepository/[controller]/share")]
         public async Task<ActionResult<IEnumerable<Share>>> GetShare()
         {
             return await _context.Shares.ToListAsync();
         }
         // PUT: api/Assets/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("/xr50/TrainingAssetRepository/[controller]/share/{id}")]
+        [HttpPut("/xr50/trainingAssetRepository/[controller]/share/{id}")]
         public async Task<IActionResult> ShareFile(string id, Share share)
         {
              int shareType;
@@ -249,7 +249,7 @@ namespace XR50TrainingAssetRepo.Controllers
 	        await _context.SaveChangesAsync();
             return CreatedAtAction("PostAsset", new { id = File.FileName }, File);
         }
-        [HttpPost("/xr50/TrainingAssetRepository/[controller]/directory")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/directory")]
         public async Task<IActionResult> PostDirectory(OwncloudDirectory directory){
 
             var XR50Tenant = await _context.Tenants.FindAsync(directory.TenantName);
@@ -288,7 +288,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             return NoContent();
         }
-        [HttpPost("/xr50/TrainingAssetRepository/[controller]/share")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/share")]
         public async Task<ActionResult<Share>> PostShare(Share owncloudShare)
         {
             _context.Shares.Add(owncloudShare);
@@ -358,7 +358,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         // DELETE: api/Shares/5
-        [HttpDelete("/xr50/TrainingAssetRepository/[controller]/share/{id}")]
+        [HttpDelete("/xr50/trainingAssetRepository/[controller]/share/{id}")]
         public async Task<IActionResult> DeleteShare(string id)
         {
             var owncloudShare = await _context.Shares.FindAsync(id);

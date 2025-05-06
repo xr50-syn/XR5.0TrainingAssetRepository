@@ -12,14 +12,14 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/TrainingAssetRepository/[controller]")]
+    [Route("/xr50/trainingAssetRepository/[controller]")]
     [ApiController]
-    public class user_managementController : ControllerBase
+    public class userManagementController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public user_managementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public userManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         { 
             _context = context;
             _httpClient = httpClient;
@@ -127,7 +127,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
-        [HttpPost("/xr50/TrainingAssetRepository/[controller]/group-management")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/group-management")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
             var XR50Tenant = await _context.Tenants.FindAsync(group.TenantName);

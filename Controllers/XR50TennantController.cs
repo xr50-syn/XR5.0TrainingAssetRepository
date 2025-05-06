@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -19,16 +19,16 @@ using Microsoft.AspNetCore.Authorization;
 namespace XR50TrainingAssetRepo.Controllers
 {
 
-    [Route("/xr50/TrainingAssetRepository/[controller]")]
+    [Route("/xr50/trainingAssetRepository/[controller]")]
     [ApiController]
     
-    public class tenant_managementController : ControllerBase
+    public class tenantManagementController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
      
-        public tenant_managementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public tenantManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -184,7 +184,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         // POST: api/XR50Tenant/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/TrainingAssetRepository/[controller]/training-management/{TenantName}")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/training-management/{TenantName}")]
         public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string TenantName,TrainingProgram TrainingProgram)
         {
 	        if (!TenantName.Equals(TrainingProgram.TenantName)) {
@@ -208,7 +208,7 @@ namespace XR50TrainingAssetRepo.Controllers
            
             return CreatedAtAction("PostTrainingProgram", TrainingProgram);
         }
-        [HttpPost("/xr50/TrainingAssetRepository/[controller]/material-management/{TenantName}/{ParentMaterialId}")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/material-management/{TenantName}/{ParentMaterialId}")]
         public async Task<ActionResult<Material>> PostChildMaterial(string TenantName, string ParentMaterialId, Material Material)
         {
 
@@ -317,7 +317,7 @@ namespace XR50TrainingAssetRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
-        [HttpDelete("/xr50/TrainingAssetRepository/[controller]/training-management/{TenantName}/{ProgramName }")]
+        [HttpDelete("/xr50/trainingAssetRepository/[controller]/training-management/{TenantName}/{ProgramName }")]
         public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string ProgramName )
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName );
@@ -376,7 +376,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
 
         // DELETE: api/XR50Tenant/
-        [HttpDelete("/xr50/TrainingAssetRepository/[controller]/material-management/{TenantName}/{ProgramName }/{MateriaId}")]
+        [HttpDelete("/xr50/trainingAssetRepository/[controller]/material-management/{TenantName}/{ProgramName }/{MateriaId}")]
         public async Task<IActionResult> DeleteMaterial(string TenantName, string ProgramName , string MaterialId)
         {
             var Material = await _context.Materials.FindAsync(MaterialId);

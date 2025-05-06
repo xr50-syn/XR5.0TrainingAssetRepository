@@ -17,14 +17,14 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/TrainingAssetRepository/[controller]")]
+    [Route("/xr50/trainingAssetRepository/[controller]")]
     [ApiController]
-    public class program_managementController : ControllerBase
+    public class programManagementController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public program_managementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public programManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
