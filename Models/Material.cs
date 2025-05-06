@@ -2,10 +2,10 @@
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using XR5_0TrainingRepo.Controllers;
-using XR5_0TrainingRepo.Models;
+using XR50TrainingAssetRepo.Controllers;
+using XR50TrainingAssetRepo.Models;
 
-namespace XR5_0TrainingRepo.Models
+namespace XR50TrainingAssetRepo.Models
 {
     public class Material
     {
@@ -15,8 +15,8 @@ namespace XR5_0TrainingRepo.Models
         public string? ParentId { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; }
-         [ForeignKey("Trainings")]
-        public virtual List<string>? TrainingList { get; set; }
+         [ForeignKey("TrainingPrograms")]
+        public virtual List<string>? TrainingProgramList { get; set; }
         [Key]
         public string? MaterialId { get; set; }
         [Required]
@@ -26,7 +26,7 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            TrainingList = new List<string>();
+            TrainingProgramList = new List<string>();
         }
     }
     public enum MaterialType
@@ -49,7 +49,7 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            TrainingList = new List<string>();
+            TrainingProgramList = new List<string>();
             Entries = new List<ChecklistEntry>();
             EntryId = new List<int>();
             MaterialType = MaterialType.Checklist;
@@ -66,7 +66,7 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            TrainingList = new List<string>();
+            TrainingProgramList = new List<string>();
             MaterialType = MaterialType.Image;
         }
     }
@@ -82,7 +82,7 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            TrainingList = new List<string>();
+            TrainingProgramList = new List<string>();
             Timestamps = new List<VideoTimestamp>();
             TimestapId= new List<string>();
             MaterialType = MaterialType.Video;
@@ -99,7 +99,7 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            TrainingList = new List<string>();
+            TrainingProgramList = new List<string>();
             Steps = new List<WorkflowStep>();
             StepIds= new List<string>();
             MaterialType = MaterialType.Workflow;
@@ -113,7 +113,7 @@ namespace XR5_0TrainingRepo.Models
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
-            TrainingList = new List<string>();
+            TrainingProgramList = new List<string>();
             MaterialType = MaterialType.Default;
         }
     }

@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using XR5_0TrainingRepo.Models;
+using XR50TrainingAssetRepo.Models;
 using System.Configuration;
 using System.Threading.Tasks;
 
-namespace XR5_0TrainingRepo.Controllers
+namespace XR50TrainingAssetRepo.Controllers
 {
      public class FileUploadFormData
      {
@@ -30,15 +30,15 @@ namespace XR5_0TrainingRepo.Controllers
         public string? FileName { get; set; }
         public IFormFile File { get; set; }
     }
-    [Route("/xr50/Training_Asset_Repository/[controller]")]
+    [Route("/xr50/TrainingProgram_Asset_Repository/[controller]")]
     [ApiController]
     public class asset_managementController : ControllerBase
     {
-        private readonly XR50RepoContext _context;
+        private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
 
-        public asset_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public asset_managementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -65,14 +65,14 @@ namespace XR5_0TrainingRepo.Controllers
 
             return Asset;
         }
-        [HttpGet("/xr50/Training_Asset_Repository/[controller]/share")]
+        [HttpGet("/xr50/TrainingProgram_Asset_Repository/[controller]/share")]
         public async Task<ActionResult<IEnumerable<Share>>> GetShare()
         {
             return await _context.Shares.ToListAsync();
         }
         // PUT: api/Assets/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("/xr50/Training_Asset_Repository/[controller]/share/{id}")]
+        [HttpPut("/xr50/TrainingProgram_Asset_Repository/[controller]/share/{id}")]
         public async Task<IActionResult> ShareFile(string id, Share share)
         {
              int shareType;
@@ -141,7 +141,7 @@ namespace XR5_0TrainingRepo.Controllers
             string username = admin.UserName;
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
+            // Createe root dir for the TrainingProgram
             
             string tempFileName=Path.GetTempFileName();
             using (var stream = System.IO.File.Create(tempFileName))
@@ -217,7 +217,7 @@ namespace XR5_0TrainingRepo.Controllers
             string username = admin.UserName;
             string password = admin.Password; ;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
+            // Createe root dir for the TrainingProgram
             
             string tempFileName=Path.GetTempFileName();
             using (var stream = System.IO.File.Create(tempFileName))
@@ -249,7 +249,7 @@ namespace XR5_0TrainingRepo.Controllers
 	        await _context.SaveChangesAsync();
             return CreatedAtAction("PostAsset", new { id = File.FileName }, File);
         }
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/directory")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/directory")]
         public async Task<IActionResult> PostDirectory(OwncloudDirectory directory){
 
             var XR50Tenant = await _context.Tenants.FindAsync(directory.TenantName);
@@ -265,7 +265,7 @@ namespace XR5_0TrainingRepo.Controllers
             string username = admin.UserName;
             string password = admin.Password;
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
+            // Createe root dir for the TrainingProgram
 	        string cmd="curl";
             string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
             string Arg= $"-X MKCOL -u {username}:{password} \"{webdav_base}/{dirl}/{directory.OwncloudPath}\"";
@@ -288,7 +288,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return NoContent();
         }
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/share")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/share")]
         public async Task<ActionResult<Share>> PostShare(Share owncloudShare)
         {
             _context.Shares.Add(owncloudShare);
@@ -358,7 +358,7 @@ namespace XR5_0TrainingRepo.Controllers
         }
 
         // DELETE: api/Shares/5
-        [HttpDelete("/xr50/Training_Asset_Repository/[controller]/share/{id}")]
+        [HttpDelete("/xr50/TrainingProgram_Asset_Repository/[controller]/share/{id}")]
         public async Task<IActionResult> DeleteShare(string id)
         {
             var owncloudShare = await _context.Shares.FindAsync(id);
@@ -396,7 +396,7 @@ namespace XR5_0TrainingRepo.Controllers
             string password = admin.Password;
              _context.Assets.Remove(Asset);                                                                                          await _context.SaveChangesAsync(); 
             string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
-            // Createe root dir for the Training
+            // Createe root dir for the TrainingProgram
 	        string cmd= "curl";
             string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
             string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{Asset.FileName}\"";

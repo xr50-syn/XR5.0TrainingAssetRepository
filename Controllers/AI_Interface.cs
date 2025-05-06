@@ -6,17 +6,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using XR5_0TrainingRepo.Models;
+using XR50TrainingAssetRepo.Models;
 
-namespace XR5_0TrainingRepo.Controllers
+namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/Training_Asset_Repository/XR50AIAPI/[controller]")]
+    [Route("/xr50/TrainingProgram_Asset_Repository/XR50AIAPI/[controller]")]
     [ApiController]
     public class AI_Interface : ControllerBase
     {
-        private readonly XR50RepoContext _context;
+        private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
-        public AI_Interface(XR50RepoContext context, HttpClient httpClient)
+        public AI_Interface(XR50TrainingAssetRepoContext context, HttpClient httpClient)
         {
             _context = context;
             _httpClient = httpClient;

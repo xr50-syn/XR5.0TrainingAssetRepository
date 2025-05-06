@@ -1,8 +1,8 @@
-# XR 5.0 Training Repository
+# XR 5.0 TrainingProgram Repository
 
 
 ## Description
-Prototype storage/sharing module for the XR5.0 Training platform. Owncloud is used for file storage, and a web app developed in C# provides an interface between the storage and the rest of the platform. This is a containerized version.
+Prototype storage/sharing module for the XR5.0 TrainingProgram platform. Owncloud is used for file storage, and a web app developed in C# provides an interface between the storage and the rest of the platform. This is a containerized version.
 
 ## Installation
 This is a dockerized version and requires docker to be already installed

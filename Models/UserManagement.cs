@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.Eventing.Reader;
 
-namespace XR5_0TrainingRepo.Models
+namespace XR50TrainingAssetRepo.Models
 {
     public class User
     {

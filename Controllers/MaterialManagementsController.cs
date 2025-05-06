@@ -10,20 +10,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
-using XR5_0TrainingRepo.Models;
+using XR50TrainingAssetRepo.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace XR5_0TrainingRepo.Controllers
+namespace XR50TrainingAssetRepo.Controllers
 {
     
-    [Route("/xr50/Training_Asset_Repository/[controller]")]
+    [Route("/xr50/TrainingProgram_Asset_Repository/[controller]")]
     [ApiController]
     public class material_managementController : ControllerBase
     {
-        private readonly XR50RepoContext _context;
+        private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public material_managementController(XR50RepoContext context,HttpClient httpClient, IConfiguration configuration)
+        public material_managementController(XR50TrainingAssetRepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -50,7 +50,7 @@ namespace XR5_0TrainingRepo.Controllers
 
             return Material;
         }
-        // GET: /xr50/Training_Asset_Repository/material_management/workflow/{tenantName}
+        // GET: /xr50/TrainingProgram_Asset_Repository/material_management/workflow/{tenantName}
         [HttpGet("workflow/{tenantName}")]
         public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterialsByTenant(string tenantName)
         {
@@ -66,7 +66,7 @@ namespace XR5_0TrainingRepo.Controllers
             }
             return workflows;
         }
-        // GET: /xr50/Training_Asset_Repository/material_management/workflow
+        // GET: /xr50/TrainingProgram_Asset_Repository/material_management/workflow
         [HttpGet("workflow")]
         public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterials()
         {
@@ -83,7 +83,7 @@ namespace XR5_0TrainingRepo.Controllers
             return workflows;
 
         }
-        // GET: /xr50/Training_Asset_Repository/material_management/workflow/{tenantName}/{materialId}
+        // GET: /xr50/TrainingProgram_Asset_Repository/material_management/workflow/{tenantName}/{materialId}
         [HttpGet("workflow/{tenantName}/{materialId}")]
         public async Task<ActionResult<WorkflowMaterial>> GetWorkflowMaterial(string tenantName, string materialId)
         {
@@ -103,7 +103,7 @@ namespace XR5_0TrainingRepo.Controllers
             return material;
         }
 
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/{TenantName}")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}")]
         public async Task<ActionResult<Material>> PostMaterialManagement(string TenantName, Material Material)
         {
 
@@ -139,7 +139,7 @@ namespace XR5_0TrainingRepo.Controllers
             return CreatedAtAction("PostMaterialManagement",TenantName, Material);
         }
         
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/{TenantName}/{ParentMaterialId}")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/{ParentMaterialId}")]
         public async Task<ActionResult<Material>> PostChildMaterialManagement(string TenantName, string ParentMaterialId, Material Material)
         {
 
@@ -176,7 +176,7 @@ namespace XR5_0TrainingRepo.Controllers
             return CreatedAtAction("PostMaterialManagement",TenantName, Material);
         }
 
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/{TenantName}/workflow")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/workflow")]
         public async Task<ActionResult<Material>> PostWorkflowMaterial(string TenantName, WorkflowMaterial workflowMaterial)
         {
 
@@ -184,7 +184,7 @@ namespace XR5_0TrainingRepo.Controllers
             Material.MaterialType = MaterialType.Workflow;
             Material.MaterialName = workflowMaterial.MaterialName;
             Material.ParentId = workflowMaterial.ParentId;
-            Material.TrainingList = workflowMaterial.TrainingList;
+            Material.TrainingProgramList = workflowMaterial.TrainingProgramList;
             Material.MaterialId = workflowMaterial.MaterialId;
 
             workflowMaterial.Steps.ForEach(step => {
@@ -212,14 +212,14 @@ namespace XR5_0TrainingRepo.Controllers
             return CreatedAtAction("PostWorkflowMaterial", TenantName, Material);
         }
         
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/{TenantName}/checklist")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/checklist")]
         public async Task<ActionResult<Material>> PostChecklistMaterial(string TenantName, ChecklistMaterial checklistMaterial)
         {
             Material Material = new Material();
             Material.MaterialType = MaterialType.Checklist;
             Material.MaterialName = checklistMaterial.MaterialName;
             Material.ParentId = checklistMaterial.ParentId;
-            Material.TrainingList = checklistMaterial.TrainingList;
+            Material.TrainingProgramList = checklistMaterial.TrainingProgramList;
             Material.MaterialId = checklistMaterial.MaterialId;
             checklistMaterial.Entries.ForEach(entry => {
                 entry.ChecklistEntryId = Guid.NewGuid().ToString();
@@ -244,14 +244,14 @@ namespace XR5_0TrainingRepo.Controllers
             
             return CreatedAtAction("PostChecklistMaterial", TenantName, Material);
         }
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/{TenantName}/image")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/image")]
         public async Task<ActionResult<Material>> PostImageMaterial(string TenantName, ImageMaterial imageMaterial)
         {
             Material Material = new Material();
             Material.MaterialType = MaterialType.Image;
             Material.MaterialName = imageMaterial.MaterialName;
             Material.ParentId = imageMaterial.ParentId;
-            Material.TrainingList = imageMaterial.TrainingList;
+            Material.TrainingProgramList = imageMaterial.TrainingProgramList;
             Material.MaterialId = imageMaterial.MaterialId;
             if (imageMaterial.AssetId != null) {
                 var Asset= await _context.Assets.FindAsync(imageMaterial.AssetId);
@@ -279,14 +279,14 @@ namespace XR5_0TrainingRepo.Controllers
             
             return CreatedAtAction("PostImageMaterial", TenantName, Material);
         }
-        [HttpPost("/xr50/Training_Asset_Repository/[controller]/{TenantName}/video")]
+        [HttpPost("/xr50/TrainingProgram_Asset_Repository/[controller]/{TenantName}/video")]
         public async Task<ActionResult<Material>> PostVideoMaterial(string TenantName, VideoMaterial videoMaterial)
         {
             Material Material = new Material();
             Material.MaterialType = MaterialType.Video;
             Material.MaterialName = videoMaterial.MaterialName;
             Material.ParentId = videoMaterial.ParentId;
-            Material.TrainingList = videoMaterial.TrainingList;
+            Material.TrainingProgramList = videoMaterial.TrainingProgramList;
             Material.MaterialId = videoMaterial.MaterialId;
             videoMaterial.Timestamps.ForEach(timestamp=> {
                 timestamp.VideoTimestampId = Guid.NewGuid().ToString();
@@ -359,14 +359,14 @@ namespace XR5_0TrainingRepo.Controllers
                 return NotFound();
             }
 
-            foreach (string trainingId in Material.TrainingList) {
+            foreach (string trainingId in Material.TrainingProgramList) {
 
-	            var Training = await _context.Trainings.FindAsync(Material.TenantName,trainingId);
-                if (Training == null)
+	            var TrainingProgram = await _context.TrainingPrograms.FindAsync(Material.TenantName,trainingId);
+                if (TrainingProgram == null)
                 {
                     return NotFound();
                 }
-	            Training.MaterialList.Remove(MaterialId);
+	            TrainingProgram.MaterialList.Remove(MaterialId);
             }
             var XR50Tenant = await _context.Tenants.FindAsync(Material.TenantName);
             if (XR50Tenant == null)
