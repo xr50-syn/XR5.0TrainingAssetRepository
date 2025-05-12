@@ -39,9 +39,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // GET: api/MaterialManagements/5
         [HttpGet("{materialId}")]
-        public async Task<ActionResult<Material>> GetMaterialManagement(string MaterialId)
+        public async Task<ActionResult<Material>> GetMaterialManagement(string materialId)
         {
-            var Material = await _context.Materials.FindAsync(MaterialId);
+            var Material = await _context.Materials.FindAsync(materialId);
 
             if (Material == null)
             {
@@ -104,13 +104,13 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}")]
-        public async Task<ActionResult<Material>> PostMaterialManagement(string TenantName, Material Material)
+        public async Task<ActionResult<Material>> PostMaterialManagement(string tenantName, Material Material)
         {
 
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tenant {TenantName}");
+                return NotFound($"Couldnt Find Tenant {tenantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
@@ -136,17 +136,17 @@ namespace XR50TrainingAssetRepo.Controllers
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("PostMaterialManagement",TenantName, Material);
+            return CreatedAtAction("PostMaterialManagement",tenantName, Material);
         }
         
         [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/{parentMaterialId}")]
-        public async Task<ActionResult<Material>> PostChildMaterialManagement(string TenantName, string ParentMaterialId, Material Material)
+        public async Task<ActionResult<Material>> PostChildMaterialManagement(string tenantName, string parentMaterialId, Material Material)
         {
 
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tenant {TenantName}");
+                return NotFound($"Couldnt Find Tenant {tenantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
@@ -169,15 +169,15 @@ namespace XR50TrainingAssetRepo.Controllers
 
             } 
 
-            Material.ParentId=ParentMaterialId;
+            Material.ParentId=parentMaterialId;
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("PostMaterialManagement",TenantName, Material);
+            return CreatedAtAction("PostMaterialManagement",tenantName, Material);
         }
 
         [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/workflow")]
-        public async Task<ActionResult<Material>> PostWorkflowMaterial(string TenantName, WorkflowMaterial workflowMaterial)
+        public async Task<ActionResult<Material>> PostWorkflowMaterial(string tenantName, WorkflowMaterial workflowMaterial)
         {
 
             Material Material = new Material();
@@ -193,10 +193,10 @@ namespace XR50TrainingAssetRepo.Controllers
             });
             //SaVE IN db to trigger autoincrement
             await _context.SaveChangesAsync();
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tenant {TenantName}");
+                return NotFound($"Couldnt Find Tenant {tenantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
@@ -209,11 +209,11 @@ namespace XR50TrainingAssetRepo.Controllers
             _context.Workflows.Add(workflowMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostWorkflowMaterial", TenantName, Material);
+            return CreatedAtAction("PostWorkflowMaterial", tenantName, Material);
         }
         
         [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/checklist")]
-        public async Task<ActionResult<Material>> PostChecklistMaterial(string TenantName, ChecklistMaterial checklistMaterial)
+        public async Task<ActionResult<Material>> PostChecklistMaterial(string tenantName, ChecklistMaterial checklistMaterial)
         {
             Material Material = new Material();
             Material.MaterialType = MaterialType.Checklist;
@@ -226,10 +226,10 @@ namespace XR50TrainingAssetRepo.Controllers
                 _context.ChecklistEntries.Add(entry);
             });
 
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tenant {TenantName}");
+                return NotFound($"Couldnt Find Tenant {tenantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
@@ -242,17 +242,17 @@ namespace XR50TrainingAssetRepo.Controllers
             _context.Checklists.Add(checklistMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostChecklistMaterial", TenantName, Material);
+            return CreatedAtAction("PostChecklistMaterial", tenantName, Material);
         }
         [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/image")]
-        public async Task<ActionResult<Material>> PostImageMaterial(string TenantName, ImageMaterial imageMaterial)
+        public async Task<ActionResult<Material>> PostImageMaterial(string tenantName, ImageMaterial imageMaterial)
         {
             Material Material = new Material();
             Material.MaterialType = MaterialType.Image;
             Material.MaterialName = imageMaterial.MaterialName;
             Material.ParentId = imageMaterial.ParentId;
-            Material.TrainingProgramList = imageMaterial.TrainingProgramList;
-            Material.MaterialId = imageMaterial.MaterialId;
+            imageMaterial.MaterialId = Material.MaterialId;
+            
             if (imageMaterial.AssetId != null) {
                 var Asset= await _context.Assets.FindAsync(imageMaterial.AssetId);
                 if (Asset == null)
@@ -261,10 +261,10 @@ namespace XR50TrainingAssetRepo.Controllers
                 }
                 
             }
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tenant {TenantName}");
+                return NotFound($"Couldnt Find Tenant {tenantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
@@ -274,13 +274,13 @@ namespace XR50TrainingAssetRepo.Controllers
             
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
-             _context.Images.Add(imageMaterial);
+            _context.Images.Add(imageMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostImageMaterial", TenantName, Material);
+            return CreatedAtAction("PostImageMaterial", tenantName, Material);
         }
         [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/video")]
-        public async Task<ActionResult<Material>> PostVideoMaterial(string TenantName, VideoMaterial videoMaterial)
+        public async Task<ActionResult<Material>> PostVideoMaterial(string tenantName, VideoMaterial videoMaterial)
         {
             Material Material = new Material();
             Material.MaterialType = MaterialType.Video;
@@ -300,10 +300,10 @@ namespace XR50TrainingAssetRepo.Controllers
                 }
                 
             }
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tenant {TenantName}");
+                return NotFound($"Couldnt Find Tenant {tenantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
@@ -316,7 +316,7 @@ namespace XR50TrainingAssetRepo.Controllers
             _context.Videos.Add(videoMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostVideoMaterial", TenantName, Material);
+            return CreatedAtAction("PostVideoMaterial", tenantName, Material);
         }
        /* // PUT: api/MaterialManagements/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -351,9 +351,9 @@ namespace XR50TrainingAssetRepo.Controllers
 */
         // DELETE: api/MaterialManagements/5
         [HttpDelete("{materialId}")]
-        public async Task<IActionResult> DeleteMaterialById(string MaterialId)
+        public async Task<IActionResult> DeleteMaterialById(string materialId)
         {
-            var Material = await _context.Materials.FindAsync(MaterialId);
+            var Material = await _context.Materials.FindAsync(materialId);
             if (Material == null)
             {
                 return NotFound();
@@ -366,7 +366,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 {
                     return NotFound();
                 }
-	            TrainingProgram.MaterialList.Remove(MaterialId);
+	            TrainingProgram.MaterialList.Remove(materialId);
             }
             var XR50Tenant = await _context.Tenants.FindAsync(Material.TenantName);
             if (XR50Tenant == null)
