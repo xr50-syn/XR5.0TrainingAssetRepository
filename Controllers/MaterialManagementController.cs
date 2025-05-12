@@ -184,9 +184,10 @@ namespace XR50TrainingAssetRepo.Controllers
             Material.MaterialType = MaterialType.Workflow;
             Material.MaterialName = workflowMaterial.MaterialName;
             Material.ParentId = workflowMaterial.ParentId;
+            Material.TenantName = workflowMaterial.TenantName;
             Material.TrainingProgramList = workflowMaterial.TrainingProgramList;
-            Material.MaterialId = workflowMaterial.MaterialId;
-
+            workflowMaterial.MaterialId= Material.MaterialId;
+          
             workflowMaterial.Steps.ForEach(step => {
                 step.WorkflowStepId = Guid.NewGuid().ToString();
                 _context.WorkflowSteps.Add(step);
@@ -204,7 +205,6 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
             }
              
-            Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             _context.Workflows.Add(workflowMaterial);
             await _context.SaveChangesAsync();
@@ -219,8 +219,9 @@ namespace XR50TrainingAssetRepo.Controllers
             Material.MaterialType = MaterialType.Checklist;
             Material.MaterialName = checklistMaterial.MaterialName;
             Material.ParentId = checklistMaterial.ParentId;
+            Material.TenantName = checklistMaterial.TenantName;
             Material.TrainingProgramList = checklistMaterial.TrainingProgramList;
-            Material.MaterialId = checklistMaterial.MaterialId;
+            checklistMaterial.MaterialId = Material.MaterialId;
             checklistMaterial.Entries.ForEach(entry => {
                 entry.ChecklistEntryId = Guid.NewGuid().ToString();
                 _context.ChecklistEntries.Add(entry);
@@ -236,8 +237,7 @@ namespace XR50TrainingAssetRepo.Controllers
             {
                 return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
             }
-            
-            Material.MaterialId = Guid.NewGuid().ToString();
+        
             _context.Materials.Add(Material);
             _context.Checklists.Add(checklistMaterial);
             await _context.SaveChangesAsync();
@@ -250,6 +250,7 @@ namespace XR50TrainingAssetRepo.Controllers
             Material Material = new Material();
             Material.MaterialType = MaterialType.Image;
             Material.MaterialName = imageMaterial.MaterialName;
+            Material.TenantName = imageMaterial.TenantName;
             Material.ParentId = imageMaterial.ParentId;
             imageMaterial.MaterialId = Material.MaterialId;
             
@@ -259,6 +260,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 {
                     return NotFound($"Couldnt Find Asset {imageMaterial.AssetId}");
                 }
+                Asset.MaterialList.Add(Material.MaterialId);
                 
             }
             var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
@@ -272,7 +274,6 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
             }
             
-            Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             _context.Images.Add(imageMaterial);
             await _context.SaveChangesAsync();
@@ -287,7 +288,7 @@ namespace XR50TrainingAssetRepo.Controllers
             Material.MaterialName = videoMaterial.MaterialName;
             Material.ParentId = videoMaterial.ParentId;
             Material.TrainingProgramList = videoMaterial.TrainingProgramList;
-            Material.MaterialId = videoMaterial.MaterialId;
+            videoMaterial.MaterialId = Material.MaterialId;
             videoMaterial.Timestamps.ForEach(timestamp=> {
                 timestamp.VideoTimestampId = Guid.NewGuid().ToString();
                 _context.VideoTimestamps.Add(timestamp);
@@ -298,6 +299,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 {
                     return NotFound($"Couldnt Find Asset {videoMaterial.AssetId}");
                 }
+                 Asset.MaterialList.Add(Material.MaterialId);
                 
             }
             var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
@@ -311,7 +313,6 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
             }
             
-            Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             _context.Videos.Add(videoMaterial);
             await _context.SaveChangesAsync();
