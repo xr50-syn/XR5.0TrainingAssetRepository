@@ -44,27 +44,27 @@ namespace XR50TrainingAssetRepo.Controllers
         
         // GET: api/XR50Tenant/5
         [HttpGet("{tenantName}")]
-        public async Task<ActionResult<XR50Tenant>> GetXR50Tenant(string TenantName)
+        public async Task<ActionResult<XR50Tenant>> GetXR50Tenant(string tenantName)
         {
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
 
             if (XR50Tenant == null)
             {
-                return NotFound();
+                return NotFound($"Could not Find Tenant {tenantName}");
             }
 
             return XR50Tenant;
         }
         // GET: api/XR50Tenant/5
         [HttpGet("{tenantName}/trainingPrograms")]
-        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTenantTrainingPrograms(string TenantName)
+        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTenantTrainingPrograms(string tenantName)
         {
-            return _context.TrainingPrograms.Where(t=>t.TenantName.Equals(TenantName)).ToList();
+            return _context.TrainingPrograms.Where(t=>t.TenantName.Equals(tenantName)).ToList();
         }
         [HttpGet("{tenantName}/materials")]
-        public async Task<ActionResult<IEnumerable<Material>>> GetTenantMaterials(string TenantName)
+        public async Task<ActionResult<IEnumerable<Material>>> GetTenantMaterials(string tenantName)
         {
-            return _context.Materials.Where(t=>t.TenantName.Equals(TenantName)).ToList();
+            return _context.Materials.Where(t=>t.TenantName.Equals(tenantName)).ToList();
         }
 
         // GET: api/XR50Tenant/5
@@ -184,11 +184,11 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         // POST: api/XR50Tenant/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/training-management/{tenantName}")]
-        public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string TenantName,TrainingProgram TrainingProgram)
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/trainingManagement/{tenantName}")]
+        public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName,TrainingProgram TrainingProgram)
         {
-	        if (!TenantName.Equals(TrainingProgram.TenantName)) {
-		        return NotFound($"Couldnt Find Tenant {TrainingProgram.TenantName} is not our parent");
+	        if (!tenantName.Equals(TrainingProgram.TenantName)) {
+		        return NotFound($"Missmatch beteween {TrainingProgram.TenantName} and {tenantName}");
 	        }
             var XR50Tenant = await _context.Tenants.FindAsync(TrainingProgram.TenantName);
             if (XR50Tenant == null)
@@ -209,13 +209,13 @@ namespace XR50TrainingAssetRepo.Controllers
             return CreatedAtAction("PostTrainingProgram", TrainingProgram);
         }
         [HttpPost("/xr50/trainingAssetRepository/[controller]/materialManagement/{tenantName}/{parentMaterialId}")]
-        public async Task<ActionResult<Material>> PostChildMaterial(string TenantName, string ParentMaterialId, Material Material)
+        public async Task<ActionResult<Material>> PostChildMaterial(string tenantName, string ParentMaterialId, Material Material)
         {
 
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tenant {TenantName}");
+                return NotFound($"Couldnt Find Tenant {tenantName}");
             }
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
@@ -234,17 +234,17 @@ namespace XR50TrainingAssetRepo.Controllers
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostChildMaterial", TenantName, Material);
+            return CreatedAtAction("PostChildMaterial", tenantName, Material);
         }
 
         // DELETE: api/XR50Tenant/5
         [HttpDelete("{tenantName}")]
-        public async Task<IActionResult> DeleteXR50Tenant(string TenantName)
+        public async Task<IActionResult> DeleteXR50Tenant(string tenantName)
         {
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
-                Console.WriteLine($"Did not find XR app with id: {TenantName}");
+                Console.WriteLine($"Did not find XR app with id: {tenantName}");
                 return NotFound();
             }
             var adminUser = await _context.Users.FindAsync(XR50Tenant.OwnerName); 
@@ -253,8 +253,8 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound();
             }
 
-            foreach (string trainingName in XR50Tenant.TrainingProgramList) {
-              var training= await _context.TrainingPrograms.FindAsync(TenantName,trainingName);
+            foreach (string programName in XR50Tenant.TrainingProgramList) {
+              var training= await _context.TrainingPrograms.FindAsync(tenantName,programName);
               foreach (string resourceId in training.MaterialList) {
                 var resource= await _context.Materials.FindAsync(resourceId);
                 _context.Materials.Remove(resource);
@@ -318,15 +318,15 @@ namespace XR50TrainingAssetRepo.Controllers
             return NoContent();
         }
         [HttpDelete("/xr50/trainingAssetRepository/[controller]/trainingManagement/{tenantName}/{programName}")]
-        public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string ProgramName )
+        public async Task<IActionResult> DeleteTrainingProgram(string tenantName,string programName )
         {
-            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName );
+            var TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName,programName );
             if (TrainingProgram == null)           
             {
-                return NotFound($"Did not find training {ProgramName }");
+                return NotFound($"Did not find training {programName }");
             }
 
-            var XR50Tenant = await _context.Tenants.FindAsync(TenantName);
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
             if (XR50Tenant == null)
             {
                 return NotFound();
@@ -377,9 +377,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // DELETE: api/XR50Tenant/
         [HttpDelete("/xr50/trainingAssetRepository/[controller]/materialManagement/{tenantName}/{programName}/{materialId}")]
-        public async Task<IActionResult> DeleteMaterial(string TenantName, string ProgramName , string MaterialId)
+        public async Task<IActionResult> DeleteMaterial(string tenantName, string programName , string materialId)
         {
-            var Material = await _context.Materials.FindAsync(MaterialId);
+            var Material = await _context.Materials.FindAsync(materialId);
             if (Material == null)
             {
                 return NotFound();
@@ -388,7 +388,7 @@ namespace XR50TrainingAssetRepo.Controllers
             _context.Materials.Remove(Material);
             await _context.SaveChangesAsync();
 
-	        var TrainingProgram = _context.TrainingPrograms.FirstOrDefault(t=> t.ProgramName .Equals(ProgramName ) && t.TenantName.Equals(TenantName));
+	        var TrainingProgram = _context.TrainingPrograms.FirstOrDefault(t=> t.ProgramName .Equals(programName ) && t.TenantName.Equals(tenantName));
             if (TrainingProgram == null)
             {
                 return NotFound();
@@ -406,9 +406,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             return NoContent();
         }
-        private bool XR50TenantExists(string TenantName)
+        private bool XR50TenantExists(string tenantName)
         {
-            return _context.Tenants.Any(e => e.TenantName.Equals(TenantName));
+            return _context.Tenants.Any(e => e.TenantName.Equals(tenantName));
         }
     }
 }

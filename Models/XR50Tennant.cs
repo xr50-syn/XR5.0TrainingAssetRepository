@@ -18,7 +18,9 @@ namespace XR50TrainingAssetRepo.Models
 	    public User? Owner {get; set;}
         public virtual List<string>? AdminList { get; set; }
         
-        public XR50Tenant(){ }
+        public XR50Tenant(){
+            TrainingProgramList = new List<string>();
+         }
 
     }
 }
