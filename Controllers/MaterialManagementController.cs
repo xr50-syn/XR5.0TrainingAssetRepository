@@ -102,7 +102,57 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
+        public async Task<ActionResult<ChecklistMaterial>> GetChecklistMaterial(string tenantName, string materialId)
+        {
+            var tenant = await _context.Tenants.FindAsync(tenantName);
+            if (tenant == null)
+            {
+                return NotFound($"Tenant {tenantName} not found");
+            }
 
+            var material = await _context.Checklists.FindAsync(materialId);            
+
+            if (material == null)
+            {
+                return NotFound($"Workflow material with ID {materialId} not found for tenant {tenantName}");
+            }
+
+            return material;
+        }
+        public async Task<ActionResult<ImageMaterial>> GetImageMaterial(string tenantName, string materialId)
+        {
+            var tenant = await _context.Tenants.FindAsync(tenantName);
+            if (tenant == null)
+            {
+                return NotFound($"Tenant {tenantName} not found");
+            }
+
+            var material = await _context.Images.FindAsync(materialId);            
+
+            if (material == null)
+            {
+                return NotFound($"Image material with ID {materialId} not found for tenant {tenantName}");
+            }
+
+            return material;
+        }
+        public async Task<ActionResult<VideoMaterial>> GetVideoMaterial(string tenantName, string materialId)
+        {
+            var tenant = await _context.Tenants.FindAsync(tenantName);
+            if (tenant == null)
+            {
+                return NotFound($"Tenant {tenantName} not found");
+            }
+
+            var material = await _context.Videos.FindAsync(materialId);            
+
+            if (material == null)
+            {
+                return NotFound($"Video material with ID {materialId} not found for tenant {tenantName}");
+            }
+
+            return material;
+        }
         [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}")]
         public async Task<ActionResult<Material>> PostMaterialManagement(string tenantName, Material Material)
         {
