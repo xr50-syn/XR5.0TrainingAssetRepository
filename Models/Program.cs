@@ -15,6 +15,8 @@ namespace XR50TrainingAssetRepo.Models
         public virtual List<string>? MaterialList { get; set; }
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
+        [ForeignKey("LearningPaths")]
+        public virtual List<string>? LearningPathList { get; set;}
         public string TenantName { get; set; }
         public string ProgramName  { get; set; }
          
@@ -22,7 +24,7 @@ namespace XR50TrainingAssetRepo.Models
         {   
             MaterialList = new List<string>();
             AssetList = new List<string>();
-
+            LearningPathList = new List<string>();
         }
     }
 

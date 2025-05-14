@@ -184,7 +184,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         // POST: api/XR50Tenant/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/trainingManagement/{tenantName}")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/trainingProgramManagement/{tenantName}")]
         public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName,TrainingProgram TrainingProgram)
         {
 	        if (!tenantName.Equals(TrainingProgram.TenantName)) {
@@ -209,7 +209,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return CreatedAtAction("PostTrainingProgram", TrainingProgram);
         }
         [HttpPost("/xr50/trainingAssetRepository/[controller]/materialManagement/{tenantName}/{parentMaterialId}")]
-        public async Task<ActionResult<Material>> PostChildMaterial(string tenantName, string ParentMaterialId, Material Material)
+        public async Task<ActionResult<Material>> PostChildMaterial(string tenantName, string parentMaterialId, Material Material)
         {
 
             var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
@@ -223,9 +223,9 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
             }
            
-            var ParentMaterial = await _context.Materials.FindAsync(ParentMaterialId);
+            var ParentMaterial = await _context.Materials.FindAsync(parentMaterialId);
             if (ParentMaterial == null) {
-                return NotFound($"Couldnt Find Material with Id: {ParentMaterialId}");
+                return NotFound($"Couldnt Find Material with Id: {parentMaterialId}");
             }
             Material.MaterialId = Guid.NewGuid().ToString();
             
@@ -317,7 +317,7 @@ namespace XR50TrainingAssetRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
-        [HttpDelete("/xr50/trainingAssetRepository/[controller]/trainingManagement/{tenantName}/{programName}")]
+        [HttpDelete("/xr50/trainingAssetRepository/[controller]/trainingProgramManagement/{tenantName}/{programName}")]
         public async Task<IActionResult> DeleteTrainingProgram(string tenantName,string programName )
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName,programName );

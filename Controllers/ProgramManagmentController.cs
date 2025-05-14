@@ -19,12 +19,12 @@ namespace XR50TrainingAssetRepo.Controllers
 {
     [Route("/xr50/trainingAssetRepository/[controller]")]
     [ApiController]
-    public class programManagementController : ControllerBase
+    public class trainingProgramManagementController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public programManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public trainingProgramManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -40,9 +40,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // GET: api/TrainingProgram/5
         [HttpGet("{tenantName}/{programName}")]
-        public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string TenantName,string ProgramName)
+        public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string tenantName,string programName)
         {
-            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName);
+            var TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName,programName);
 
             if (TrainingProgram == null)
             {
@@ -50,7 +50,30 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             return TrainingProgram;
         }
+        [HttpPost("{tenantName}")]
+        public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName,TrainingProgram TrainingProgram)
+        {
+	        if (!tenantName.Equals(TrainingProgram.TenantName)) {
+		        return NotFound($"Missmatch beteween {TrainingProgram.TenantName} and {tenantName}");
+	        }
+            var XR50Tenant = await _context.Tenants.FindAsync(TrainingProgram.TenantName);
+            if (XR50Tenant == null)
+            {
+                return NotFound($"Couldnt Find Tenant {TrainingProgram.TenantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
+            if (admin ==null) 
+            {
+                return NotFound($"Couldnt Find Admin user for {TrainingProgram.TenantName}");
+            }
 
+            XR50Tenant.TrainingProgramList.Add(TrainingProgram.ProgramName ); 
+            _context.TrainingPrograms.Add(TrainingProgram);
+            await _context.SaveChangesAsync();
+
+           
+            return CreatedAtAction("PostTrainingProgram", TrainingProgram);
+        }
         // PUT: api/TrainingProgram/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
        /* [HttpPut("{TenantName}/{ProgramName}")]
@@ -85,9 +108,9 @@ namespace XR50TrainingAssetRepo.Controllers
         
         // DELETE: api/TrainingProgram/5
         [HttpDelete("{tenantName}/{programName}")]
-        public async Task<IActionResult> DeleteTrainingProgram(string TenantName,string ProgramName)
+        public async Task<IActionResult> DeleteTrainingProgram(string tenantName,string programName)
         {
-            var TrainingProgram = await _context.TrainingPrograms.FindAsync(TenantName,ProgramName);
+            var TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName,programName);
             if (TrainingProgram == null)
             {
                 return NotFound();

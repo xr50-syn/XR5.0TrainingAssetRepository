@@ -77,14 +77,14 @@ namespace XR50TrainingAssetRepo.Models
         public string? AssetId { get; set; }
         public List<VideoTimestamp> Timestamps { get; set; }
         [ForeignKey("VideoTimestamps")]
-        public List<string> TimestapId { get; set; }
+        public List<string> TimestampId { get; set; }
         public VideoMaterial()
         {
             MaterialId = Guid.NewGuid().ToString();
             MaterialList = new List<string>();
             TrainingProgramList = new List<string>();
             Timestamps = new List<VideoTimestamp>();
-            TimestapId= new List<string>();
+            TimestampId= new List<string>();
             MaterialType = MaterialType.Video;
         }
     }

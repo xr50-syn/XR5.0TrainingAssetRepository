@@ -102,6 +102,20 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
+        [HttpGet("checklist")]
+        public async Task<ActionResult<IEnumerable<ChecklistMaterial>>> GetChecklistMaterials()
+        {
+            var checklists = await _context.Checklists.ToListAsync();
+            if (checklists == null) {
+                return NotFound("No checklists found");
+            }
+            foreach (var checklist in checklists) {
+        
+            }
+            return checklists;
+
+        }
+        [HttpGet("checklist/{tenantName}/{materialId}")]
         public async Task<ActionResult<ChecklistMaterial>> GetChecklistMaterial(string tenantName, string materialId)
         {
             var tenant = await _context.Tenants.FindAsync(tenantName);
@@ -119,6 +133,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
+        [HttpGet("image")]
         public async Task<ActionResult<ImageMaterial>> GetImageMaterial(string tenantName, string materialId)
         {
             var tenant = await _context.Tenants.FindAsync(tenantName);
@@ -136,6 +151,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
+        [HttpGet("video")]
         public async Task<ActionResult<VideoMaterial>> GetVideoMaterial(string tenantName, string materialId)
         {
             var tenant = await _context.Tenants.FindAsync(tenantName);
