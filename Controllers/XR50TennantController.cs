@@ -111,13 +111,13 @@ namespace XR50TrainingAssetRepo.Controllers
             _context.Tenants.Add(XR50Tenant);
 
             var values = new List<KeyValuePair<string, string>>();
-            values.Add(new KeyValuePair<string, string>("groupid", XR50Tenant.OwncloudGroup));
+            values.Add(new KeyValuePair<string, string>("groupid", XR50Tenant.TenantGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
             var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -141,9 +141,9 @@ namespace XR50TrainingAssetRepo.Controllers
             valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
             valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
             valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
-            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.OwncloudGroup));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.TenantGroup));
             //Target The User Interface
-            uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
             FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
            
             var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -159,7 +159,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             // Create root dir for the Tenant, owned by Admin
 	        string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.TenantDirectory);
             string Arg= $"-X MKCOL -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{dirl}/\"";
             // Create root dir for the Tenant
             Console.WriteLine("Executing command:" + cmd + " " + Arg);
@@ -236,7 +236,33 @@ namespace XR50TrainingAssetRepo.Controllers
             
             return CreatedAtAction("PostChildMaterial", tenantName, Material);
         }
+        //POST api/LearningPath/tennantName/ProgramName
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+       [HttpPost("/xr50/trainingAssetRepository/[controller]/learningPathManagement/{tenantName}/{programName}")]
+        public async Task<ActionResult<LearningPath>> PostLearningPath(string tenantName, string programName, LearningPath LearningPath)
+        {
+	       
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
+            if (XR50Tenant == null)
+            {
+                return NotFound($"Couldnt Find Tenant {tenantName}");
+            }
+            var XR50TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName, programName);
+            if (XR50TrainingProgram == null)
+            {
+                return NotFound($"Couldnt Find Training Program {programName}");
+            }
 
+            
+            LearningPath.LearningPathId = Guid.NewGuid().ToString();
+            XR50TrainingProgram.LearningPathList.Add(LearningPath.LearningPathId);
+ 
+            _context.LearningPaths.Add(LearningPath);
+            await _context.SaveChangesAsync();
+
+           
+            return CreatedAtAction("PostLearningPath", LearningPath);
+        }
         // DELETE: api/XR50Tenant/5
         [HttpDelete("{tenantName}")]
         public async Task<IActionResult> DeleteXR50Tenant(string tenantName)
@@ -267,20 +293,20 @@ namespace XR50TrainingAssetRepo.Controllers
 
             var values = new List<KeyValuePair<string, string>>();
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_group = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-	        string uri_user = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_group = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+	        string uri_user = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
+            string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_group}/{XR50Tenant.OwncloudGroup}")
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_group}/{XR50Tenant.TenantGroup}")
             {
                 Content = messageContent
             };
-            Console.WriteLine(XR50Tenant.OwncloudGroup);
+            Console.WriteLine(XR50Tenant.TenantGroup);
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
             _httpClient.BaseAddress = new Uri(uri_base);
             //_httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Basic {base64EncodedAuthenticationString}");
@@ -288,7 +314,7 @@ namespace XR50TrainingAssetRepo.Controllers
             string resultContent = result.Content.ReadAsStringAsync().Result;
             // Delete root dir for the Tenant
 	        string cmd= "curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.TenantDirectory);
             string Arg=  $"-X DELETE -u {adminUser.UserName}:{adminUser.Password} \"{webdav_base}/{dirl}/\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
@@ -344,16 +370,16 @@ namespace XR50TrainingAssetRepo.Controllers
             XR50Tenant.TrainingProgramList.Remove(TrainingProgram.ProgramName );
             await _context.SaveChangesAsync();
 
-            //Owncloud stuff
+            //Tenant stuff
             string username = admin.UserName;
             string password = admin.Password;
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             
             // Remove root dir for the TrainingProgram
 	        string cmd= "curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.OwncloudDirectory);
+            string dirl=System.Web.HttpUtility.UrlEncode(XR50Tenant.TenantDirectory);
             string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{TrainingProgram.ProgramName }\"";
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo

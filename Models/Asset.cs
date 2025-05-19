@@ -22,11 +22,11 @@ namespace XR50TrainingAssetRepo.Models
             ShareId= Guid.NewGuid().ToString();
         }
     }
-    public class OwncloudDirectory {
+    public class TenantDirectory {
         public string? TenantName {get;set;}
         [Key]
-        public string? OwncloudPath {get;set;}
-        public OwncloudDirectory() {
+        public string? TenantPath {get;set;}
+        public TenantDirectory() {
 
         }
     }

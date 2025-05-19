@@ -52,7 +52,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         //POST api/LearningPath/tennantName/ProgramName
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("{tenantName}")]
+       /* [HttpPost("{tenantName}")]
         public async Task<ActionResult<LearningPath>> PostLearningPath(string tenantName, LearningPath LearningPath)
         {
 	       
@@ -61,12 +61,12 @@ namespace XR50TrainingAssetRepo.Controllers
             {
                 return NotFound($"Couldnt Find Tenant {tenantName}");
             }
-            var XR50TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName, LearningPath.TrainingProgramName);
+            var XR50TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName, LearningPath.ProgramName);
             if (XR50TrainingProgram == null)
             {
-                return NotFound($"Couldnt Find Training Program {LearningPath.TrainingProgramName}");
+                return NotFound($"Couldnt Find Training Program {LearningPath.ProgramName}");
             }
-            
+
             
             LearningPath.LearningPathId = Guid.NewGuid().ToString();
             XR50TrainingProgram.LearningPathList.Add(LearningPath.LearningPathId);
@@ -76,7 +76,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
            
             return CreatedAtAction("PostLearningPath", LearningPath);
-        }
+        }*/
         // PUT: api/LearningPath/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{tenantName}/{learningPathId}")]

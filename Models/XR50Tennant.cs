@@ -11,9 +11,9 @@ namespace XR50TrainingAssetRepo.Models
 	    [ForeignKey("TrainingPrograms")]
         public virtual List<string>? TrainingProgramList { get; set; }
 
-        public string? OwncloudGroup { get; set; }
+        public string? TenantGroup { get; set; }
         public string? Description { get; set; }
-        public string? OwncloudDirectory {  get; set; }
+        public string? TenantDirectory {  get; set; }
         public string? OwnerName { get; set;} 
 	    public User? Owner {get; set;}
         public virtual List<string>? AdminList { get; set; }

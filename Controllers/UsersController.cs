@@ -105,12 +105,12 @@ namespace XR50TrainingAssetRepo.Controllers
             values.Add(new KeyValuePair<string, string>("password", user.Password));
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
-            values.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.OwncloudGroup));
+            values.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.TenantGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
 
@@ -143,11 +143,11 @@ namespace XR50TrainingAssetRepo.Controllers
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", group.GroupName));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
             var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -167,9 +167,9 @@ namespace XR50TrainingAssetRepo.Controllers
             valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
             valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
             valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
-            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.OwncloudGroup));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.TenantGroup));
             //Target The User Interface
-            uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
             FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
            
             var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -204,10 +204,10 @@ namespace XR50TrainingAssetRepo.Controllers
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));

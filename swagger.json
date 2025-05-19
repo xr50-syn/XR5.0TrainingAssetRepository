@@ -386,17 +386,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OwncloudDirectory"
+                "$ref": "#/components/schemas/TenantDirectory"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/OwncloudDirectory"
+                "$ref": "#/components/schemas/TenantDirectory"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/OwncloudDirectory"
+                "$ref": "#/components/schemas/TenantDirectory"
               }
             }
           }
@@ -446,7 +446,7 @@
         }
       }
     },
-    "/xr50/trainingAssetRepository/learningPathManagement/{tenantName}/{learningPathName}": {
+    "/xr50/trainingAssetRepository/learningPathManagement/{learningPathId}": {
       "get": {
         "tags": [
           "learningPathManagement"
@@ -454,21 +454,13 @@
         "parameters": [
           {
             "name": "tenantName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "learningPathId",
             "in": "query",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "learningPathName",
+            "name": "learningPathId",
             "in": "path",
             "required": true,
             "schema": {
@@ -498,7 +490,58 @@
             }
           }
         }
-      },
+      }
+    },
+    "/xr50/trainingAssetRepository/learningPathManagement/{tenantName}/{learningPathId}": {
+      "put": {
+        "tags": [
+          "learningPathManagement"
+        ],
+        "parameters": [
+          {
+            "name": "learningPathId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningPath"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningPath"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningPath"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/trainingAssetRepository/learningPathManagement/{tenantName}/{learningPathName}": {
       "delete": {
         "tags": [
           "learningPathManagement"
@@ -1296,119 +1339,6 @@
         }
       }
     },
-    "/xr50/trainingAssetRepository/trainingProgramManagement": {
-      "get": {
-        "tags": [
-          "trainingProgramManagement"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingProgram"
-                  }
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingProgram"
-                  }
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TrainingProgram"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/xr50/trainingAssetRepository/trainingProgramManagement/{tenantName}/{programName}": {
-      "get": {
-        "tags": [
-          "trainingProgramManagement"
-        ],
-        "parameters": [
-          {
-            "name": "tenantName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "programName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingProgram"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingProgram"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrainingProgram"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "trainingProgramManagement"
-        ],
-        "parameters": [
-          {
-            "name": "tenantName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "programName",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
     "/xr50/trainingAssetRepository/tenantManagement": {
       "get": {
         "tags": [
@@ -1772,6 +1702,72 @@
         }
       }
     },
+    "/xr50/trainingAssetRepository/tenantManagement/learningPathManagement/{tenantName}/{programName}": {
+      "post": {
+        "tags": [
+          "tenantManagement"
+        ],
+        "parameters": [
+          {
+            "name": "tenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "programName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningPath"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningPath"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LearningPath"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningPath"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningPath"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearningPath"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/xr50/trainingAssetRepository/tenantManagement/trainingProgramManagement/{tenantName}/{programName}": {
       "delete": {
         "tags": [
@@ -1836,6 +1832,177 @@
         "responses": {
           "200": {
             "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/trainingAssetRepository/trainingProgramManagement": {
+      "get": {
+        "tags": [
+          "trainingProgramManagement"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingProgram"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingProgram"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrainingProgram"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/xr50/trainingAssetRepository/trainingProgramManagement/{tenantName}/{programName}": {
+      "get": {
+        "tags": [
+          "trainingProgramManagement"
+        ],
+        "parameters": [
+          {
+            "name": "tenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "programName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "trainingProgramManagement"
+        ],
+        "parameters": [
+          {
+            "name": "tenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "programName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/xr50/trainingAssetRepository/trainingProgramManagement/{tenantName}": {
+      "post": {
+        "tags": [
+          "trainingProgramManagement"
+        ],
+        "parameters": [
+          {
+            "name": "tenantName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingProgram"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingProgram"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingProgram"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingProgram"
+                }
+              }
+            }
           }
         }
       }
@@ -2223,10 +2390,6 @@
       "LearningPath": {
         "type": "object",
         "properties": {
-          "useCase": {
-            "type": "string",
-            "nullable": true
-          },
           "materialList": {
             "type": "array",
             "items": {
@@ -2246,6 +2409,14 @@
             "nullable": true
           },
           "learningPathId": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "learningPathName": {
             "type": "string",
             "nullable": true
           }
@@ -2309,20 +2480,6 @@
         "type": "integer",
         "format": "int32"
       },
-      "OwncloudDirectory": {
-        "type": "object",
-        "properties": {
-          "tenantName": {
-            "type": "string",
-            "nullable": true
-          },
-          "owncloudPath": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
       "Share": {
         "type": "object",
         "properties": {
@@ -2356,6 +2513,20 @@
         "type": "integer",
         "format": "int32"
       },
+      "TenantDirectory": {
+        "type": "object",
+        "properties": {
+          "tenantName": {
+            "type": "string",
+            "nullable": true
+          },
+          "tenantPath": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "TrainingProgram": {
         "type": "object",
         "properties": {
@@ -2371,6 +2542,13 @@
             "nullable": true
           },
           "assetList": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "learningPathList": {
             "type": "array",
             "items": {
               "type": "string"
@@ -2595,7 +2773,7 @@
             },
             "nullable": true
           },
-          "owncloudGroup": {
+          "tenantGroup": {
             "type": "string",
             "nullable": true
           },
@@ -2603,7 +2781,7 @@
             "type": "string",
             "nullable": true
           },
-          "owncloudDirectory": {
+          "tenantDirectory": {
             "type": "string",
             "nullable": true
           },

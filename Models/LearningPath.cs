@@ -8,8 +8,6 @@ namespace XR50TrainingAssetRepo.Models
 {
     public class LearningPath
     {
-
-        public string? UseCase { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; }
         [ForeignKey("TrainingPrograms")]
