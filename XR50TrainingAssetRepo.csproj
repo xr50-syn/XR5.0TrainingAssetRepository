@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <_ContentIncludedByDefault Remove="testjson\trainings\Training1.json" />
+    <_ContentIncludedByDefault Remove="testjson\trainings\TrainingProgram1.json" />
   </ItemGroup>
 
   <ItemGroup>

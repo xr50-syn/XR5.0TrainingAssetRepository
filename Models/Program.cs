@@ -2,30 +2,29 @@
 using Mono.TextTemplating;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using XR5_0TrainingRepo.Models;
+using XR50TrainingAssetRepo.Models;
 
-namespace XR5_0TrainingRepo.Models
+namespace XR50TrainingAssetRepo.Models
 {
-    [PrimaryKey(nameof(TennantName), nameof(TrainingName))]
-    public class TrainingModule
+    [PrimaryKey(nameof(TenantName), nameof(ProgramName ))]
+    public class TrainingProgram
     {
 
-        
         public string? UseCase { get; set; }
-        public string TrainingId { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; }
         [ForeignKey("Assets")]
         public virtual List<string>? AssetList { get; set; }
-        public string TennantName { get; set; }
-        public string TrainingName { get; set; }
+        [ForeignKey("LearningPaths")]
+        public virtual List<string>? LearningPathList { get; set;}
+        public string TenantName { get; set; }
+        public string ProgramName  { get; set; }
          
-        public TrainingModule()
-        {
-            TrainingId= Guid.NewGuid().ToString();;	    
+        public TrainingProgram()
+        {   
             MaterialList = new List<string>();
             AssetList = new List<string>();
-
+            LearningPathList = new List<string>();
         }
     }
 

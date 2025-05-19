@@ -1,26 +1,53 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using XR5_0TrainingRepo.Models;
+using System.ComponentModel.DataAnnotations.Schema;
+using XR50TrainingAssetRepo.Models;
 
-namespace XR5_0TrainingRepo.Models
+namespace XR50TrainingAssetRepo.Models
 {
+     public enum ShareType{
+        Group,
+        User
+    }
+    public class Share
+    {
+        [Key]
+        public string ShareId { get; set; }
+        public string? TenantName { get; set; }
+        public string? FileId { get; set; }
+        public ShareType Type { get; set;}
+        public string Target {get; set;}
+        public Share()
+        {
+            ShareId= Guid.NewGuid().ToString();
+        }
+    }
+    public class TenantDirectory {
+        public string? TenantName {get;set;}
+        [Key]
+        public string? TenantPath {get;set;}
+        public TenantDirectory() {
+
+        }
+    }
+
 
     public class Asset
     {
+        public string? TenantName { get; set; }
         public string? Description { get; set; }
-        public string? OwncloudFileName { get; set; }
-        public string? OwncloudPath { get; set; }
-        public string? TennantName { get; set; }
-        public string? TrainingName { get; set; }
-        public string? MaterialId { get; set; } 
-        public string? ParentId {get; set;}
-        public string? ParentType {get; set;}
+        [ForeignKey("Shares")]
+        public virtual List<string>? ShareList { get; set; }
+        [ForeignKey("Materials")]
+        public virtual List<string>? MaterialList { get; set; } 
         public string? Type { get; set; }
 	    [Key]
-        public string? AssetId { get; set; }
+        public string? FileName { get; set; }
         public Asset ()
         {
-            AssetId = Guid.NewGuid().ToString();
+            FileName = Guid.NewGuid().ToString();
+            ShareList = new List<string>();
+            MaterialList= new List<string>();
             
         }
     }

@@ -1,16 +1,16 @@
 {
-  "TennantName": "DECEIT Library of Forbidden Texts",
-  "OwncloudGroup": "DECEIT Library of Forbidden Texts",
-  "OwncloudDirectory": "Copy_of_Amethysts_Library",
-  "Description": "Hijacked by the evil dragon",
-  "OwnerName":  "evilwyrm666",
+  "TenantName": "DECEIT Library of Forbidden Texts",
+  "TenantGroup": "DECEIT Library of Forbidden Texts",
+  "TenantDirectory": "DECEIT_Library",
+  "Description": "Requires more than 30 caster levels to enter the library. Certain Exceptions Apply",
+  "OwnerName":  "headmistress",
   "Owner": {
-    "userName": "evilwyrm666",
-    "fullName": "Oversized Red Dragon",
-    "userEmail": "evilwyrm666@hisevilness.evil",
-    "password": "3v1l",
+    "userName": "headmistress",
+    "fullName": "Mistress of DECEIT",
+    "userEmail": "I_prank_my_students@deceit.hl",
+    "password": "123",
     "admin": true,
-    "TennantName": "DECEIT Library of Forbidden Texts"
+    "TenantName": "DECEIT Library of Forbidden Texts"
   },
   "adminList": [],
   "trainingList": []
