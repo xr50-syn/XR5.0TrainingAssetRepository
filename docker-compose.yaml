@@ -55,10 +55,10 @@ services:
       XR50_REPO_DB_USER: ${XR50_REPO_DB_USER}
       XR50_REPO_DB_PASSWORD: ${XR50_REPO_DB_PASSWORD}
       XR50_REPO_DB_NAME: ${XR50_REPO_DB_NAME}
-      OwncloudSettings__BaseAPI: http://owncloud:8080
-      OwncloudSettings__BaseWebDAV: http://owncloud:8080/remote.php/webdav
-      OwncloudSettings__Admin: ${XR50_OWNCLOUD_ADMIN_USER}
-      OwncloudSettings__Password: ${XR50_OWNCLOUD_ADMIN_PASSWORD}
+      TenantSettings__BaseAPI: http://owncloud:8080
+      TenantSettings__BaseWebDAV: http://owncloud:8080/remote.php/webdav
+      TenantSettings__Admin: ${XR50_OWNCLOUD_ADMIN_USER}
+      TenantSettings__Password: ${XR50_OWNCLOUD_ADMIN_PASSWORD}
       ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=${XR50_REPO_DB_NAME};user=${XR50_REPO_DB_USER};password=${XR50_REPO_DB_PASSWORD};
     ports:
       - "5286:5286"

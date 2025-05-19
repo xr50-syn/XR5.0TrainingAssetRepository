@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Certificate;
-using XR5_0TrainingRepo.Models;
+using XR50TrainingAssetRepo.Models;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.Kestrel.Https;
 
@@ -11,7 +11,7 @@ var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddControllers();
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<XR50RepoContext>(opt =>
+builder.Services.AddDbContext<XR50TrainingAssetRepoContext>(opt =>
     opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));    
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();

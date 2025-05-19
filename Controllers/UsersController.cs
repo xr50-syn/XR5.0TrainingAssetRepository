@@ -8,18 +8,18 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using XR5_0TrainingRepo.Models;
+using XR50TrainingAssetRepo.Models;
 
-namespace XR5_0TrainingRepo.Controllers
+namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/library_of_reality_altering_knowledge/[controller]")]
+    [Route("/xr50/trainingAssetRepository/[controller]")]
     [ApiController]
-    public class user_managementController : ControllerBase
+    public class userManagementController : ControllerBase
     {
-        private readonly XR50RepoContext _context;
+        private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public user_managementController(XR50RepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public userManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         { 
             _context = context;
             _httpClient = httpClient;
@@ -87,15 +87,15 @@ namespace XR5_0TrainingRepo.Controllers
         public async Task<ActionResult<User>> PostUser(User user)
         {
             
-            var XR50Tennant = await _context.Tennants.FindAsync(user.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(user.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tennant {user.TennantName}");
+                return NotFound($"Couldnt Find Tenant {user.TenantName}");
             }
             
             if (user.admin)
             {
-                XR50Tennant.AdminList.Add(user.UserName);
+                XR50Tenant.AdminList.Add(user.UserName);
             }
             _context.Users.Add(user);
             _context.SaveChanges();
@@ -105,12 +105,12 @@ namespace XR5_0TrainingRepo.Controllers
             values.Add(new KeyValuePair<string, string>("password", user.Password));
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
-            values.Add(new KeyValuePair<string, string>("groups[]", XR50Tennant.OwncloudGroup));
+            values.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.TenantGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
 
@@ -127,27 +127,27 @@ namespace XR5_0TrainingRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
-        [HttpPost("/xr50/library_of_reality_altering_knowledge/[controller]/group-management")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/groupManagement")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
-            var XR50Tennant = await _context.Tennants.FindAsync(group.TennantName);
-            if (XR50Tennant == null)
+            var XR50Tenant = await _context.Tenants.FindAsync(group.TenantName);
+            if (XR50Tenant == null)
             {
-                return NotFound($"Couldnt Find Tennant {group.TennantName}");
+                return NotFound($"Couldnt Find Tenant {group.TenantName}");
             } 
-            var adminUser = await _context.Users.FindAsync(XR50Tennant.OwnerName);
+            var adminUser = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (adminUser ==null) 
             {
-                return NotFound($"Couldnt Find Admin user for {group.TennantName}");
+                return NotFound($"Couldnt Find Admin user for {group.TenantName}");
             }
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", group.GroupName));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:GroupManagementPath");
-            string webdav_base = _configuration.GetValue<string>("OwncloudSettings:BaseWebDAV");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+            string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
             var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -167,9 +167,9 @@ namespace XR5_0TrainingRepo.Controllers
             valuesAdmin.Add(new KeyValuePair<string, string>("password", adminUser.Password));
             valuesAdmin.Add(new KeyValuePair<string, string>("email", adminUser.UserEmail));
             valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
-            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tennant.OwncloudGroup));
+            valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.TenantGroup));
             //Target The User Interface
-            uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
             FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
            
             var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -204,10 +204,10 @@ namespace XR5_0TrainingRepo.Controllers
             values.Add(new KeyValuePair<string, string>("email", user.UserEmail));
             values.Add(new KeyValuePair<string, string>("display", user.FullName));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
-            string username = _configuration.GetValue<string>("OwncloudSettings:Admin");
-            string password = _configuration.GetValue<string>("OwncloudSettings:Password");
-            string uri_base = _configuration.GetValue<string>("OwncloudSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("OwncloudSettings:UserManagementPath");
+            string username = _configuration.GetValue<string>("TenantSettings:Admin");
+            string password = _configuration.GetValue<string>("TenantSettings:Password");
+            string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
