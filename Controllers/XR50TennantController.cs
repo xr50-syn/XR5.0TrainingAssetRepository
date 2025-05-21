@@ -22,13 +22,13 @@ namespace XR50TrainingAssetRepo.Controllers
     [Route("/xr50/trainingAssetRepository/[controller]")]
     [ApiController]
     
-    public class tenantManagementController : ControllerBase
+    public class tenantsController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
      
-        public tenantManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public tenantsController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -56,7 +56,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return XR50Tenant;
         }
         // GET: api/XR50Tenant/5
-        [HttpGet("{tenantName}/trainingPrograms")]
+      /*  [HttpGet("{tenantName}/trainingPrograms")]
         public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTenantTrainingPrograms(string tenantName)
         {
             return _context.TrainingPrograms.Where(t=>t.TenantName.Equals(tenantName)).ToList();
@@ -68,7 +68,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         // GET: api/XR50Tenant/5
-
+*/
         /*
         // PUT: api/XR50Tenant/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -116,7 +116,7 @@ namespace XR50TrainingAssetRepo.Controllers
             string username = _configuration.GetValue<string>("TenantSettings:Admin");
             string password = _configuration.GetValue<string>("TenantSettings:Password");
             string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupsPath");
             string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
@@ -143,7 +143,7 @@ namespace XR50TrainingAssetRepo.Controllers
             valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
             valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.TenantGroup));
             //Target The User Interface
-            uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
+            uri_path = _configuration.GetValue<string>("TenantSettings:UsersPath");
             FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
            
             var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -184,7 +184,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         // POST: api/XR50Tenant/
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/trainingProgramManagement/{tenantName}")]
+     /*   [HttpPost("/xr50/trainingAssetRepository/[controller]/trainingPrograms/{tenantName}")]
         public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName,TrainingProgram TrainingProgram)
         {
 	        if (!tenantName.Equals(TrainingProgram.TenantName)) {
@@ -208,7 +208,7 @@ namespace XR50TrainingAssetRepo.Controllers
            
             return CreatedAtAction("PostTrainingProgram", TrainingProgram);
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/materialManagement/{tenantName}/{parentMaterialId}")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/materials/{tenantName}/{parentMaterialId}")]
         public async Task<ActionResult<Material>> PostChildMaterial(string tenantName, string parentMaterialId, Material Material)
         {
 
@@ -238,7 +238,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         //POST api/LearningPath/tennantName/ProgramName
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-       [HttpPost("/xr50/trainingAssetRepository/[controller]/learningPathManagement/{tenantName}/{programName}")]
+       [HttpPost("/xr50/trainingAssetRepository/[controller]/learningPaths/{tenantName}/{programName}")]
         public async Task<ActionResult<LearningPath>> PostLearningPath(string tenantName, string programName, LearningPath LearningPath)
         {
 	       
@@ -262,7 +262,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
            
             return CreatedAtAction("PostLearningPath", LearningPath);
-        }
+        }*/
         // DELETE: api/XR50Tenant/5
         [HttpDelete("{tenantName}")]
         public async Task<IActionResult> DeleteXR50Tenant(string tenantName)
@@ -296,8 +296,8 @@ namespace XR50TrainingAssetRepo.Controllers
             string username = _configuration.GetValue<string>("TenantSettings:Admin");
             string password = _configuration.GetValue<string>("TenantSettings:Password");
             string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
-            string uri_group = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
-	        string uri_user = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
+            string uri_group = _configuration.GetValue<string>("TenantSettings:GroupsPath");
+	        string uri_user = _configuration.GetValue<string>("TenantSettings:UsersPath");
             string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
 
             string authenticationString = $"{username}:{password}";
@@ -343,7 +343,7 @@ namespace XR50TrainingAssetRepo.Controllers
             //Console.WriteLine($"Response content: {resultContent}");
             return NoContent();
         }
-        [HttpDelete("/xr50/trainingAssetRepository/[controller]/trainingProgramManagement/{tenantName}/{programName}")]
+       /* [HttpDelete("/xr50/trainingAssetRepository/[controller]/trainingPrograms/{tenantName}/{programName}")]
         public async Task<IActionResult> DeleteTrainingProgram(string tenantName,string programName )
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName,programName );
@@ -374,7 +374,7 @@ namespace XR50TrainingAssetRepo.Controllers
             string username = admin.UserName;
             string password = admin.Password;
             string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupsPath");
             string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             
             // Remove root dir for the TrainingProgram
@@ -402,7 +402,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
 
         // DELETE: api/XR50Tenant/
-        [HttpDelete("/xr50/trainingAssetRepository/[controller]/materialManagement/{tenantName}/{programName}/{materialId}")]
+        [HttpDelete("/xr50/trainingAssetRepository/[controller]/materials/{tenantName}/{programName}/{materialId}")]
         public async Task<IActionResult> DeleteMaterial(string tenantName, string programName , string materialId)
         {
             var Material = await _context.Materials.FindAsync(materialId);
@@ -431,7 +431,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound($"Couldnt Find Admin user for {TrainingProgram.TenantName}");
             }
             return NoContent();
-        }
+        }*/
         private bool XR50TenantExists(string tenantName)
         {
             return _context.Tenants.Any(e => e.TenantName.Equals(tenantName));

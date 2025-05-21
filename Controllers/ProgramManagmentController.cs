@@ -17,14 +17,15 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/trainingAssetRepository/[controller]")]
+   // [Route("/xr50/trainingAssetRepository/[controller]")]
+    [Route("xr50/trainingAssetRepository/tenants/{tenantName}/[controller]")]
     [ApiController]
-    public class trainingProgramManagementController : ControllerBase
+    public class trainingProgramsController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public trainingProgramManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public trainingProgramsController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -39,7 +40,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         // GET: api/TrainingProgram/5
-        [HttpGet("{tenantName}/{programName}")]
+        [HttpGet("{programName}")]
         public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string tenantName,string programName)
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName,programName);
@@ -50,7 +51,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             return TrainingProgram;
         }
-        [HttpPost("{tenantName}")]
+        [HttpPost]
         public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName,TrainingProgram TrainingProgram)
         {
 	        if (!tenantName.Equals(TrainingProgram.TenantName)) {
@@ -107,7 +108,7 @@ namespace XR50TrainingAssetRepo.Controllers
 */
         
         // DELETE: api/TrainingProgram/5
-        [HttpDelete("{tenantName}/{programName}")]
+        [HttpDelete("{programName}")]
         public async Task<IActionResult> DeleteTrainingProgram(string tenantName,string programName)
         {
             var TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName,programName);

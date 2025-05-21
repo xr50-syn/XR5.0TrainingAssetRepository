@@ -12,14 +12,15 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/trainingAssetRepository/[controller]")]
+    //[Route("/xr50/trainingAssetRepository/[controller]")]
+    [Route("xr50/trainingAssetRepository/tenants/{tenantName}/[controller]")]
     [ApiController]
-    public class userManagementController : ControllerBase
+    public class usersController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public userManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public usersController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         { 
             _context = context;
             _httpClient = httpClient;
@@ -110,7 +111,7 @@ namespace XR50TrainingAssetRepo.Controllers
             string username = _configuration.GetValue<string>("TenantSettings:Admin");
             string password = _configuration.GetValue<string>("TenantSettings:Password");
             string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:UsersPath");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
 
@@ -127,7 +128,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/groupManagement")]
+        [HttpPost("/xr50/trainingAssetRepository/[controller]/groups")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
             var XR50Tenant = await _context.Tenants.FindAsync(group.TenantName);
@@ -146,7 +147,7 @@ namespace XR50TrainingAssetRepo.Controllers
             string username = _configuration.GetValue<string>("TenantSettings:Admin");
             string password = _configuration.GetValue<string>("TenantSettings:Password");
             string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupManagementPath");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:GroupsPath");
             string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
@@ -169,7 +170,7 @@ namespace XR50TrainingAssetRepo.Controllers
             valuesAdmin.Add(new KeyValuePair<string, string>("display", adminUser.FullName));
             valuesAdmin.Add(new KeyValuePair<string, string>("groups[]", XR50Tenant.TenantGroup));
             //Target The User Interface
-            uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
+            uri_path = _configuration.GetValue<string>("TenantSettings:UsersPath");
             FormUrlEncodedContent messageContentAdmin = new FormUrlEncodedContent(valuesAdmin);
            
             var requestAdmin = new HttpRequestMessage(HttpMethod.Post, uri_path)
@@ -207,7 +208,7 @@ namespace XR50TrainingAssetRepo.Controllers
             string username = _configuration.GetValue<string>("TenantSettings:Admin");
             string password = _configuration.GetValue<string>("TenantSettings:Password");
             string uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
-            string uri_path = _configuration.GetValue<string>("TenantSettings:UserManagementPath");
+            string uri_path = _configuration.GetValue<string>("TenantSettings:UsersPath");
 
             string authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
