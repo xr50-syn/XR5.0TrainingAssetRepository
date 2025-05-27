@@ -62,6 +62,8 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("paths", new OpenApiInfo { Title = "3. Learning Path Management", Version = "v1" });
     c.SwaggerDoc("materials", new OpenApiInfo { Title = "4. Material Management", Version = "v1" });
     c.SwaggerDoc("assets", new OpenApiInfo { Title = "5. Asset Management", Version = "v1" });
+    c.SwaggerDoc("users", new OpenApiInfo   { Title = "6. User Management", Version = "v1" });
+
     c.SwaggerDoc("all", new OpenApiInfo { 
         Title = "Complete XR50 Training Asset Repository API", 
         Version = "v1",
@@ -83,6 +85,7 @@ builder.Services.AddSwaggerGen(c =>
             "paths" => controllerName.Contains("learningPaths"),
             "materials" => controllerName.Contains("materials"),
             "assets" => controllerName.Contains("assets"),
+            "users" => controllerName.Contains("users"),
             _ => false
         };
     });
@@ -118,6 +121,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/paths/swagger.json", "3. Learning Path Management");
         c.SwaggerEndpoint("/swagger/materials/swagger.json", "4. Material Management");
         c.SwaggerEndpoint("/swagger/assets/swagger.json", "5. Asset Management");
+        c.SwaggerEndpoint("/swagger/users/swagger.json", "6. User Management");
     });
 
 
@@ -141,52 +145,33 @@ public class HierarchicalOrderDocumentFilter : IDocumentFilter
 {
     public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
     {
-        // Only apply to the "all" document
-        if (context.DocumentName != "all")
-            return;
-            
-        // Create a new ordered dictionary for paths
-        var orderedPaths = new OrderedDictionary();
+        // Create ordered tags
+        var orderedTags = new List<OpenApiTag>();
         
-        // Define the order we want sections to appear in
-        var sectionPrefixes = new[]
+        // Define tag order
+        var tagOrder = new Dictionary<string, int>
         {
-            "/xr50/trainingAssetRepository/tenantManagement",
-            "/xr50/trainingAssetRepository/trainingProgramManagement",
-            "/xr50/trainingAssetRepository/learningPathManagement",
-            "/xr50/trainingAssetRepository/materialManagement",
-            "/xr50/trainingAssetRepository/assetManagement"
+            { "tenants", 1 },
+            { "trainingPrograms", 2 },
+            { "learningPaths", 3 },
+            { "materials", 4 },
+            { "assets", 5 },
+            { "users", 6 }
         };
         
-        // Add paths in the desired order
-        foreach (var prefix in sectionPrefixes)
+        // Add existing tags in order
+        if (swaggerDoc.Tags != null)
         {
-            // Find all paths that start with this prefix
-            var matchingPaths = swaggerDoc.Paths
-                .Where(p => p.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(p => p.Key) // Order alphabetically within each section
+            // Create a new ordered collection, preserving all existing tags
+            var existingTags = swaggerDoc.Tags.ToList();
+            
+            // Order the existing tags
+            swaggerDoc.Tags = existingTags
+                .OrderBy(t => tagOrder.ContainsKey(t.Name) ? tagOrder[t.Name] : 999)
                 .ToList();
-                
-            // Add them to our ordered dictionary
-            foreach (var path in matchingPaths)
-            {
-                orderedPaths.Add(path.Key, path.Value);
-                // Remove from original to track which ones we've processed
-                swaggerDoc.Paths.Remove(path.Key);
-            }
         }
         
-        // Add any remaining paths that didn't match our prefixes
-        foreach (var path in swaggerDoc.Paths.OrderBy(p => p.Key))
-        {
-            orderedPaths.Add(path.Key, path.Value);
-        }
-        
-        // Clear and rebuild the paths collection
-        swaggerDoc.Paths.Clear();
-        foreach (DictionaryEntry path in orderedPaths)
-        {
-            swaggerDoc.Paths.Add(path.Key.ToString(), (OpenApiPathItem)path.Value);
-        }
+        // Don't modify paths unless you need to - they're already ordered by URL
+        // For ordering paths, create a similar approach but be careful to preserve all paths
     }
 }

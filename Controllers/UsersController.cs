@@ -128,7 +128,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return CreatedAtAction("PostUser", new { id = user.UserName }, user);
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/groups")]
+       /* [HttpPost("/xr50/trainingAssetRepository/[controller]/groups")]
         public async Task<ActionResult<Group>> PostGroup(Group group)
         {
             var XR50Tenant = await _context.Tenants.FindAsync(group.TenantName);
@@ -185,7 +185,7 @@ namespace XR50TrainingAssetRepo.Controllers
             Console.WriteLine($"Response content: {resultAdminContent}");
             _context.SaveChanges();
             return CreatedAtAction("PostGroup", group);
-        }
+        }*/
         // DELETE: api/Users/5
         [HttpDelete("{userName}")]
         public async Task<IActionResult> DeleteUser(string userName)
