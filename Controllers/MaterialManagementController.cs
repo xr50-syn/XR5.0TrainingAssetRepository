@@ -15,31 +15,32 @@ using System.ComponentModel.DataAnnotations;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    
-    [Route("/xr50/trainingAssetRepository/[controller]")]
+
+    //[Route("/xr50/trainingAssetRepository/[controller]")]
+    [Route("xr50/trainingAssetRepository/tenants/{tenantName}/[controller]")]
     [ApiController]
-    public class materialManagementController : ControllerBase
+    public class materialsController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         IConfiguration _configuration;  
-        public materialManagementController(XR50TrainingAssetRepoContext context,HttpClient httpClient, IConfiguration configuration)
+        public materialsController(XR50TrainingAssetRepoContext context,HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
             _configuration = configuration; 
         }
 
-        // GET: api/MaterialManagements
+        // GET: api/Materialss
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Material>>> GetMaterial()
         {
             return await _context.Materials.ToListAsync();
         }
 
-        // GET: api/MaterialManagements/5
+        // GET: api/Materialss/5
         [HttpGet("{materialId}")]
-        public async Task<ActionResult<Material>> GetMaterialManagement(string materialId)
+        public async Task<ActionResult<Material>> GetMaterials(string materialId)
         {
             var Material = await _context.Materials.FindAsync(materialId);
 
@@ -51,7 +52,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return Material;
         }
         // GET: /xr50/trainingAssetRepository/material_management/workflow/{tenantName}
-        [HttpGet("workflow/{tenantName}")]
+        [HttpGet("workflow")]
         public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterialsByTenant(string tenantName)
         {
             var workflows =_context.Workflows.Where(e => e.TenantName.Equals(tenantName)).ToList();
@@ -66,25 +67,8 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             return workflows;
         }
-        // GET: /xr50/trainingAssetRepository/material_management/workflow
-        [HttpGet("workflow")]
-        public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterials()
-        {
-            var workflows = await _context.Workflows.ToListAsync();
-            if (workflows == null) {
-                return NotFound("No workflows found");
-            }
-            foreach (var workflow in workflows) {
-                foreach (var stepId in workflow.StepIds) {
-                    var step = await _context.WorkflowSteps.FindAsync(stepId);
-                    workflow.Steps.Add(step);
-                }
-            }
-            return workflows;
-
-        }
         // GET: /xr50/trainingAssetRepository/material_management/workflow/{tenantName}/{materialId}
-        [HttpGet("workflow/{tenantName}/{materialId}")]
+        [HttpGet("workflow/{materialId}")]
         public async Task<ActionResult<WorkflowMaterial>> GetWorkflowMaterial(string tenantName, string materialId)
         {
             var tenant = await _context.Tenants.FindAsync(tenantName);
@@ -102,20 +86,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
-        [HttpGet("checklist")]
-        public async Task<ActionResult<IEnumerable<ChecklistMaterial>>> GetChecklistMaterials()
-        {
-            var checklists = await _context.Checklists.ToListAsync();
-            if (checklists == null) {
-                return NotFound("No checklists found");
-            }
-            foreach (var checklist in checklists) {
-        
-            }
-            return checklists;
 
-        }
-        [HttpGet("checklist/{tenantName}/{materialId}")]
+        
+        [HttpGet("checklist/{materialId}")]
         public async Task<ActionResult<ChecklistMaterial>> GetChecklistMaterial(string tenantName, string materialId)
         {
             var tenant = await _context.Tenants.FindAsync(tenantName);
@@ -169,8 +142,8 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}")]
-        public async Task<ActionResult<Material>> PostMaterialManagement(string tenantName, Material Material)
+        [HttpPost]
+        public async Task<ActionResult<Material>> PostMaterials(string tenantName, Material Material)
         {
 
             var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
@@ -202,11 +175,11 @@ namespace XR50TrainingAssetRepo.Controllers
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("PostMaterialManagement",tenantName, Material);
+            return CreatedAtAction("PostMaterials",tenantName, Material);
         }
         
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/{parentMaterialId}")]
-        public async Task<ActionResult<Material>> PostChildMaterialManagement(string tenantName, string parentMaterialId, Material Material)
+       /* [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/{parentMaterialId}")]
+        public async Task<ActionResult<Material>> PostChildMaterials(string tenantName, string parentMaterialId, Material Material)
         {
 
             var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
@@ -239,10 +212,10 @@ namespace XR50TrainingAssetRepo.Controllers
             Material.MaterialId = Guid.NewGuid().ToString();
             _context.Materials.Add(Material);
             await _context.SaveChangesAsync();
-            return CreatedAtAction("PostMaterialManagement",tenantName, Material);
+            return CreatedAtAction("PostMaterials",tenantName, Material);
         }
-
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/workflow")]
+*/
+        [HttpPost("workflow")]
         public async Task<ActionResult<Material>> PostWorkflowMaterial(string tenantName, WorkflowMaterial workflowMaterial)
         {
 
@@ -278,7 +251,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return CreatedAtAction("PostWorkflowMaterial", tenantName, Material);
         }
         
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/checklist")]
+        [HttpPost("checklist")]
         public async Task<ActionResult<Material>> PostChecklistMaterial(string tenantName, ChecklistMaterial checklistMaterial)
         {
             Material Material = new Material();
@@ -310,7 +283,7 @@ namespace XR50TrainingAssetRepo.Controllers
             
             return CreatedAtAction("PostChecklistMaterial", tenantName, Material);
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/image")]
+        [HttpPost("image")]
         public async Task<ActionResult<Material>> PostImageMaterial(string tenantName, ImageMaterial imageMaterial)
         {
             Material Material = new Material();
@@ -346,7 +319,7 @@ namespace XR50TrainingAssetRepo.Controllers
             
             return CreatedAtAction("PostImageMaterial", tenantName, Material);
         }
-        [HttpPost("/xr50/trainingAssetRepository/[controller]/{tenantName}/video")]
+        [HttpPost("video")]
         public async Task<ActionResult<Material>> PostVideoMaterial(string tenantName, VideoMaterial videoMaterial)
         {
             Material Material = new Material();
@@ -385,10 +358,10 @@ namespace XR50TrainingAssetRepo.Controllers
             
             return CreatedAtAction("PostVideoMaterial", tenantName, Material);
         }
-       /* // PUT: api/MaterialManagements/5
+       /* // PUT: api/Materialss/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{MaterialId}")]
-        public async Task<IActionResult> PutMaterialManagement(string MaterialId, Material Material)
+        public async Task<IActionResult> PutMaterials(string MaterialId, Material Material)
         {
             if (!MaterialId.Equals(Material.MaterialId))
             {
@@ -403,7 +376,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!MaterialManagementExists(MaterialId))
+                if (!MaterialsExists(MaterialId))
                 {
                     return NotFound();
                 }
@@ -416,7 +389,7 @@ namespace XR50TrainingAssetRepo.Controllers
             return NoContent();
         }
 */
-        // DELETE: api/MaterialManagements/5
+        // DELETE: api/Materialss/5
         [HttpDelete("{materialId}")]
         public async Task<IActionResult> DeleteMaterialById(string materialId)
         {
@@ -450,7 +423,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return NoContent();
         }
-        private bool MaterialManagementExists(string MaterialName)
+        private bool MaterialsExists(string MaterialName)
         {
             return _context.Materials.Any(e => e.MaterialName.Equals(MaterialName));
         }

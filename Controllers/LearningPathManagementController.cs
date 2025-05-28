@@ -17,14 +17,15 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
-    [Route("/xr50/trainingAssetRepository/[controller]")]
+    //[Route("/xr50/trainingAssetRepository/[controller]")]
+    [Route("xr50/trainingAssetRepository/tenants/{tenantName}/[controller]")]
     [ApiController]
-    public class learningPathManagementController : ControllerBase
+    public class learningPathsController : ControllerBase
     {
         private readonly XR50TrainingAssetRepoContext _context;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
-        public learningPathManagementController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
+        public learningPathsController(XR50TrainingAssetRepoContext context, HttpClient httpClient, IConfiguration configuration)
         {
             _context = context;
             _httpClient = httpClient;
@@ -52,7 +53,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
         //POST api/LearningPath/tennantName/ProgramName
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-       /* [HttpPost("{tenantName}")]
+        [HttpPost]
         public async Task<ActionResult<LearningPath>> PostLearningPath(string tenantName, LearningPath LearningPath)
         {
 	       
@@ -61,25 +62,17 @@ namespace XR50TrainingAssetRepo.Controllers
             {
                 return NotFound($"Couldnt Find Tenant {tenantName}");
             }
-            var XR50TrainingProgram = await _context.TrainingPrograms.FindAsync(tenantName, LearningPath.ProgramName);
-            if (XR50TrainingProgram == null)
-            {
-                return NotFound($"Couldnt Find Training Program {LearningPath.ProgramName}");
-            }
-
-            
             LearningPath.LearningPathId = Guid.NewGuid().ToString();
-            XR50TrainingProgram.LearningPathList.Add(LearningPath.LearningPathId);
- 
+    
             _context.LearningPaths.Add(LearningPath);
             await _context.SaveChangesAsync();
 
            
             return CreatedAtAction("PostLearningPath", LearningPath);
-        }*/
+        }
         // PUT: api/LearningPath/5 
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{tenantName}/{learningPathId}")]
+        [HttpPut("{learningPathId}")]
         public async Task<IActionResult> PutLearningPath(string learningPathId, LearningPath LearningPath)
         {
             if (!learningPathId.Equals(LearningPath.LearningPathId))
@@ -110,7 +103,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
         
         // DELETE: api/LearningPath/5
-        [HttpDelete("{tenantName}/{learningPathName}")]
+        [HttpDelete("{learningPathId}")]
         public async Task<IActionResult> DeleteLearningPath(string tenantName,string learningPathId)
         {
             var LearningPath = await _context.LearningPaths.FindAsync(tenantName,learningPathId);
