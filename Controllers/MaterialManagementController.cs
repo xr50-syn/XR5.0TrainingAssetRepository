@@ -219,13 +219,13 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<Material>> PostWorkflowMaterial(string tenantName, WorkflowMaterial workflowMaterial)
         {
 
-            Material Material = new Material();
+           /* Material Material = new Material();
             Material.MaterialType = MaterialType.Workflow;
             Material.MaterialName = workflowMaterial.MaterialName;
             Material.ParentId = workflowMaterial.ParentId;
             Material.TenantName = workflowMaterial.TenantName;
-            Material.TrainingProgramList = workflowMaterial.TrainingProgramList;
-            workflowMaterial.MaterialId= Material.MaterialId;
+            Material.TrainingProgramList = workflowMaterial.TrainingProgramList;*/
+            workflowMaterial.MaterialId= Guid.NewGuid().ToString();
           
             workflowMaterial.Steps.ForEach(step => {
                 step.WorkflowStepId = Guid.NewGuid().ToString();
@@ -241,14 +241,14 @@ namespace XR50TrainingAssetRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
+                return NotFound($"Couldnt Find Admin user for {tenantName}");
             }
              
-            _context.Materials.Add(Material);
+           // _context.Materials.Add(Material);
             _context.Workflows.Add(workflowMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostWorkflowMaterial", tenantName, Material);
+            return CreatedAtAction("PostWorkflowMaterial", tenantName, workflowMaterial);
         }
         
         [HttpPost("checklist")]
