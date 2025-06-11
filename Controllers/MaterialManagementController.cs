@@ -254,13 +254,13 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost("checklist")]
         public async Task<ActionResult<Material>> PostChecklistMaterial(string tenantName, ChecklistMaterial checklistMaterial)
         {
-            Material Material = new Material();
+            /*Material Material = new Material();
             Material.MaterialType = MaterialType.Checklist;
             Material.MaterialName = checklistMaterial.MaterialName;
             Material.ParentId = checklistMaterial.ParentId;
             Material.TenantName = checklistMaterial.TenantName;
-            Material.TrainingProgramList = checklistMaterial.TrainingProgramList;
-            checklistMaterial.MaterialId = Material.MaterialId;
+            Material.TrainingProgramList = checklistMaterial.TrainingProgramList;*/
+            checklistMaterial.MaterialId = checklistMaterial.MaterialId;
             checklistMaterial.Entries.ForEach(entry => {
                 entry.ChecklistEntryId = Guid.NewGuid().ToString();
                 _context.ChecklistEntries.Add(entry);
@@ -274,24 +274,23 @@ namespace XR50TrainingAssetRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
+                return NotFound($"Couldnt Find Admin user for {checklistMaterial.TenantName}");
             }
         
-            _context.Materials.Add(Material);
             _context.Checklists.Add(checklistMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostChecklistMaterial", tenantName, Material);
+            return CreatedAtAction("PostChecklistMaterial", tenantName, checklistMaterial);
         }
         [HttpPost("image")]
         public async Task<ActionResult<Material>> PostImageMaterial(string tenantName, ImageMaterial imageMaterial)
         {
-            Material Material = new Material();
+          /*  Material Material = new Material();
             Material.MaterialType = MaterialType.Image;
             Material.MaterialName = imageMaterial.MaterialName;
             Material.TenantName = imageMaterial.TenantName;
-            Material.ParentId = imageMaterial.ParentId;
-            imageMaterial.MaterialId = Material.MaterialId;
+            Material.ParentId = imageMaterial.ParentId;*/
+            imageMaterial.MaterialId = imageMaterial.MaterialId;
             
             if (imageMaterial.AssetId != null) {
                 var Asset= await _context.Assets.FindAsync(imageMaterial.AssetId);
@@ -299,7 +298,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 {
                     return NotFound($"Couldnt Find Asset {imageMaterial.AssetId}");
                 }
-                Asset.MaterialList.Add(Material.MaterialId);
+                Asset.MaterialList.Add(imageMaterial.MaterialId);
                 
             }
             var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
@@ -310,24 +309,24 @@ namespace XR50TrainingAssetRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
+                return NotFound($"Couldnt Find Admin user for {imageMaterial.TenantName}");
             }
             
-            _context.Materials.Add(Material);
+            _context.Materials.Add(imageMaterial);
             _context.Images.Add(imageMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostImageMaterial", tenantName, Material);
+            return CreatedAtAction("PostImageMaterial", tenantName, imageMaterial);
         }
         [HttpPost("video")]
         public async Task<ActionResult<Material>> PostVideoMaterial(string tenantName, VideoMaterial videoMaterial)
         {
-            Material Material = new Material();
+           /* Material Material = new Material();
             Material.MaterialType = MaterialType.Video;
             Material.MaterialName = videoMaterial.MaterialName;
             Material.ParentId = videoMaterial.ParentId;
-            Material.TrainingProgramList = videoMaterial.TrainingProgramList;
-            videoMaterial.MaterialId = Material.MaterialId;
+            Material.TrainingProgramList = videoMaterial.TrainingProgramList;*/
+            videoMaterial.MaterialId = videoMaterial.MaterialId;
             videoMaterial.Timestamps.ForEach(timestamp=> {
                 timestamp.VideoTimestampId = Guid.NewGuid().ToString();
                 _context.VideoTimestamps.Add(timestamp);
@@ -338,7 +337,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 {
                     return NotFound($"Couldnt Find Asset {videoMaterial.AssetId}");
                 }
-                 Asset.MaterialList.Add(Material.MaterialId);
+                 Asset.MaterialList.Add(videoMaterial.MaterialId);
                 
             }
             var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
@@ -349,14 +348,14 @@ namespace XR50TrainingAssetRepo.Controllers
             var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
             if (admin == null)
             {
-                return NotFound($"Couldnt Find Admin user for {Material.TenantName}");
+                return NotFound($"Couldnt Find Admin user for {videoMaterial.TenantName}");
             }
             
-            _context.Materials.Add(Material);
+            
             _context.Videos.Add(videoMaterial);
             await _context.SaveChangesAsync();
             
-            return CreatedAtAction("PostVideoMaterial", tenantName, Material);
+            return CreatedAtAction("PostVideoMaterial", tenantName, videoMaterial);
         }
        /* // PUT: api/Materialss/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
