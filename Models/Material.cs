@@ -35,6 +35,8 @@ namespace XR50TrainingAssetRepo.Models
         Image,
         Video,
         Workflow,
+        Json,
+        File,
         Default
     }
 
@@ -103,6 +105,19 @@ namespace XR50TrainingAssetRepo.Models
             Steps = new List<WorkflowStep>();
             StepIds= new List<string>();
             MaterialType = MaterialType.Workflow;
+        }
+    }
+    public class MQTT_TemplateMaterial : Material
+    {
+        // Implementation specific to image materials
+        public string? message_type { get; set; }
+        public string? message_text { get; set; }
+        public MQTT_TemplateMaterial()
+        {
+            MaterialId = Guid.NewGuid().ToString();
+            MaterialList = new List<string>();
+            TrainingProgramList = new List<string>();
+            MaterialType = MaterialType.Default;
         }
     }
     public class DefaultMaterial : Material
