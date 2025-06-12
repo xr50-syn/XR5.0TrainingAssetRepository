@@ -33,9 +33,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // GET: api/Materialss
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Material>>> GetMaterial()
+        public async Task<ActionResult<IEnumerable<Material>>> GetMaterial(string tenantName)
         {
-            return await _context.Materials.ToListAsync();
+            return _context.Materials.Where(t=>t.TenantName.Equals(tenantName)).ToList();
         }
 
         // GET: api/Materialss/5

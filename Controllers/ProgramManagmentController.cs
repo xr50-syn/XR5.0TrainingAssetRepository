@@ -34,9 +34,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // GET: api/TrainingProgram
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingProgram()
+        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingProgram(string tenantName)
         {
-            return await _context.TrainingPrograms.ToListAsync();
+             return _context.TrainingPrograms.Where(t=>t.TenantName.Equals(tenantName)).ToList();
         }
 
         // GET: api/TrainingProgram/5
