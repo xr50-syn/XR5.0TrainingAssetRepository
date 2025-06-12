@@ -34,20 +34,24 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // GET: api/LearningPath
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<LearningPath>>> GetLearningPath()
+        public async Task<ActionResult<IEnumerable<LearningPath>>> GetLearningPath(string tenantName)
         {
-            return await _context.LearningPaths.ToListAsync();
+            return _context.LearningPaths.Where(t=>t.TenantName.Equals(tenantName)).ToList();
         }
 
         // GET: api/LearningPath/5
         [HttpGet("{learningPathId}")]
         public async Task<ActionResult<LearningPath>> GetLearningPath(string tenantName,string learningPathId)
         {
-            var LearningPath = await _context.LearningPaths.FindAsync(tenantName,learningPathId);
+            var LearningPath = await _context.LearningPaths.FindAsync(learningPathId);
 
             if (LearningPath == null)
             {
                 return NotFound();
+            }
+            if (!LearningPath.TenantName.Equals(tenantName))
+            {
+                return NotFound($"Tenant mismatch, path {learningPathId} is not on {tenantName}");
             }
             return LearningPath;
         }

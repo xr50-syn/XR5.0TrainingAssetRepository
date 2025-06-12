@@ -48,9 +48,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // GET: api/Files
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Asset>>> GetAsset()
+        public async Task<ActionResult<IEnumerable<Asset>>> GetAssets(string tenantName)
         {
-            return await _context.Assets.ToListAsync();
+            return _context.Assets.Where(t=>t.TenantName.Equals(tenantName)).ToList();
         }
 
         // GET: api/Assets/5

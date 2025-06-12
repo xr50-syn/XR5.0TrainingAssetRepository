@@ -29,10 +29,10 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers(string tenantName)
         {
 
-            return await _context.Users.ToListAsync();
+            return _context.Users.Where(t=>t.TenantName.Equals(tenantName)).ToList();
         }
         
         // GET: api/Users/5
