@@ -13,7 +13,6 @@ namespace XR50TrainingAssetRepo.Models
     {
         [Key]
         public string ShareId { get; set; }
-        public string? TenantName { get; set; }
         public string? FileId { get; set; }
         public ShareType Type { get; set;}
         public string Target {get; set;}
@@ -34,18 +33,17 @@ namespace XR50TrainingAssetRepo.Models
 
     public class Asset
     {
-        public string? TenantName { get; set; }
         public string? Description { get; set; }
         [ForeignKey("Shares")]
         public virtual List<string>? ShareList { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; } 
-        public string? Type { get; set; }
+        public string? Filetype { get; set; }
 	    [Key]
-        public string? FileName { get; set; }
+        public string? Filename { get; set; }
         public Asset ()
         {
-            FileName = Guid.NewGuid().ToString();
+            Filename = Guid.NewGuid().ToString();
             ShareList = new List<string>();
             MaterialList= new List<string>();
             

@@ -3,7 +3,7 @@
   "description": "string",
   "fileName": "string",
   "trainingName": "Advanced_Arcana",
-  "materialName": "Epic_Spellbook",
+  "Name": "Epic_Spellbook",
   "TenantName": "DECEIT Library of Forbidden Texts",
   "FileName": "ec8697a7-f122-421d-bbad-bd660a480707",
   "type": "Group",

@@ -124,6 +124,24 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
+        [HttpGet("pdf")]
+        public async Task<ActionResult<PDFMaterial>> GetPdfMaterial(string tenantName, string materialId)
+        {
+            var tenant = await _context.Tenants.FindAsync(tenantName);
+            if (tenant == null)
+            {
+                return NotFound($"Tenant {tenantName} not found");
+            }
+
+            var material = await _context.PDFs.FindAsync(materialId);            
+
+            if (material == null)
+            {
+                return NotFound($"Image material with ID {materialId} not found for tenant {tenantName}");
+            }
+
+            return material;
+        }
         [HttpGet("video")]
         public async Task<ActionResult<VideoMaterial>> GetVideoMaterial(string tenantName, string materialId)
         {
@@ -221,7 +239,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
            /* Material Material = new Material();
             Material.MaterialType = MaterialType.Workflow;
-            Material.MaterialName = workflowMaterial.MaterialName;
+            Material.Name = workflowMaterial.Name;
             Material.ParentId = workflowMaterial.ParentId;
             Material.TenantName = workflowMaterial.TenantName;
             Material.TrainingProgramList = workflowMaterial.TrainingProgramList;*/
@@ -256,11 +274,11 @@ namespace XR50TrainingAssetRepo.Controllers
         {
             /*Material Material = new Material();
             Material.MaterialType = MaterialType.Checklist;
-            Material.MaterialName = checklistMaterial.MaterialName;
+            Material.Name = checklistMaterial.Name;
             Material.ParentId = checklistMaterial.ParentId;
             Material.TenantName = checklistMaterial.TenantName;
             Material.TrainingProgramList = checklistMaterial.TrainingProgramList;*/
-            checklistMaterial.MaterialId = checklistMaterial.MaterialId;
+            checklistMaterial.MaterialId = Guid.NewGuid().ToString();
             checklistMaterial.Entries.ForEach(entry => {
                 entry.ChecklistEntryId = Guid.NewGuid().ToString();
                 _context.ChecklistEntries.Add(entry);
@@ -283,14 +301,14 @@ namespace XR50TrainingAssetRepo.Controllers
             return CreatedAtAction("PostChecklistMaterial", tenantName, checklistMaterial);
         }
         [HttpPost("image")]
-        public async Task<ActionResult<Material>> PostImageMaterial(string tenantName, ImageMaterial imageMaterial)
+        public async Task<ActionResult<ImageMaterial>> PostImageMaterial(string tenantName, ImageMaterial imageMaterial)
         {
           /*  Material Material = new Material();
             Material.MaterialType = MaterialType.Image;
-            Material.MaterialName = imageMaterial.MaterialName;
+            Material.Name = imageMaterial.Name;
             Material.TenantName = imageMaterial.TenantName;
             Material.ParentId = imageMaterial.ParentId;*/
-            imageMaterial.MaterialId = imageMaterial.MaterialId;
+            imageMaterial.MaterialId=Guid.NewGuid().ToString();
             
             if (imageMaterial.AssetId != null) {
                 var Asset= await _context.Assets.FindAsync(imageMaterial.AssetId);
@@ -318,12 +336,84 @@ namespace XR50TrainingAssetRepo.Controllers
             
             return CreatedAtAction("PostImageMaterial", tenantName, imageMaterial);
         }
+        [HttpPost("pdf")]
+        public async Task<ActionResult<PDFMaterial>> PostPdfMaterial(string tenantName, PDFMaterial pdfMaterial)
+        {
+          /*  Material Material = new Material();
+            Material.MaterialType = MaterialType.Image;
+            Material.Name = imageMaterial.Name;
+            Material.TenantName = imageMaterial.TenantName;
+            Material.ParentId = imageMaterial.ParentId;*/
+            pdfMaterial.MaterialId= Guid.NewGuid().ToString();
+            
+            if (pdfMaterial.AssetId != null) {
+                var Asset= await _context.Assets.FindAsync(pdfMaterial.AssetId);
+                if (Asset == null)
+                {
+                    return NotFound($"Couldnt Find Asset {pdfMaterial.AssetId}");
+                }
+                Asset.MaterialList.Add(pdfMaterial.MaterialId);
+                
+            }
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
+            if (XR50Tenant == null)
+            {
+                return NotFound($"Couldnt Find Tenant {tenantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {pdfMaterial.TenantName}");
+            }
+            
+            _context.Materials.Add(pdfMaterial);
+            _context.PDFs.Add(pdfMaterial);
+            await _context.SaveChangesAsync();
+            
+            return CreatedAtAction("PostPdfMaterial", tenantName, pdfMaterial);
+        }
+                [HttpPost("pdf")]
+        public async Task<ActionResult<UnityDemoMaterial>> PostUnityDemoMaterial(string tenantName, UnityDemoMaterial unityDemoMaterial)
+        {
+          /*  Material Material = new Material();
+            Material.MaterialType = MaterialType.Image;
+            Material.Name = imageMaterial.Name;
+            Material.TenantName = imageMaterial.TenantName;
+            Material.ParentId = imageMaterial.ParentId;*/
+            unityDemoMaterial.MaterialId= Guid.NewGuid().ToString();
+            
+            if (unityDemoMaterial.AssetId != null) {
+                var Asset= await _context.Assets.FindAsync(unityDemoMaterial.AssetId);
+                if (Asset == null)
+                {
+                    return NotFound($"Couldnt Find Asset {unityDemoMaterial.AssetId}");
+                }
+                Asset.MaterialList.Add(unityDemoMaterial.MaterialId);
+                
+            }
+            var XR50Tenant = await _context.Tenants.FindAsync(tenantName);
+            if (XR50Tenant == null)
+            {
+                return NotFound($"Couldnt Find Tenant {tenantName}");
+            }
+            var admin = await _context.Users.FindAsync(XR50Tenant.OwnerName);
+            if (admin == null)
+            {
+                return NotFound($"Couldnt Find Admin user for {unityDemoMaterial.TenantName}");
+            }
+            
+            _context.Materials.Add(unityDemoMaterial);
+            _context.Demos.Add(unityDemoMaterial);
+            await _context.SaveChangesAsync();
+            
+            return CreatedAtAction("PostUnityDemiMaterial", tenantName, unityDemoMaterial);
+        }
         [HttpPost("video")]
         public async Task<ActionResult<Material>> PostVideoMaterial(string tenantName, VideoMaterial videoMaterial)
         {
            /* Material Material = new Material();
             Material.MaterialType = MaterialType.Video;
-            Material.MaterialName = videoMaterial.MaterialName;
+            Material.Name = videoMaterial.Name;
             Material.ParentId = videoMaterial.ParentId;
             Material.TrainingProgramList = videoMaterial.TrainingProgramList;*/
             videoMaterial.MaterialId = videoMaterial.MaterialId;
@@ -422,9 +512,9 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return NoContent();
         }
-        private bool MaterialsExists(string MaterialName)
+        private bool MaterialsExists(string Name)
         {
-            return _context.Materials.Any(e => e.MaterialName.Equals(MaterialName));
+            return _context.Materials.Any(e => e.Name.Equals(Name));
         }
         
     }

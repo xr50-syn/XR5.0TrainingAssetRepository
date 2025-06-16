@@ -1897,7 +1897,7 @@
             "type": "string",
             "nullable": true
           },
-          "materialName": {
+          "Name": {
             "type": "string",
             "nullable": true
           },
@@ -1958,7 +1958,7 @@
             "type": "string",
             "nullable": true
           },
-          "materialName": {
+          "Name": {
             "type": "string",
             "nullable": true
           },
@@ -2044,7 +2044,7 @@
             "type": "string",
             "nullable": true
           },
-          "materialName": {
+          "Name": {
             "type": "string",
             "nullable": true
           },
@@ -2202,7 +2202,7 @@
             "type": "string",
             "nullable": true
           },
-          "materialName": {
+          "Name": {
             "type": "string",
             "nullable": true
           },
@@ -2288,7 +2288,7 @@
             "type": "string",
             "nullable": true
           },
-          "materialName": {
+          "Name": {
             "type": "string",
             "nullable": true
           },

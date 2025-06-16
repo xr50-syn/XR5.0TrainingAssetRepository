@@ -9,10 +9,8 @@ namespace XR50TrainingAssetRepo.Models
 {
     public class Material
     {
-        public string? TenantName { get; set; }
         public string? Description { get; set; }
-        public string? MaterialName { get; set; }
-        public string? ParentId { get; set; }
+        public string? Name { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; }
          [ForeignKey("TrainingPrograms")]
@@ -31,12 +29,16 @@ namespace XR50TrainingAssetRepo.Models
     }
     public enum MaterialType
     {
-        Checklist,
         Image,
         Video,
+        PDF,
+        UnityDemo,
+        Chatbot,
+        Questionnaire,
+        Checklist,
         Workflow,
-        Json,
-        File,
+        MQTT_Template,
+        Answers,
         Default
     }
 
@@ -118,6 +120,55 @@ namespace XR50TrainingAssetRepo.Models
             MaterialList = new List<string>();
             TrainingProgramList = new List<string>();
             MaterialType = MaterialType.Default;
+        }
+    }
+     public class PDFMaterial : Material
+    {
+        // Implementation specific to image materials
+        public string? AssetId { get; set; }
+        public PDFMaterial()
+        {
+            MaterialId = Guid.NewGuid().ToString();
+            MaterialList = new List<string>();
+            TrainingProgramList = new List<string>();
+            MaterialType = MaterialType.PDF;
+        }
+    }
+     public class UnityDemoMaterial : Material
+    {
+        // Implementation specific to image materials
+        public string? AssetId { get; set; }
+        public UnityDemoMaterial()
+        {
+            MaterialId = Guid.NewGuid().ToString();
+            MaterialList = new List<string>();
+            TrainingProgramList = new List<string>();
+            MaterialType = MaterialType.UnityDemo;
+        }
+    }
+    public class ChatbotMaterial : Material
+    {
+        // Implementation specific to image materials
+        public string? AssetId { get; set; }
+        public ChatbotMaterial()
+        {
+            MaterialId = Guid.NewGuid().ToString();
+            MaterialList = new List<string>();
+            TrainingProgramList = new List<string>();
+            MaterialType = MaterialType.Chatbot;
+        }
+    }
+    public class QuestionnaireMaterial : Material
+    {
+        // Implementation specific to image materials
+        public List<QuestionnaireEntry> Entries { get; set; }
+        public QuestionnaireMaterial()
+        {
+            MaterialId = Guid.NewGuid().ToString();
+            MaterialList = new List<string>();
+            Entries = new List<QuestionnaireEntry>();
+            TrainingProgramList = new List<string>();
+            MaterialType = MaterialType.Questionnaire;
         }
     }
     public class DefaultMaterial : Material

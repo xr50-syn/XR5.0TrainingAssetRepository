@@ -40,23 +40,31 @@ namespace XR50TrainingAssetRepo.Models
         public DbSet<VideoMaterial> Videos { get; set; } = null!;
         public DbSet<ChecklistMaterial> Checklists { get; set; } = null!;
         public DbSet<ImageMaterial> Images { get; set; } = null!;
+        public DbSet<PDFMaterial> PDFs { get; set; } = null!;
+        public DbSet<UnityDemoMaterial> Demos { get; set; } = null!;
+        public DbSet<ChatbotMaterial> Chatbots { get; set; } = null!;
+        public DbSet<QuestionnaireMaterial> Questionnaires { get; set; } = null!;
         public DbSet<Asset> Assets { get; set; } = null!;
         public DbSet<Share> Shares {get; set;} = null!;
         public DbSet<ChecklistEntry> ChecklistEntries { get; set; } = null!;
         public DbSet<VideoTimestamp> VideoTimestamps { get; set; } = null!;
         public DbSet<WorkflowStep> WorkflowSteps { get; set; } = null!;
-        public override int SaveChanges() {
+        public DbSet<QuestionnaireEntry> QuestionnaireEntries { get; set; } = null!;
+        public override int SaveChanges()
+        {
             var entries = ChangeTracker.Entries().Where(e =>
                 e.State == EntityState.Added
                 || e.State == EntityState.Modified);
 
-            foreach (var entityEntry in entries) {
+            foreach (var entityEntry in entries)
+            {
                 entityEntry.Property("UpdatedDate").CurrentValue = DateTime.Now;
 
-                if (entityEntry.State == EntityState.Added){
+                if (entityEntry.State == EntityState.Added)
+                {
                     entityEntry.Property("CreatedDate").CurrentValue = DateTime.Now;
                 }
-             }
+            }
             return base.SaveChanges();
         }
     }

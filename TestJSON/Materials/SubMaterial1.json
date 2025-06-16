@@ -2,7 +2,7 @@
   "description": "A non-rigorous description of Amethyst's custom-made epic spells'",
   "trainingName": "Advanced_Arcana",
   "TenantName": "DECEIT Library of Forbidden Texts",
-  "materialName": "Epic_Spellbook",
+  "Name": "Epic_Spellbook",
   "parentId": "",
   "materialType": 0
 }
