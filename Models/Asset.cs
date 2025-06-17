@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using XR50TrainingAssetRepo.Models;
@@ -34,18 +35,13 @@ namespace XR50TrainingAssetRepo.Models
     public class Asset
     {
         public string? Description { get; set; }
-        [ForeignKey("Shares")]
-        public virtual List<string>? ShareList { get; set; }
-        [ForeignKey("Materials")]
-        public virtual List<string>? MaterialList { get; set; } 
+        public string? Src { get; set; }
         public string? Filetype { get; set; }
+        public string Filename  { get; set; }
 	    [Key]
-        public string? Filename { get; set; }
+        public int Id { get; set; }
         public Asset ()
         {
-            Filename = Guid.NewGuid().ToString();
-            ShareList = new List<string>();
-            MaterialList= new List<string>();
             
         }
     }

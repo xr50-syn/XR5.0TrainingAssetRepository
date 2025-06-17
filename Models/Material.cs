@@ -11,25 +11,19 @@ namespace XR50TrainingAssetRepo.Models
     {
         public string? Description { get; set; }
         public string? Name { get; set; }
-        public string? created_at { get; set; }
-        public string? updated_at { get; set; }
-        [ForeignKey("Materials")]
-        public virtual List<string>? MaterialList { get; set; }
-         [ForeignKey("TrainingPrograms")]
-        public virtual List<string>? TrainingProgramList { get; set; }
+        public DateTime? Created_at { get; set; }
+        public DateTime? Updated_at { get; set; }
+    
         [Key]
-        public string? MaterialId { get; set; }
+        public int Id { get; set; }
         [Required]
-        public MaterialType MaterialType { get; set; }
-
+        public Type Type { get; set; }
         public Material()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
+          
         }
     }
-    public enum MaterialType
+    public enum Type
     {
         Image,
         Video,
@@ -48,17 +42,11 @@ namespace XR50TrainingAssetRepo.Models
     public class ChecklistMaterial : Material
     {
         // Implementation specific to checklist materials
-        public List<ChecklistEntry> Entries { get; set; }
-        [ForeignKey("ChecklistEntries")]
-        public List<int> EntryId { get; set; }
         public ChecklistMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            Entries = new List<ChecklistEntry>();
-            EntryId = new List<int>();
-            MaterialType = MaterialType.Checklist;
+            
+            
+            Type = Type.Checklist;
         }
         
     }
@@ -67,48 +55,29 @@ namespace XR50TrainingAssetRepo.Models
     
     {
         // Implementation specific to image materials
-        public string? AssetId { get; set; }
         public ImageMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            MaterialType = MaterialType.Image;
+            Type = Type.Image;
         }
     }
 
     public class VideoMaterial : Material
     {
         // Implementation specific to video materials
-        public string? AssetId { get; set; }
-        public List<VideoTimestamp> Timestamps { get; set; }
-        [ForeignKey("VideoTimestamps")]
-        public List<string> TimestampId { get; set; }
+        
         public VideoMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            Timestamps = new List<VideoTimestamp>();
-            TimestampId= new List<string>();
-            MaterialType = MaterialType.Video;
+            Type = Type.Video;
         }
     }
 
     public class WorkflowMaterial : Material
     {
         // Implementation specific to workflow materials
-        public List<WorkflowStep> Steps { get; set; }
-        [ForeignKey("WorkflowSteps")]
-        public List<string> StepIds { get; set; }
         public WorkflowMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            Steps = new List<WorkflowStep>();
-            StepIds= new List<string>();
-            MaterialType = MaterialType.Workflow;
+
+            Type = Type.Workflow;
         }
     }
     public class MQTT_TemplateMaterial : Material
@@ -118,22 +87,16 @@ namespace XR50TrainingAssetRepo.Models
         public string? message_text { get; set; }
         public MQTT_TemplateMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            MaterialType = MaterialType.Default;
+        
+            Type = Type.MQTT_Template;
         }
     }
      public class PDFMaterial : Material
     {
         // Implementation specific to image materials
-        public string? AssetId { get; set; }
         public PDFMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            MaterialType = MaterialType.PDF;
+            Type = Type.PDF;
         }
     }
      public class UnityDemoMaterial : Material
@@ -142,35 +105,25 @@ namespace XR50TrainingAssetRepo.Models
         public string? AssetId { get; set; }
         public UnityDemoMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            MaterialType = MaterialType.UnityDemo;
+            Type = Type.UnityDemo;
         }
     }
     public class ChatbotMaterial : Material
     {
         // Implementation specific to image materials
-        public string? AssetId { get; set; }
+    
         public ChatbotMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            MaterialType = MaterialType.Chatbot;
+            Type = Type.Chatbot;
         }
     }
     public class QuestionnaireMaterial : Material
     {
         // Implementation specific to image materials
-        public List<QuestionnaireEntry> Entries { get; set; }
         public QuestionnaireMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            Entries = new List<QuestionnaireEntry>();
-            TrainingProgramList = new List<string>();
-            MaterialType = MaterialType.Questionnaire;
+        
+            Type = Type.Questionnaire;
         }
     }
     public class DefaultMaterial : Material
@@ -179,10 +132,8 @@ namespace XR50TrainingAssetRepo.Models
         public string? AssetId { get; set; }
         public DefaultMaterial()
         {
-            MaterialId = Guid.NewGuid().ToString();
-            MaterialList = new List<string>();
-            TrainingProgramList = new List<string>();
-            MaterialType = MaterialType.Default;
+    
+            Type = Type.Default;
         }
     }
 }

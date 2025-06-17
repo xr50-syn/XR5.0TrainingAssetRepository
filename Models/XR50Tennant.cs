@@ -9,9 +9,6 @@ namespace XR50TrainingAssetRepo.Models
     { 
         [Key]
         public string TenantName { get; set; }
-	    [ForeignKey("TrainingPrograms")]
-        public virtual List<string>? TrainingProgramList { get; set; }
-
         public string? TenantGroup { get; set; }
         public string? TenantSchema { get; set; }
         public string? Description { get; set; }
@@ -21,7 +18,7 @@ namespace XR50TrainingAssetRepo.Models
         public virtual List<string>? AdminList { get; set; }
         
         public XR50Tenant(){
-            TrainingProgramList = new List<string>();
+    
          }
 
     }

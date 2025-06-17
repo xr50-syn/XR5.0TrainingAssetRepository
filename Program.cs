@@ -10,7 +10,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq; 
-
+using Microsoft.Extensions.DependencyInjection;
+using XR50TrainingAssetRepo.Data;
+using XR50TrainingAssetRepo.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -18,7 +20,7 @@ var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 builder.Services.AddControllers();
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<XR50TrainingAssetRepoContext>(opt =>
+builder.Services.AddDbContext<XR50TrainingContext>(opt =>
     opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));    
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();

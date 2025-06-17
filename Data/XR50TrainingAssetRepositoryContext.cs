@@ -18,7 +18,7 @@ namespace XR50TrainingAssetRepo.Data
             _tenantSchema = _tenantService.GetTenantSchema(tenantName);
         }
 
-        public DbSet<Program> Programs { get; set; }
+        public DbSet<TrainingProgram> Programs { get; set; }
         public DbSet<Material> Materials { get; set; }
         public DbSet<Asset> Assets { get; set; }
 
@@ -35,15 +35,16 @@ namespace XR50TrainingAssetRepo.Data
 
         private void ConfigureProgram(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Program>(entity =>
+            modelBuilder.Entity<TrainingProgram>(entity =>
             {
                 entity.ToTable("Programs");
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd(); 
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.CreatedAt).HasColumnType("datetime2");
+                entity.Property(e => e.Created_at).HasColumnType("datetime2");
                 
                 entity.HasIndex(e => e.Name);
-                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => e.Created_at);
             });
         }
 
@@ -53,14 +54,15 @@ namespace XR50TrainingAssetRepo.Data
             {
                 entity.ToTable("Materials");
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
                 entity.Property(e => e.Description).HasMaxLength(1000);
-                entity.Property(e => e.CreatedAt).HasColumnType("datetime2");
-                entity.Property(e => e.UpdatedAt).HasColumnType("datetime2");
+                entity.Property(e => e.Created_at).HasColumnType("datetime2");
+                entity.Property(e => e.Updated_at).HasColumnType("datetime2");
                 
                 entity.HasIndex(e => e.Type);
                 entity.HasIndex(e => e.Name);
-                entity.HasIndex(e => new { e.Type, e.CreatedAt });
+                entity.HasIndex(e => new { e.Type, e.Created_at });
             });
         }
 
@@ -70,14 +72,10 @@ namespace XR50TrainingAssetRepo.Data
             {
                 entity.ToTable("Assets");
                 entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedOnAdd();
                 entity.Property(e => e.Src).IsRequired().HasMaxLength(500);
                 
-                entity.HasOne(e => e.Material)
-                      .WithMany(m => m.Assets)
-                      .HasForeignKey(e => e.MaterialsId)
-                      .OnDelete(DeleteBehavior.Cascade);
-                      
-                entity.HasIndex(e => e.MaterialsId);
+                entity.HasIndex(e => e.Id);
             });
         }
     }

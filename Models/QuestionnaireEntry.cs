@@ -10,14 +10,14 @@ namespace XR50TrainingAssetRepo.Models
     {
         [Key]
 
-        public string QuestionnaireEntryId { get; set; }
+        public int QuestionnaireEntryId { get; set; }
 
         public string Text { get; set; } = null!;
         public string? Description { get; set; }
 
         public QuestionnaireEntry()
         {
-            QuestionnaireEntryId = Guid.NewGuid().ToString();
+           
         }
 
 

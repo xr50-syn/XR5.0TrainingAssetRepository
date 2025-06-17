@@ -8,14 +8,13 @@ namespace XR50TrainingAssetRepo.Models
     public class WorkflowStep
     {
         [Key]
-        
-        public string WorkflowStepId { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; } = null!;
         public string? Content { get; set; }
 
         public WorkflowStep()
         {
-           WorkflowStepId = Guid.NewGuid().ToString();
+          
         }
     }
 

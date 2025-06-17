@@ -10,21 +10,19 @@ namespace XR50TrainingAssetRepo.Models
     public class TrainingProgram
     {
 
-        public string? UseCase { get; set; }
+        public string? Created_at { get; set; }
         [ForeignKey("Materials")]
-        public virtual List<string>? MaterialList { get; set; }
+        public virtual List<int>? MaterialList { get; set; }
         [ForeignKey("Assets")]
-        public virtual List<string>? AssetList { get; set; }
-        [ForeignKey("LearningPaths")]
-        public virtual List<string>? LearningPathList { get; set;}
+        public virtual List<int>? LearningPathList { get; set;}
         [Key]
-        public string ProgramName  { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
          
         public TrainingProgram()
         {   
-            MaterialList = new List<string>();
-            AssetList = new List<string>();
-            LearningPathList = new List<string>();
+            MaterialList = new List<int>();
+            LearningPathList = new List<int>();
         }
     }
 
