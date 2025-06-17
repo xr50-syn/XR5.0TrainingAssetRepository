@@ -11,6 +11,8 @@ namespace XR50TrainingAssetRepo.Models
     {
         public string? Description { get; set; }
         public string? Name { get; set; }
+        public string? created_at { get; set; }
+        public string? updated_at { get; set; }
         [ForeignKey("Materials")]
         public virtual List<string>? MaterialList { get; set; }
          [ForeignKey("TrainingPrograms")]
