@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using XR50.Models;
-using XR50.Services;
+using XR50TrainingAssetRepo.Models;
+using XR50TrainingAssetRepo.Services;
 
-namespace XR50.Data
+namespace XR50TrainingAssetRepo.Data
 {
     // XR50 Training Context with Tenant Support
     public class XR50TrainingContext : DbContext

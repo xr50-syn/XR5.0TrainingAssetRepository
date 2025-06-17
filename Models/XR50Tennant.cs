@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using XR50TrainingAssetRepo.Models;
+
 namespace XR50TrainingAssetRepo.Models
 {
     public class XR50Tenant
