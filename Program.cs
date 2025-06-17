@@ -19,9 +19,15 @@ var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 // Add services to the container.
 
 builder.Services.AddControllers();
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<XR50TrainingContext>(opt =>
-    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));    
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IXR50TenantService, XR50TenantService>();
+builder.Services.AddScoped<IXR50TenantManagementService, XR50TenantManagementService>();
+builder.Services.AddScoped<XR50MigrationService>();
+
+builder.Services.AddDbContext<XR50TrainingContext>(options =>
+    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
+                     ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));  
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 /*builder.Services.AddAuthentication(

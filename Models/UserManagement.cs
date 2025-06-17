@@ -6,7 +6,6 @@ namespace XR50TrainingAssetRepo.Models
 {
     public class User
     {
-        public string TenantName { get; set; }
         public string? FullName { get; set; }
         public string? UserEmail { get; set; }
         public string? Password { get; set; }

@@ -9,6 +9,7 @@ namespace XR50TrainingAssetRepo.Controllers
 {
     // XR50 Tenants Controller - Matching your OpenAPI exactly
     [ApiController]
+    [ApiExplorerSettings(GroupName = "tenants")]
     [Route("xr50/trainingAssetRepository/[controller]")]
     public class TenantsController : ControllerBase
     {

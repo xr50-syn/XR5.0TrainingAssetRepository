@@ -131,7 +131,7 @@ namespace XR50TrainingAssetRepo.Services
                 using var scope = _serviceProvider.CreateScope();
                 var migrationService = scope.ServiceProvider.GetRequiredService<XR50MigrationService>();
                 
-                await migrationService.CreateTenantSchemaAsync(tenant);
+                await migrationService.CreateTenantDatabaseAsync(tenant);
                 
                 _logger.LogInformation("Successfully created tenant schema: {TenantName}", tenant.TenantName);
                 return tenant;

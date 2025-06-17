@@ -8,14 +8,12 @@ namespace XR50TrainingAssetRepo.Models
 {
     public class LearningPath
     {
-        public string TenantName { get; set; }
         [Key]
-        public string LearningPathId { get; set; }
+        public int Id { get; set; }
         public string Description { get; set; }
         public string LearningPathName { get; set; }    
         public LearningPath()
-        {   
-            LearningPathId = Guid.NewGuid().ToString();
+        {  
 
         }
     }
