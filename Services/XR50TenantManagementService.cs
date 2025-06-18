@@ -16,21 +16,25 @@ namespace XR50TrainingAssetRepo.Services
         Task<XR50Tenant> GetTenantAsync(string tenantName);
         Task<XR50Tenant> CreateTenantAsync(XR50Tenant tenant);
         Task DeleteTenantAsync(string tenantName);
+        Task DeleteTenantCompletelyAsync(string tenantName); // New method for complete deletion
     }
 
     public class XR50TenantManagementService : IXR50TenantManagementService
     {
         private readonly IConfiguration _configuration;
         private readonly IXR50TenantService _tenantService;
+        private readonly XR50MigrationService _migrationService;
         private readonly ILogger<XR50TenantManagementService> _logger;
 
         public XR50TenantManagementService(
             IConfiguration configuration,
             IXR50TenantService tenantService,
+            XR50MigrationService migrationService,
             ILogger<XR50TenantManagementService> logger)
         {
             _configuration = configuration;
             _tenantService = tenantService;
+            _migrationService = migrationService;
             _logger = logger;
         }
 
@@ -40,7 +44,7 @@ namespace XR50TrainingAssetRepo.Services
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
 
-                // ✅ Auto-create registry table if it doesn't exist
+            // ✅ Auto-create registry table if it doesn't exist
             var createTableSql = @"
                 CREATE TABLE IF NOT EXISTS `XR50TenantRegistry` (
                 `TenantName` varchar(100) NOT NULL PRIMARY KEY,
@@ -170,6 +174,41 @@ namespace XR50TrainingAssetRepo.Services
             using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@tenantName", tenantName);
             await command.ExecuteNonQueryAsync();
+
+            _logger.LogInformation("Marked tenant {TenantName} as inactive in registry (database still exists)", tenantName);
+        }
+
+        public async Task DeleteTenantCompletelyAsync(string tenantName)
+        {
+            try
+            {
+                _logger.LogWarning("Starting complete deletion of tenant: {TenantName}", tenantName);
+
+                // 1. Delete the tenant database
+                var databaseDeleted = await _migrationService.DeleteTenantDatabaseAsync(tenantName);
+                
+                if (!databaseDeleted)
+                {
+                    _logger.LogWarning("Failed to delete database for tenant {TenantName}, continuing with registry cleanup", tenantName);
+                }
+
+                // 2. Remove from registry completely
+                var connectionString = _configuration.GetConnectionString("DefaultConnection");
+                using var connection = new MySqlConnection(connectionString);
+                await connection.OpenAsync();
+                
+                var sql = "DELETE FROM XR50TenantRegistry WHERE TenantName = @tenantName";
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@tenantName", tenantName);
+                await command.ExecuteNonQueryAsync();
+
+                _logger.LogInformation("Completely deleted tenant {TenantName} (database and registry entry)", tenantName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during complete deletion of tenant {TenantName}", tenantName);
+                throw;
+            }
         }
     }
 }

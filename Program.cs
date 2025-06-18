@@ -21,14 +21,40 @@ var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddControllers();
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IXR50TenantService, XR50TenantService>();
+builder.Services.AddXR50MultitenancyWithDynamicDb(builder.Configuration);
+/*builder.Services.AddScoped<IXR50TenantService, XR50TenantService>();
 builder.Services.AddScoped<IXR50TenantManagementService, XR50TenantManagementService>();
 builder.Services.AddScoped<XR50MigrationService>();
-
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+*/
+/*string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<XR50TrainingContext>(opt =>
     opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
- 
+*/
+builder.Services.AddDbContext<XR50TrainingContext>((serviceProvider, options) =>
+{
+    var httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
+    var tenantService = serviceProvider.GetService<IXR50TenantService>();
+    
+    var baseDatabaseName = builder.Configuration["BaseDatabaseName"] ?? "magical_library";
+    var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    string connectionString;
+    
+    if (httpContextAccessor?.HttpContext != null)
+    {
+        // Get current tenant and switch database
+        var currentTenant = tenantService.GetCurrentTenant();
+        var tenantDatabase = tenantService.GetTenantSchema(currentTenant);
+        connectionString = baseConnectionString.Replace($"Database={baseDatabaseName}", $"Database={tenantDatabase}");
+    }
+    else
+    {
+        // Fallback to base database
+        connectionString = baseConnectionString;
+    }
+    
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+}); 
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 /*builder.Services.AddAuthentication(
@@ -150,7 +176,7 @@ public class HierarchicalOrderDocumentFilter : IDocumentFilter
     {
         // Create ordered tags
         var orderedTags = new List<OpenApiTag>();
-        
+
         // Define tag order
         var tagOrder = new Dictionary<string, int>
         {
@@ -161,20 +187,86 @@ public class HierarchicalOrderDocumentFilter : IDocumentFilter
             { "assets", 5 },
             { "users", 6 }
         };
-        
+
         // Add existing tags in order
         if (swaggerDoc.Tags != null)
         {
             // Create a new ordered collection, preserving all existing tags
             var existingTags = swaggerDoc.Tags.ToList();
-            
+
             // Order the existing tags
             swaggerDoc.Tags = existingTags
                 .OrderBy(t => tagOrder.ContainsKey(t.Name) ? tagOrder[t.Name] : 999)
                 .ToList();
         }
-        
+
         // Don't modify paths unless you need to - they're already ordered by URL
         // For ordering paths, create a similar approach but be careful to preserve all paths
+    }
+}
+// Updated Program.cs Registration
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddXR50MultitenancyWithDynamicDb(
+        this IServiceCollection services, 
+        IConfiguration configuration)
+    {
+        services.AddHttpContextAccessor();
+        services.AddScoped<IXR50TenantService, XR50TenantService>();
+        services.AddScoped<IXR50TenantManagementService, XR50TenantManagementService>();
+        services.AddScoped<XR50MigrationService>();
+        services.AddScoped<IXR50DatabaseInitializer, XR50DatabaseInitializer>();
+        services.AddScoped<IXR50TenantTroubleshootingService, XR50TenantTroubleshootingService>();
+        services.AddScoped<IXR50ManualTableCreator, XR50ManualTableCreator>();
+
+        // Register DbContext with proper configuration
+        services.AddDbContext<XR50TrainingContext>((serviceProvider, options) =>
+        {
+            var httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
+            var tenantService = serviceProvider.GetService<IXR50TenantService>();
+            var config = serviceProvider.GetService<IConfiguration>();
+            
+            var baseDatabaseName = configuration["BaseDatabaseName"] ?? "magical_library";
+            var baseConnectionString = configuration.GetConnectionString("DefaultConnection");
+            
+            string connectionString;
+            
+            if (httpContextAccessor?.HttpContext != null && tenantService != null)
+            {
+                // Get current tenant and switch database
+                var currentTenant = tenantService.GetCurrentTenant();
+                var tenantDatabase = tenantService.GetTenantSchema(currentTenant);
+                connectionString = baseConnectionString.Replace($"Database={baseDatabaseName}", $"Database={tenantDatabase}");
+            }
+            else
+            {
+                // Fallback to base database
+                connectionString = baseConnectionString;
+            }
+            
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+        }); 
+
+        return services;
+    }
+    
+    // Extension method to initialize databases
+    public static async Task<IApplicationBuilder> InitializeXR50DatabasesAsync(this IApplicationBuilder app)
+    {
+        using var scope = app.ApplicationServices.CreateScope();
+        var initializer = scope.ServiceProvider.GetRequiredService<IXR50DatabaseInitializer>();
+        
+        try
+        {
+            await initializer.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "Failed to initialize databases during startup");
+            throw;
+        }
+        
+        return app;
     }
 }

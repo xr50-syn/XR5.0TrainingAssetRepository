@@ -9,8 +9,7 @@
     "fullName": "Mistress of DECEIT",
     "userEmail": "I_prank_my_students@deceit.hl",
     "password": "123",
-    "admin": true,
-    "TenantName": "DECEIT Library of Forbidden Texts"
+    "admin": true
   },
   "adminList": [],
   "trainingList": []

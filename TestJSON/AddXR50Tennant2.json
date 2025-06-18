@@ -1,16 +1,16 @@
 {
-  "TenantName": "DECEIT Library of Forbidden Texts",
+  "TenantName": "Emmie's Stash of picture books",
   "TenantGroup": "DECEIT Library of Forbidden Texts",
-  "TenantDirectory": "DECEIT_Library",
-  "Description": "Requires more than 30 caster levels to enter the library. Certain Exceptions Apply",
-  "OwnerName":  "headmistress",
+  "TenantDirectory": "Emmie",
+  "Description": "NSFW",
+  "OwnerName":  "emmie",
   "Owner": {
-    "userName": "headmistress",
-    "fullName": "Mistress of DECEIT",
-    "userEmail": "I_prank_my_students@deceit.hl",
+    "userName": "emmie",
+    "fullName": "Fairy Queen Emerald",
+    "userEmail": "emmie@fairy.gov",
     "password": "123",
-    "admin": true,
-    "TenantName": "DECEIT Library of Forbidden Texts"
+    "admin": true
+    
   },
   "adminList": [],
   "trainingList": []

@@ -17,7 +17,7 @@ MIGRATION_PATTERN="./Migrations/*${MIGRATION_NAME}.cs"
 # Check if migrations directory exists
 if [ ! -f $MIGRATION_PATTERN ]; then
   echo "Migrations directory not found. Generating initial migration..."
-  dotnet ef migrations add InitialCreate
+  dotnet ef migrations add InitialCreate --context XR50TrainingContext
 fi
 
 # Get raw output from dotnet ef migrations list

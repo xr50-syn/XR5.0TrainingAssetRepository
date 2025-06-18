@@ -4,9 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MySql.Data.MySqlClient;
-using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
-using XR50TrainingAssetRepo.Data;
 using XR50TrainingAssetRepo.Services;
 
 namespace XR50TrainingAssetRepo.Services
@@ -16,21 +14,26 @@ namespace XR50TrainingAssetRepo.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly IConfiguration _configuration;
         private readonly ILogger<XR50MigrationService> _logger;
+        private readonly IXR50ManualTableCreator _tableCreator;
 
         public XR50MigrationService(
             IServiceProvider serviceProvider, 
             IConfiguration configuration,
-            ILogger<XR50MigrationService> logger)
+            ILogger<XR50MigrationService> logger,
+            IXR50ManualTableCreator tableCreator)
         {
             _serviceProvider = serviceProvider;
             _configuration = configuration;
             _logger = logger;
+            _tableCreator = tableCreator;
         }
 
         public async Task CreateTenantDatabaseAsync(XR50Tenant tenant)
         {
             var tenantDbName = GetTenantDatabase(tenant.TenantName);
             var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
+            
+            _logger.LogInformation("Creating tenant database: {TenantDatabase} for tenant: {TenantName}", tenantDbName, tenant.TenantName);
             
             // Connection to MySQL server (not specific database)
             var adminConnectionString = baseConnectionString.Replace($"Database={GetBaseDatabaseName()}", "Database=mysql");
@@ -46,13 +49,23 @@ namespace XR50TrainingAssetRepo.Services
 
                 _logger.LogInformation("Created tenant database: {TenantDatabase}", tenantDbName);
 
-                // 2. Run EF migrations on the new database
-                await RunMigrationsOnTenantDatabase(tenantDbName);
+                // 2. Create tables using manual table creator
+                var tablesCreated = await _tableCreator.CreateTablesInDatabaseAsync(tenantDbName);
+                
+                if (!tablesCreated)
+                {
+                    throw new InvalidOperationException($"Failed to create tables in tenant database {tenantDbName}");
+                }
 
-                // 3. Store tenant metadata in central registry (magical_library)
+                // 3. Verify tables were created
+                var tables = await _tableCreator.GetExistingTablesAsync(tenant.TenantName);
+                _logger.LogInformation("Tenant database {TenantDatabase} now has {TableCount} tables: {Tables}", 
+                    tenantDbName, tables.Count, string.Join(", ", tables));
+
+                // 4. Store tenant metadata in central registry
                 await StoreTenantMetadataInCentralRegistry(tenant, tenantDbName);
 
-                _logger.LogInformation("Successfully created tenant: {TenantName}", tenant.TenantName);
+                _logger.LogInformation("Successfully created tenant: {TenantName} with {TableCount} tables", tenant.TenantName, tables.Count);
             }
             catch (Exception ex)
             {
@@ -61,6 +74,7 @@ namespace XR50TrainingAssetRepo.Services
                 {
                     var dropDbCommand = new MySqlCommand($"DROP DATABASE IF EXISTS `{tenantDbName}`", connection);
                     await dropDbCommand.ExecuteNonQueryAsync();
+                    _logger.LogInformation("Cleaned up failed database: {TenantDatabase}", tenantDbName);
                 }
                 catch (Exception cleanupEx)
                 {
@@ -72,22 +86,48 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        private async Task RunMigrationsOnTenantDatabase(string tenantDbName)
+        public async Task<bool> RepairTenantDatabaseAsync(string tenantName)
         {
-            var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
-            var tenantConnectionString = baseConnectionString.Replace($"Database={GetBaseDatabaseName()}", $"Database={tenantDbName}");
+            try
+            {
+                _logger.LogInformation("Repairing tenant database for: {TenantName}", tenantName);
 
-            // Create a temporary DbContext for this specific tenant database
-            var optionsBuilder = new DbContextOptionsBuilder<XR50TrainingContext>();
-            optionsBuilder.UseMySql(tenantConnectionString, ServerVersion.AutoDetect(tenantConnectionString));
+                // 1. Ensure database exists
+                var tenantDbName = GetTenantDatabase(tenantName);
+                var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
+                var adminConnectionString = baseConnectionString.Replace($"Database={GetBaseDatabaseName()}", "Database=mysql");
 
-            // Create a mock tenant service for migrations
-            var mockTenantService = new MockTenantService();
+                using (var connection = new MySqlConnection(adminConnectionString))
+                {
+                    await connection.OpenAsync();
+                    var createDbCommand = new MySqlCommand($"CREATE DATABASE IF NOT EXISTS `{tenantDbName}`", connection);
+                    await createDbCommand.ExecuteNonQueryAsync();
+                }
 
-            using var context = new XR50TrainingContext(optionsBuilder.Options, mockTenantService);
-            await context.Database.EnsureCreatedAsync(); // Creates tables without schema references
+                // 2. Drop existing tables and recreate them
+                await _tableCreator.DropAllTablesAsync(tenantName);
+                
+                // 3. Create all tables fresh
+                var success = await _tableCreator.CreateAllTablesAsync(tenantName);
+                
+                if (success)
+                {
+                    var tables = await _tableCreator.GetExistingTablesAsync(tenantName);
+                    _logger.LogInformation("Successfully repaired tenant {TenantName} with {TableCount} tables", tenantName, tables.Count);
+                }
 
-            _logger.LogInformation("Ran migrations on tenant database: {TenantDatabase}", tenantDbName);
+                return success;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to repair tenant database for: {TenantName}", tenantName);
+                return false;
+            }
+        }
+
+        public async Task<bool> ManuallyCreateTablesAsync(string tenantName)
+        {
+            return await _tableCreator.CreateAllTablesAsync(tenantName);
         }
 
         private async Task StoreTenantMetadataInCentralRegistry(XR50Tenant tenant, string tenantDbName)
@@ -135,6 +175,33 @@ namespace XR50TrainingAssetRepo.Services
             await insertCommand.ExecuteNonQueryAsync();
         }
 
+        public async Task<bool> DeleteTenantDatabaseAsync(string tenantName)
+        {
+            try
+            {
+                var tenantDbName = GetTenantDatabase(tenantName);
+                var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
+                var adminConnectionString = baseConnectionString.Replace($"Database={GetBaseDatabaseName()}", "Database=mysql");
+
+                _logger.LogInformation("Deleting tenant database: {TenantDatabase} for tenant: {TenantName}", tenantDbName, tenantName);
+
+                using var connection = new MySqlConnection(adminConnectionString);
+                await connection.OpenAsync();
+
+                // Drop the tenant database
+                var dropDbCommand = new MySqlCommand($"DROP DATABASE IF EXISTS `{tenantDbName}`", connection);
+                await dropDbCommand.ExecuteNonQueryAsync();
+
+                _logger.LogInformation("Successfully deleted tenant database: {TenantDatabase}", tenantDbName);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete tenant database for: {TenantName}", tenantName);
+                return false;
+            }
+        }
+
         private string GetTenantDatabase(string tenantName)
         {
             var sanitized = Regex.Replace(tenantName, @"[^a-zA-Z0-9_]", "_");
@@ -143,18 +210,7 @@ namespace XR50TrainingAssetRepo.Services
 
         private string GetBaseDatabaseName()
         {
-            // Extract database name from connection string
             return _configuration["BaseDatabaseName"] ?? "magical_library";
-        }
-
-        // Mock tenant service for migrations (no HTTP context during migrations)
-        private class MockTenantService : IXR50TenantService
-        {
-            public string GetCurrentTenant() => "migration";
-            public Task<bool> ValidateTenantAsync(string tenantId) => Task.FromResult(true);
-            public Task<bool> TenantExistsAsync(string tenantName) => Task.FromResult(true);
-            public Task<XR50Tenant> CreateTenantAsync(XR50Tenant tenant) => Task.FromResult(tenant);
-            public string GetTenantSchema(string tenantName) => ""; // Not used for MySQL
         }
     }
 }
