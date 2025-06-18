@@ -33,10 +33,12 @@ namespace XR50TrainingAssetRepo.Services
             var tenantDbName = GetTenantDatabase(tenant.TenantName);
             var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
             
-            _logger.LogInformation("Creating tenant database: {TenantDatabase} for tenant: {TenantName}", tenantDbName, tenant.TenantName);
+            _logger.LogInformation("=== Creating tenant database for: {TenantName} ===", tenant.TenantName);
+            _logger.LogInformation("Tenant database name: {TenantDatabase}", tenantDbName);
             
             // Connection to MySQL server (not specific database)
             var adminConnectionString = baseConnectionString.Replace($"Database={GetBaseDatabaseName()}", "Database=mysql");
+            _logger.LogInformation("Admin connection: {AdminConnection}", adminConnectionString.Replace("Password=", "Password=***"));
 
             using var connection = new MySqlConnection(adminConnectionString);
             await connection.OpenAsync();
@@ -46,10 +48,10 @@ namespace XR50TrainingAssetRepo.Services
                 // 1. Create tenant database
                 var createDbCommand = new MySqlCommand($"CREATE DATABASE IF NOT EXISTS `{tenantDbName}`", connection);
                 await createDbCommand.ExecuteNonQueryAsync();
-
-                _logger.LogInformation("Created tenant database: {TenantDatabase}", tenantDbName);
+                _logger.LogInformation("✅ Created tenant database: {TenantDatabase}", tenantDbName);
 
                 // 2. Create tables using manual table creator
+                _logger.LogInformation("Creating tables in tenant database...");
                 var tablesCreated = await _tableCreator.CreateTablesInDatabaseAsync(tenantDbName);
                 
                 if (!tablesCreated)
@@ -59,29 +61,31 @@ namespace XR50TrainingAssetRepo.Services
 
                 // 3. Verify tables were created
                 var tables = await _tableCreator.GetExistingTablesAsync(tenant.TenantName);
-                _logger.LogInformation("Tenant database {TenantDatabase} now has {TableCount} tables: {Tables}", 
+                _logger.LogInformation("✅ Tenant database {TenantDatabase} now has {TableCount} tables: {Tables}", 
                     tenantDbName, tables.Count, string.Join(", ", tables));
 
                 // 4. Store tenant metadata in central registry
                 await StoreTenantMetadataInCentralRegistry(tenant, tenantDbName);
+                _logger.LogInformation("✅ Stored tenant metadata in central registry");
 
-                _logger.LogInformation("Successfully created tenant: {TenantName} with {TableCount} tables", tenant.TenantName, tables.Count);
+                _logger.LogInformation("=== Successfully completed tenant creation: {TenantName} ===", tenant.TenantName);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "❌ Failed to create tenant database {TenantDatabase}", tenantDbName);
+                
                 // Cleanup on failure
                 try
                 {
                     var dropDbCommand = new MySqlCommand($"DROP DATABASE IF EXISTS `{tenantDbName}`", connection);
                     await dropDbCommand.ExecuteNonQueryAsync();
-                    _logger.LogInformation("Cleaned up failed database: {TenantDatabase}", tenantDbName);
+                    _logger.LogInformation("🧹 Cleaned up failed database: {TenantDatabase}", tenantDbName);
                 }
                 catch (Exception cleanupEx)
                 {
-                    _logger.LogError(cleanupEx, "Failed to cleanup database {TenantDatabase} after creation failure", tenantDbName);
+                    _logger.LogError(cleanupEx, "❌ Failed to cleanup database {TenantDatabase} after creation failure", tenantDbName);
                 }
 
-                _logger.LogError(ex, "Failed to create tenant database {TenantDatabase}", tenantDbName);
                 throw;
             }
         }
