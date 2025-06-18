@@ -56,10 +56,15 @@ namespace XR50TrainingAssetRepo.Data
                     if (!string.IsNullOrEmpty(connectionString))
                     {
                         optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                        
+                        // Log the actual database being used
+                        var logger = _configuration.GetSection("Logging").Get<object>(); // Basic logging check
+                        Console.WriteLine($"🎯 DbContext configured for tenant: {currentTenant}, connection: {connectionString.Replace("Password=", "Password=***")}");
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"❌ Error configuring DbContext: {ex.Message}");
                     // If anything fails, don't configure here - let the main registration handle it
                 }
             }
@@ -77,15 +82,21 @@ namespace XR50TrainingAssetRepo.Data
                 // For admin operations (tenant management), use base database
                 if (tenantName == "default" || string.IsNullOrEmpty(tenantName))
                 {
+                    Console.WriteLine($"🔄 Using default database for tenant: {tenantName}");
                     return baseConnectionString ?? string.Empty;
                 }
                 
                 // For tenant operations, switch to tenant database
                 var tenantDatabase = _tenantService?.GetTenantSchema(tenantName) ?? tenantName;
-                return baseConnectionString?.Replace($"Database={baseDatabaseName}", $"Database={tenantDatabase}", StringComparison.OrdinalIgnoreCase) ?? string.Empty;
+                var tenantConnectionString = baseConnectionString?.Replace($"database={baseDatabaseName}", $"database={tenantDatabase}", StringComparison.OrdinalIgnoreCase) ?? string.Empty;
+                
+                Console.WriteLine($"🎯 Switching to tenant database: {tenantDatabase} for tenant: {tenantName}");
+                
+                return tenantConnectionString;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"❌ Error building tenant connection string: {ex.Message}");
                 return string.Empty;
             }
         }

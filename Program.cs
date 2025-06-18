@@ -32,29 +32,21 @@ builder.Services.AddDbContext<XR50TrainingContext>(opt =>
 */
 builder.Services.AddDbContext<XR50TrainingContext>((serviceProvider, options) =>
 {
-    var httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
-    var tenantService = serviceProvider.GetService<IXR50TenantService>();
+    var configuration = serviceProvider.GetService<IConfiguration>();
     
-    var baseDatabaseName = builder.Configuration["BaseDatabaseName"] ?? "magical_library";
-    var baseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    // Default configuration - OnConfiguring will override this for tenant operations
+    var baseConnectionString = configuration.GetConnectionString("DefaultConnection");
+    options.UseMySql(baseConnectionString, ServerVersion.AutoDetect(baseConnectionString));
     
-    string connectionString;
-    
-    if (httpContextAccessor?.HttpContext != null)
+    // Enable detailed logging in development
+    if (configuration.GetValue<string>("Environment") == "Development")
     {
-        // Get current tenant and switch database
-        var currentTenant = tenantService.GetCurrentTenant();
-        var tenantDatabase = tenantService.GetTenantSchema(currentTenant);
-        connectionString = baseConnectionString.Replace($"Database={baseDatabaseName}", $"Database={tenantDatabase}");
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
     }
-    else
-    {
-        // Fallback to base database
-        connectionString = baseConnectionString;
-    }
+});
+
     
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-}); 
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 /*builder.Services.AddAuthentication(
@@ -150,6 +142,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 if (app.Environment.IsDevelopment())
 {
+
     app.UseSwagger();
     app.UseSwaggerUI(c =>
       {
@@ -218,33 +211,20 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IXR50DatabaseInitializer, XR50DatabaseInitializer>();
         services.AddScoped<IXR50TenantTroubleshootingService, XR50TenantTroubleshootingService>();
         services.AddScoped<IXR50ManualTableCreator, XR50ManualTableCreator>();
+        services.AddScoped<IXR50TenantDbContextFactory, XR50TenantDbContextFactory>();
 
-        // Register DbContext with proper configuration
+        // Keep the original DbContext registration for admin operations
         services.AddDbContext<XR50TrainingContext>((serviceProvider, options) =>
         {
-            var httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
-            var tenantService = serviceProvider.GetService<IXR50TenantService>();
-            var config = serviceProvider.GetService<IConfiguration>();
-            
-            var baseDatabaseName = configuration["BaseDatabaseName"] ?? "magical_library";
+            var configuration = serviceProvider.GetService<IConfiguration>();
             var baseConnectionString = configuration.GetConnectionString("DefaultConnection");
+            options.UseMySql(baseConnectionString, ServerVersion.AutoDetect(baseConnectionString));
             
-            string connectionString;
-            
-            if (httpContextAccessor?.HttpContext != null && tenantService != null)
+            if (configuration.GetValue<string>("Environment") == "Development")
             {
-                // Get current tenant and switch database
-                var currentTenant = tenantService.GetCurrentTenant();
-                var tenantDatabase = tenantService.GetTenantSchema(currentTenant);
-                connectionString = baseConnectionString.Replace($"Database={baseDatabaseName}", $"Database={tenantDatabase}");
+                options.EnableSensitiveDataLogging();
+                options.EnableDetailedErrors();
             }
-            else
-            {
-                // Fallback to base database
-                connectionString = baseConnectionString;
-            }
-            
-            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         }); 
 
         return services;
@@ -266,6 +246,40 @@ public static class ServiceCollectionExtensions
             logger.LogError(ex, "Failed to initialize databases during startup");
             throw;
         }
+        
+        return app;
+    }
+}
+public static class TenantDebuggingExtensions
+{
+    public static async Task<IApplicationBuilder> DebugTenantSetupAsync(this IApplicationBuilder app)
+    {
+        using var scope = app.ApplicationServices.CreateScope();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        
+        var baseConnectionString = configuration.GetConnectionString("DefaultConnection");
+        var baseDatabaseName = configuration.GetValue<string>("BaseDatabaseName") ?? "magical_library";
+        
+        logger.LogInformation("=== TENANT SETUP DEBUG INFO ===");
+        logger.LogInformation("Base Database Name: {BaseDatabaseName}", baseDatabaseName);
+        logger.LogInformation("Base Connection String: {ConnectionString}", 
+            baseConnectionString?.Replace("Password=", "Password=***"));
+        
+        // Test main database connection
+        try
+        {
+            using var scope2 = app.ApplicationServices.CreateScope();
+            var context = scope2.ServiceProvider.GetRequiredService<XR50TrainingContext>();
+            var canConnect = await context.Database.CanConnectAsync();
+            logger.LogInformation("Can connect to main database: {CanConnect}", canConnect);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Cannot connect to main database");
+        }
+        
+        logger.LogInformation("=== END TENANT DEBUG INFO ===");
         
         return app;
     }

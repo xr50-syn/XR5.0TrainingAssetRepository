@@ -44,7 +44,7 @@ namespace XR50TrainingAssetRepo.Services
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
 
-            // ✅ Auto-create registry table if it doesn't exist
+            //  Auto-create registry table if it doesn't exist
             var createTableSql = @"
                 CREATE TABLE IF NOT EXISTS `XR50TenantRegistry` (
                 `TenantName` varchar(100) NOT NULL PRIMARY KEY,

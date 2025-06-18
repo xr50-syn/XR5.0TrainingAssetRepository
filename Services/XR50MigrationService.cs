@@ -48,7 +48,7 @@ namespace XR50TrainingAssetRepo.Services
                 // 1. Create tenant database
                 var createDbCommand = new MySqlCommand($"CREATE DATABASE IF NOT EXISTS `{tenantDbName}`", connection);
                 await createDbCommand.ExecuteNonQueryAsync();
-                _logger.LogInformation("✅ Created tenant database: {TenantDatabase}", tenantDbName);
+                _logger.LogInformation(" Created tenant database: {TenantDatabase}", tenantDbName);
 
                 // 2. Create tables using manual table creator
                 _logger.LogInformation("Creating tables in tenant database...");
@@ -61,18 +61,18 @@ namespace XR50TrainingAssetRepo.Services
 
                 // 3. Verify tables were created
                 var tables = await _tableCreator.GetExistingTablesAsync(tenant.TenantName);
-                _logger.LogInformation("✅ Tenant database {TenantDatabase} now has {TableCount} tables: {Tables}", 
+                _logger.LogInformation(" Tenant database {TenantDatabase} now has {TableCount} tables: {Tables}", 
                     tenantDbName, tables.Count, string.Join(", ", tables));
 
                 // 4. Store tenant metadata in central registry
                 await StoreTenantMetadataInCentralRegistry(tenant, tenantDbName);
-                _logger.LogInformation("✅ Stored tenant metadata in central registry");
+                _logger.LogInformation(" Stored tenant metadata in central registry");
 
                 _logger.LogInformation("=== Successfully completed tenant creation: {TenantName} ===", tenant.TenantName);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Failed to create tenant database {TenantDatabase}", tenantDbName);
+                _logger.LogError(ex, "Failed to create tenant database {TenantDatabase}", tenantDbName);
                 
                 // Cleanup on failure
                 try
@@ -83,7 +83,7 @@ namespace XR50TrainingAssetRepo.Services
                 }
                 catch (Exception cleanupEx)
                 {
-                    _logger.LogError(cleanupEx, "❌ Failed to cleanup database {TenantDatabase} after creation failure", tenantDbName);
+                    _logger.LogError(cleanupEx, "Failed to cleanup database {TenantDatabase} after creation failure", tenantDbName);
                 }
 
                 throw;

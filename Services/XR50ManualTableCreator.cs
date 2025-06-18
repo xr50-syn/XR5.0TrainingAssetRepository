@@ -45,24 +45,49 @@ namespace XR50TrainingAssetRepo.Services
             {
                 var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
                 var baseDatabaseName = _configuration["BaseDatabaseName"] ?? "magical_library";
-                var connectionString = baseConnectionString.Replace($"Database={baseDatabaseName}", $"Database={databaseName}");
-
-                _logger.LogInformation("Creating tables in database: {DatabaseName}", databaseName);
+                
+                _logger.LogInformation("=== Creating tables in database: {DatabaseName} ===", databaseName);
+                _logger.LogInformation("Base connection: {BaseConnection}", baseConnectionString.Replace("Password=", "Password=***"));
+                _logger.LogInformation("Base database name: {BaseDatabaseName}", baseDatabaseName);
+                
+                var connectionString = baseConnectionString.Replace($"database={baseDatabaseName}", $"database={databaseName}", StringComparison.OrdinalIgnoreCase);
+                _logger.LogInformation("Target connection: {TargetConnection}", connectionString.Replace("Password=", "Password=***"));
+                
+                // Check if replacement worked
+                if (connectionString == baseConnectionString)
+                {
+                    _logger.LogError("Connection string replacement FAILED!");
+                    _logger.LogError("Looking for: 'database={BaseDatabaseName}' in connection string", baseDatabaseName);
+                    _logger.LogError("Full base connection: {FullConnection}", baseConnectionString);
+                    throw new InvalidOperationException($"Could not replace database name in connection string. Looking for 'database={baseDatabaseName}' in: {baseConnectionString}");
+                }
 
                 using var connection = new MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
+                // Verify which database we're actually connected to
+                var currentDbCommand = new MySqlCommand("SELECT DATABASE()", connection);
+                var actualDatabase = await currentDbCommand.ExecuteScalarAsync();
+                _logger.LogInformation(" Actually connected to database: {ActualDatabase}", actualDatabase);
+
+                if (!actualDatabase.ToString().Equals(databaseName, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException($"Connected to wrong database! Expected: {databaseName}, Actual: {actualDatabase}");
+                }
+
                 // Execute each CREATE TABLE statement separately
                 var createStatements = GetCreateTableStatements();
+                _logger.LogInformation("Executing {StatementCount} CREATE TABLE statements...", createStatements.Count);
                 
                 foreach (var statement in createStatements)
                 {
                     try
                     {
-                        _logger.LogDebug("Executing: {Statement}", statement.Substring(0, Math.Min(50, statement.Length)) + "...");
+                        var tableName = ExtractTableName(statement);
+                        _logger.LogDebug("Creating table: {TableName}", tableName);
                         var command = new MySqlCommand(statement, connection);
                         await command.ExecuteNonQueryAsync();
-                        _logger.LogDebug("Successfully executed table creation statement");
+                        _logger.LogDebug(" Created table: {TableName}", tableName);
                     }
                     catch (Exception ex)
                     {
@@ -72,9 +97,9 @@ namespace XR50TrainingAssetRepo.Services
                     }
                 }
 
-                // Verify tables were created
+                // Verify tables were created in the correct database
                 var tables = await GetExistingTablesInDatabaseAsync(databaseName);
-                _logger.LogInformation("Successfully created {TableCount} tables in database {DatabaseName}: {Tables}", 
+                _logger.LogInformation(" Successfully created {TableCount} tables in database {DatabaseName}: {Tables}", 
                     tables.Count, databaseName, string.Join(", ", tables));
 
                 return tables.Count > 0;
@@ -84,6 +109,19 @@ namespace XR50TrainingAssetRepo.Services
                 _logger.LogError(ex, "Failed to create tables in database: {DatabaseName}", databaseName);
                 return false;
             }
+        }
+
+        private string ExtractTableName(string createStatement)
+        {
+            // Simple extraction of table name from CREATE TABLE statement
+            var lines = createStatement.Split('\n');
+            var createLine = lines[0].Trim();
+            var parts = createLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 6 && parts[0].Equals("CREATE", StringComparison.OrdinalIgnoreCase))
+            {
+                return parts[5].Trim('`');
+            }
+            return "unknown";
         }
 
         public async Task<List<string>> GetExistingTablesAsync(string tenantName)
@@ -100,18 +138,53 @@ namespace XR50TrainingAssetRepo.Services
             {
                 var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
                 var baseDatabaseName = _configuration["BaseDatabaseName"] ?? "magical_library";
-                var connectionString = baseConnectionString.Replace($"Database={baseDatabaseName}", $"Database={databaseName}");
+                
+                // Use case-insensitive replacement (same as table creation)
+                var connectionString = baseConnectionString.Replace($"database={baseDatabaseName}", $"database={databaseName}", StringComparison.OrdinalIgnoreCase);
+
+                _logger.LogInformation("Getting tables from database: {DatabaseName}", databaseName);
+                _logger.LogInformation("Connection string for verification: {ConnectionString}", connectionString.Replace("Password=", "Password=***"));
 
                 using var connection = new MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                var command = new MySqlCommand("SHOW TABLES", connection);
-                using var reader = await command.ExecuteReaderAsync();
+                // Verify which database we're actually connected to
+                var currentDbCommand = new MySqlCommand("SELECT DATABASE()", connection);
+                var actualDatabase = await currentDbCommand.ExecuteScalarAsync();
+                _logger.LogInformation("Actually connected to database for table check: {ActualDatabase}", actualDatabase);
+
+                // Try SHOW TABLES first
+                var showTablesCommand = new MySqlCommand("SHOW TABLES", connection);
+                using var reader = await showTablesCommand.ExecuteReaderAsync();
 
                 while (await reader.ReadAsync())
                 {
                     tables.Add(reader.GetString(0));
                 }
+                reader.Close();
+
+                _logger.LogInformation("SHOW TABLES returned {TableCount} tables: {Tables}", 
+                    tables.Count, string.Join(", ", tables));
+
+                // Also try INFORMATION_SCHEMA query as backup
+                var infoSchemaCommand = new MySqlCommand(
+                    "SELECT table_name FROM information_schema.tables WHERE table_schema = @schema", 
+                    connection);
+                infoSchemaCommand.Parameters.AddWithValue("@schema", databaseName);
+                
+                using var reader2 = await infoSchemaCommand.ExecuteReaderAsync();
+                var infoSchemaTables = new List<string>();
+                
+                while (await reader2.ReadAsync())
+                {
+                    infoSchemaTables.Add(reader2.GetString(0));
+                }
+
+                _logger.LogInformation("INFORMATION_SCHEMA query returned {TableCount} tables: {Tables}", 
+                    infoSchemaTables.Count, string.Join(", ", infoSchemaTables));
+
+                // Return the larger list (in case one method works better)
+                return tables.Count >= infoSchemaTables.Count ? tables : infoSchemaTables;
             }
             catch (Exception ex)
             {
