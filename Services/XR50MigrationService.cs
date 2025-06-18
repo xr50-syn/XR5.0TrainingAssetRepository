@@ -7,6 +7,7 @@ using MySql.Data.MySqlClient;
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
 using XR50TrainingAssetRepo.Data;
+using XR50TrainingAssetRepo.Services;
 
 namespace XR50TrainingAssetRepo.Services
 {
@@ -143,9 +144,7 @@ namespace XR50TrainingAssetRepo.Services
         private string GetBaseDatabaseName()
         {
             // Extract database name from connection string
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            var match = Regex.Match(connectionString, @"Database=([^;]+)", RegexOptions.IgnoreCase);
-            return match.Success ? match.Groups[1].Value : "magical_library";
+            return _configuration["BaseDatabaseName"] ?? "magical_library";
         }
 
         // Mock tenant service for migrations (no HTTP context during migrations)

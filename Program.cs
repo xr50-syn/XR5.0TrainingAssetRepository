@@ -25,9 +25,10 @@ builder.Services.AddScoped<IXR50TenantService, XR50TenantService>();
 builder.Services.AddScoped<IXR50TenantManagementService, XR50TenantManagementService>();
 builder.Services.AddScoped<XR50MigrationService>();
 
-builder.Services.AddDbContext<XR50TrainingContext>(options =>
-    options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"), 
-                     ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));  
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<XR50TrainingContext>(opt =>
+    opt.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+ 
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 /*builder.Services.AddAuthentication(
@@ -62,10 +63,12 @@ builder.Services.Configure<KestrelServerOptions>(options =>
     options.ConfigureHttpsDefaults(options =>
         options.ClientCertificateMode = ClientCertificateMode.RequireCertificate);
 });*/
+//builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
 {
     // Define multiple Swagger documents, one for each logical grouping
     c.SwaggerDoc("tenants", new OpenApiInfo { Title = "1. Tenant Management", Version = "v1" });
+    c.SwaggerDoc("test", new OpenApiInfo { Title = "7. test", Version = "v1" });
     c.SwaggerDoc("programs", new OpenApiInfo { Title = "2. Training Program Management", Version = "v1" });
     c.SwaggerDoc("paths", new OpenApiInfo { Title = "3. Learning Path Management", Version = "v1" });
     c.SwaggerDoc("materials", new OpenApiInfo { Title = "4. Material Management", Version = "v1" });
@@ -88,16 +91,19 @@ builder.Services.AddSwaggerGen(c =>
         
         return docName switch
         {
-            "tenants" => controllerName.Contains("tenants"),
-            "programs" => controllerName.Contains("trainingPrograms"),
-            "paths" => controllerName.Contains("learningPaths"),
-            "materials" => controllerName.Contains("materials"),
-            "assets" => controllerName.Contains("assets"),
-            "users" => controllerName.Contains("users"),
+            "tenants" => controllerName.Contains("Tenants"),
+            "programs" => controllerName.Contains("TrainingPrograms"),
+            "paths" => controllerName.Contains("LearningPaths"),
+            "materials" => controllerName.Contains("Materials"),
+            "assets" => controllerName.Contains("Assets"),
+            "users" => controllerName.Contains("Users"),
+            "test" => controllerName.Contains("test"),
             _ => false
         };
     });
 });
+
+
 builder.Configuration.AddJsonFile("appsettings.json");
 builder.Services.AddCors(options =>{
             options.AddDefaultPolicy(
@@ -119,35 +125,24 @@ app.UseAuthorization();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-
-    // Configure Swagger UI 
     app.UseSwaggerUI(c =>
-    {
-        // Add endpoints in desired order
-        c.SwaggerEndpoint("/swagger/tenants/swagger.json", "1. Tenant Management");
-        c.SwaggerEndpoint("/swagger/programs/swagger.json", "2. Training Program Management");
-        c.SwaggerEndpoint("/swagger/paths/swagger.json", "3. Learning Path Management");
-        c.SwaggerEndpoint("/swagger/materials/swagger.json", "4. Material Management");
-        c.SwaggerEndpoint("/swagger/assets/swagger.json", "5. Asset Management");
-        c.SwaggerEndpoint("/swagger/users/swagger.json", "6. User Management");
-    });
-
-
-
-
-    try
-    {
-
-        app.MapControllers();
-    }
-    catch (System.Exception exp)
-    {
-
-        throw;
-    }
-
-    app.Run();
+      {
+          // Add endpoints in desired order
+          c.SwaggerEndpoint("/swagger/v1/swagger.json", "Default");
+          c.SwaggerEndpoint("/swagger/tenants/swagger.json", "1. Tenant Management");
+          c.SwaggerEndpoint("/swagger/programs/swagger.json", "2. Training Program Management");
+          c.SwaggerEndpoint("/swagger/paths/swagger.json", "3. Learning Path Management");
+          c.SwaggerEndpoint("/swagger/materials/swagger.json", "4. Material Management");
+          c.SwaggerEndpoint("/swagger/assets/swagger.json", "5. Asset Management");
+          c.SwaggerEndpoint("/swagger/users/swagger.json", "6. User Management");
+      });
 }
+
+app.UseRouting(); 
+app.MapControllers();
+ 
+
+app.Run();
 
 public class HierarchicalOrderDocumentFilter : IDocumentFilter
 {

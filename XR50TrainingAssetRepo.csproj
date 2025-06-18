@@ -20,7 +20,6 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.1.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Certificate" Version="8.0.10" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
       <PrivateAssets>all</PrivateAssets>

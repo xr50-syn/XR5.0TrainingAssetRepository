@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 using XR50TrainingAssetRepo.Models;
-using Microsoft.Data.SqlClient; 
 
 namespace XR50TrainingAssetRepo.Services
 {
-    // XR50 Tenant Management Service (Repository Pattern)
+    // XR50 Tenant Management Service (Repository Pattern) - MySQL
     public interface IXR50TenantManagementService
     {
         Task<IEnumerable<XR50Tenant>> GetAllTenantsAsync();
@@ -38,18 +36,34 @@ namespace XR50TrainingAssetRepo.Services
 
         public async Task<IEnumerable<XR50Tenant>> GetAllTenantsAsync()
         {
-            var connectionString = _configuration.GetConnectionString("XR50Database");
-            using var connection = new SqlConnection(connectionString);
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
+
+                // ✅ Auto-create registry table if it doesn't exist
+            var createTableSql = @"
+                CREATE TABLE IF NOT EXISTS `XR50TenantRegistry` (
+                `TenantName` varchar(100) NOT NULL PRIMARY KEY,
+                `TenantGroup` varchar(100) NULL,
+                `Description` varchar(500) NULL,
+                `TenantDirectory` varchar(500) NULL,
+                `OwnerName` varchar(255) NULL,
+                `DatabaseName` varchar(100) NOT NULL,
+                `CreatedAt` datetime NOT NULL,
+                `IsActive` boolean NOT NULL DEFAULT 1
+            )";
+    
+            using var createCommand = new MySqlCommand(createTableSql, connection);
+            await createCommand.ExecuteNonQueryAsync();
             
             var sql = @"
-                SELECT TenantName, TenantGroup, Description, TenantDirectory, OwnerName, SchemaName,
-                       TrainingProgramListJson, AdminListJson, CreatedAt, IsActive
-                FROM [dbo].[XR50TenantRegistry] 
+                SELECT TenantName, TenantGroup, Description, TenantDirectory, OwnerName, DatabaseName,
+                       CreatedAt, IsActive
+                FROM XR50TenantRegistry 
                 WHERE IsActive = 1 
                 ORDER BY CreatedAt DESC";
             
-            using var command = new SqlCommand(sql, connection);
+            using var command = new MySqlCommand(sql, connection);
             using var reader = await command.ExecuteReaderAsync();
             
             var results = new List<XR50Tenant>();
@@ -62,9 +76,7 @@ namespace XR50TrainingAssetRepo.Services
                     Description = reader["Description"]?.ToString(),
                     TenantDirectory = reader["TenantDirectory"]?.ToString(),
                     OwnerName = reader["OwnerName"]?.ToString(),
-                    TenantSchema = reader["SchemaName"]?.ToString(),
-
-                    AdminList = JsonSerializer.Deserialize<List<string>>(reader["AdminListJson"]?.ToString() ?? "[]")
+                    TenantSchema = reader["DatabaseName"]?.ToString()
                 });
             }
             
@@ -73,17 +85,17 @@ namespace XR50TrainingAssetRepo.Services
 
         public async Task<XR50Tenant> GetTenantAsync(string tenantName)
         {
-            var connectionString = _configuration.GetConnectionString("XR50Database");
-            using var connection = new SqlConnection(connectionString);
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
             
             var sql = @"
-                SELECT TenantName, TenantGroup, Description, TenantDirectory, OwnerName, SchemaName,
-                       TrainingProgramListJson, AdminListJson, CreatedAt, IsActive
-                FROM [dbo].[XR50TenantRegistry] 
+                SELECT TenantName, TenantGroup, Description, TenantDirectory, OwnerName, DatabaseName,
+                       CreatedAt, IsActive
+                FROM XR50TenantRegistry 
                 WHERE TenantName = @tenantName AND IsActive = 1";
             
-            using var command = new SqlCommand(sql, connection);
+            using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@tenantName", tenantName);
             
             using var reader = await command.ExecuteReaderAsync();
@@ -97,8 +109,7 @@ namespace XR50TrainingAssetRepo.Services
                 Description = reader["Description"]?.ToString(),
                 TenantDirectory = reader["TenantDirectory"]?.ToString(),
                 OwnerName = reader["OwnerName"]?.ToString(),
-                TenantSchema = reader["SchemaName"]?.ToString(),
-                AdminList = JsonSerializer.Deserialize<List<string>>(reader["AdminListJson"]?.ToString() ?? "[]")
+                TenantSchema = reader["DatabaseName"]?.ToString()
             };
         }
 
@@ -110,27 +121,53 @@ namespace XR50TrainingAssetRepo.Services
                 throw new InvalidOperationException($"Tenant '{tenant.TenantName}' already exists");
             }
 
-            // Create the tenant schema and infrastructure
+            // Create the tenant database and infrastructure
             var createdTenant = await _tenantService.CreateTenantAsync(tenant);
             
-            // Set the schema name for the response
+            // Set the database name for the response
             createdTenant.TenantSchema = _tenantService.GetTenantSchema(tenant.TenantName);
             
             return createdTenant;
         }
 
-        public async Task DeleteTenantAsync(string tenantName)
+        public async Task<XR50Tenant> UpdateTenantAsync(string tenantName, XR50Tenant tenant)
         {
-            var connectionString = _configuration.GetConnectionString("XR50Database");
-            using var connection = new SqlConnection(connectionString);
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
             
             var sql = @"
-                UPDATE [dbo].[XR50TenantRegistry] 
+                UPDATE XR50TenantRegistry 
+                SET TenantGroup = @tenantGroup,
+                    Description = @description,
+                    TenantDirectory = @tenantDirectory,
+                    OwnerName = @ownerName
+                WHERE TenantName = @tenantName AND IsActive = 1";
+            
+            using var command = new MySqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@tenantName", tenantName);
+            command.Parameters.AddWithValue("@tenantGroup", tenant.TenantGroup ?? "");
+            command.Parameters.AddWithValue("@description", tenant.Description ?? "");
+            command.Parameters.AddWithValue("@tenantDirectory", tenant.TenantDirectory ?? "");
+            command.Parameters.AddWithValue("@ownerName", tenant.OwnerName ?? "");
+            
+            await command.ExecuteNonQueryAsync();
+            
+            return await GetTenantAsync(tenantName);
+        }
+
+        public async Task DeleteTenantAsync(string tenantName)
+        {
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            using var connection = new MySqlConnection(connectionString);
+            await connection.OpenAsync();
+            
+            var sql = @"
+                UPDATE XR50TenantRegistry 
                 SET IsActive = 0 
                 WHERE TenantName = @tenantName";
             
-            using var command = new SqlCommand(sql, connection);
+            using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@tenantName", tenantName);
             await command.ExecuteNonQueryAsync();
         }

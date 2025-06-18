@@ -60,7 +60,7 @@ services:
       TenantSettings__Admin: ${XR50_OWNCLOUD_ADMIN_USER}
       TenantSettings__Password: ${XR50_OWNCLOUD_ADMIN_PASSWORD}
       ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=${XR50_REPO_DB_NAME};user=${XR50_REPO_DB_USER};password=${XR50_REPO_DB_PASSWORD};
-      DBName__DefaultName: ${XR50_REPO_DB_NAME}
+      BaseDatabaseName: ${XR50_REPO_DB_NAME}
     ports:
       - "5286:5286"
       - "7069:7069"

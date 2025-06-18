@@ -1,6 +1,4 @@
 using System;
-using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -8,12 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MySql.Data.MySqlClient;
 using XR50TrainingAssetRepo.Models;
-using Microsoft.Data.SqlClient; 
 
 namespace XR50TrainingAssetRepo.Services
 {
-    // Enhanced Tenant Service for XR50
+    // Enhanced Tenant Service for XR50 (MySQL)
     public interface IXR50TenantService
     {
         string GetCurrentTenant();
@@ -102,18 +100,18 @@ namespace XR50TrainingAssetRepo.Services
         {
             try
             {
-                var connectionString = _configuration.GetConnectionString("XR50Database");
-                using var connection = new SqlConnection(connectionString);
+                var connectionString = _configuration.GetConnectionString("DefaultConnection");
+                using var connection = new MySqlConnection(connectionString);
                 await connection.OpenAsync();
 
-                // Check if tenant schema exists
-                var schemaName = GetTenantSchema(tenantName);
-                var sql = "SELECT COUNT(*) FROM sys.schemas WHERE name = @schemaName";
+                // Check if tenant database exists
+                var databaseName = GetTenantSchema(tenantName);
+                var sql = "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = @databaseName";
                 
-                using var command = new SqlCommand(sql, connection);
-                command.Parameters.AddWithValue("@schemaName", schemaName);
+                using var command = new MySqlCommand(sql, connection);
+                command.Parameters.AddWithValue("@databaseName", databaseName);
                 
-                var count = (int)await command.ExecuteScalarAsync();
+                var count = Convert.ToInt32(await command.ExecuteScalarAsync());
                 return count > 0;
             }
             catch (Exception ex)
@@ -127,13 +125,13 @@ namespace XR50TrainingAssetRepo.Services
         {
             try
             {
-                // Create the schema and run migrations
+                // Create the database and run migrations
                 using var scope = _serviceProvider.CreateScope();
                 var migrationService = scope.ServiceProvider.GetRequiredService<XR50MigrationService>();
                 
                 await migrationService.CreateTenantDatabaseAsync(tenant);
                 
-                _logger.LogInformation("Successfully created tenant schema: {TenantName}", tenant.TenantName);
+                _logger.LogInformation("Successfully created tenant database: {TenantName}", tenant.TenantName);
                 return tenant;
             }
             catch (Exception ex)
@@ -145,9 +143,9 @@ namespace XR50TrainingAssetRepo.Services
 
         public string GetTenantSchema(string tenantName)
         {
-            // Sanitize tenant name for schema
+            // Sanitize tenant name for database name
             var sanitized = Regex.Replace(tenantName, @"[^a-zA-Z0-9_]", "_");
-            return $"tenant_{sanitized}";
+            return $"xr50_tenant_{sanitized}";
         }
     }
 }
