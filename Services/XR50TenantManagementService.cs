@@ -235,6 +235,8 @@ namespace XR50TrainingAssetRepo.Services
 
         public async Task DeleteTenantAsync(string tenantName)
         {
+            //Storage First or otherwise we will nuke db
+            await DeleteTenantStorageAsync(tenantName);
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
@@ -247,7 +249,7 @@ namespace XR50TrainingAssetRepo.Services
             using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@tenantName", tenantName);
             await command.ExecuteNonQueryAsync();
-            await DeleteTenantStorageAsync(tenantName);
+            
             _logger.LogInformation("Marked tenant {TenantName} as inactive in registry (database still exists)", tenantName);
         }
 
