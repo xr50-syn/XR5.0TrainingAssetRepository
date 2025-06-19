@@ -29,13 +29,13 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers(string tenantName)
         {
-            _logger.LogInformation("🔍 Getting users for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting users for tenant: {TenantName}", tenantName);
             
             using var context = _dbContextFactory.CreateDbContext();
             
             var users = await context.Users.ToListAsync();
             
-            _logger.LogInformation("✅ Found {UserCount} users for tenant: {TenantName}", users.Count, tenantName);
+            _logger.LogInformation("Found {UserCount} users for tenant: {TenantName}", users.Count, tenantName);
             
             return users;
         }
@@ -44,7 +44,7 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("{userName}")]
         public async Task<ActionResult<User>> GetUser(string tenantName, string userName)
         {
-            _logger.LogInformation("🔍 Getting user {UserName} for tenant: {TenantName}", userName, tenantName);
+            _logger.LogInformation("Getting user {UserName} for tenant: {TenantName}", userName, tenantName);
             
             using var context = _dbContextFactory.CreateDbContext();
             
@@ -52,7 +52,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             if (user == null)
             {
-                _logger.LogWarning("❌ User {UserName} not found in tenant: {TenantName}", userName, tenantName);
+                _logger.LogWarning("User {UserName} not found in tenant: {TenantName}", userName, tenantName);
                 return NotFound();
             }
 
@@ -63,14 +63,14 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(string tenantName, User user)
         {
-            _logger.LogInformation("📝 Creating user {UserName} for tenant: {TenantName}", user.UserName, tenantName);
+            _logger.LogInformation(" Creating user {UserName} for tenant: {TenantName}", user.UserName, tenantName);
             
             using var context = _dbContextFactory.CreateDbContext();
             
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            _logger.LogInformation("✅ Created user {UserName} for tenant: {TenantName}", user.UserName, tenantName);
+            _logger.LogInformation("Created user {UserName} for tenant: {TenantName}", user.UserName, tenantName);
 
             return CreatedAtAction(nameof(GetUser), 
                 new { tenantName, userName = user.UserName }, 
@@ -86,7 +86,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 return BadRequest();
             }
 
-            _logger.LogInformation("📝 Updating user {UserName} for tenant: {TenantName}", userName, tenantName);
+            _logger.LogInformation(" Updating user {UserName} for tenant: {TenantName}", userName, tenantName);
             
             using var context = _dbContextFactory.CreateDbContext();
             
@@ -95,7 +95,7 @@ namespace XR50TrainingAssetRepo.Controllers
             try
             {
                 await context.SaveChangesAsync();
-                _logger.LogInformation("✅ Updated user {UserName} for tenant: {TenantName}", userName, tenantName);
+                _logger.LogInformation("Updated user {UserName} for tenant: {TenantName}", userName, tenantName);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -116,7 +116,7 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpDelete("{userName}")]
         public async Task<IActionResult> DeleteUser(string tenantName, string userName)
         {
-            _logger.LogInformation("🗑️ Deleting user {UserName} for tenant: {TenantName}", userName, tenantName);
+            _logger.LogInformation("Deleting user {UserName} for tenant: {TenantName}", userName, tenantName);
             
             using var context = _dbContextFactory.CreateDbContext();
             
@@ -129,7 +129,7 @@ namespace XR50TrainingAssetRepo.Controllers
             context.Users.Remove(user);
             await context.SaveChangesAsync();
 
-            _logger.LogInformation("✅ Deleted user {UserName} for tenant: {TenantName}", userName, tenantName);
+            _logger.LogInformation("Deleted user {UserName} for tenant: {TenantName}", userName, tenantName);
 
             return NoContent();
         }

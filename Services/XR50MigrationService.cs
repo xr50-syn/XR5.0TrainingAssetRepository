@@ -177,6 +177,57 @@ namespace XR50TrainingAssetRepo.Services
             insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
 
             await insertCommand.ExecuteNonQueryAsync();
+
+            // Store owner user in the tenant database (if owner info provided)
+            if (tenant.Owner != null)
+            {
+                await CreateOwnerUserInTenantDatabase(tenant.Owner, tenantDbName);
+            }
+        }
+
+        private async Task CreateOwnerUserInTenantDatabase(User owner, string tenantDbName)
+        {
+            try
+            {
+                var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
+                var baseDatabaseName = _configuration["BaseDatabaseName"] ?? "magical_library";
+                var tenantConnectionString = baseConnectionString.Replace($"database={baseDatabaseName}", $"database={tenantDbName}", StringComparison.OrdinalIgnoreCase);
+
+                _logger.LogInformation("Creating owner user {UserName} in tenant database: {TenantDatabase}", owner.UserName, tenantDbName);
+
+                using var connection = new MySqlConnection(tenantConnectionString);
+                await connection.OpenAsync();
+
+                // Insert owner as the first user in the tenant database
+                var insertOwnerCommand = new MySqlCommand(@"
+                    INSERT INTO `Users` 
+                        (`UserName`, `FullName`, `UserEmail`, `Password`, `admin`, `CreatedDate`, `UpdatedDate`)
+                    VALUES 
+                        (@userName, @fullName, @userEmail, @password, @admin, @createdDate, @updatedDate)
+                    ON DUPLICATE KEY UPDATE
+                        `FullName` = @fullName,
+                        `UserEmail` = @userEmail,
+                        `Password` = @password,
+                        `admin` = @admin,
+                        `UpdatedDate` = @updatedDate", connection);
+
+                insertOwnerCommand.Parameters.AddWithValue("@userName", owner.UserName ?? "");
+                insertOwnerCommand.Parameters.AddWithValue("@fullName", owner.FullName ?? "");
+                insertOwnerCommand.Parameters.AddWithValue("@userEmail", owner.UserEmail ?? "");
+                insertOwnerCommand.Parameters.AddWithValue("@password", owner.Password ?? "");
+                insertOwnerCommand.Parameters.AddWithValue("@admin", owner.admin);
+                insertOwnerCommand.Parameters.AddWithValue("@createdDate", DateTime.UtcNow);
+                insertOwnerCommand.Parameters.AddWithValue("@updatedDate", DateTime.UtcNow);
+
+                await insertOwnerCommand.ExecuteNonQueryAsync();
+
+                _logger.LogInformation(" Created owner user {UserName} in tenant database: {TenantDatabase}", owner.UserName, tenantDbName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, " Failed to create owner user {UserName} in tenant database: {TenantDatabase}", owner?.UserName, tenantDbName);
+                // Don't throw - tenant creation should continue even if owner user creation fails
+            }
         }
 
         public async Task<bool> DeleteTenantDatabaseAsync(string tenantName)

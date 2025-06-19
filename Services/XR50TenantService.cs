@@ -46,7 +46,7 @@ namespace XR50TrainingAssetRepo.Services
             
             // Log the incoming request for debugging
             var path = context?.Request.Path.Value;
-            _logger.LogDebug("🔍 Resolving tenant for path: {Path}", path);
+            _logger.LogDebug("Resolving tenant for path: {Path}", path);
             
             if (!string.IsNullOrEmpty(path))
             {
@@ -59,7 +59,7 @@ namespace XR50TrainingAssetRepo.Services
                     if (pathSegments[0].Equals("api", StringComparison.OrdinalIgnoreCase))
                     {
                         var tenant = pathSegments[1];
-                        _logger.LogInformation("🎯 Resolved tenant from API pattern: {TenantName}", tenant);
+                        _logger.LogInformation("Resolved tenant from API pattern: {TenantName}", tenant);
                         return tenant;
                     }
                     
@@ -70,7 +70,7 @@ namespace XR50TrainingAssetRepo.Services
                             !pathSegments[1].Equals("trainingAssetRepository", StringComparison.OrdinalIgnoreCase))
                         {
                             var tenant = pathSegments[1];
-                            _logger.LogInformation("🎯 Resolved tenant from XR50 pattern: {TenantName}", tenant);
+                            _logger.LogInformation(" Resolved tenant from XR50 pattern: {TenantName}", tenant);
                             return tenant; // /xr50/{tenant}/...
                         }
                         else
@@ -146,9 +146,9 @@ namespace XR50TrainingAssetRepo.Services
                 // Create the database and run migrations
                 using var scope = _serviceProvider.CreateScope();
                 var migrationService = scope.ServiceProvider.GetRequiredService<XR50MigrationService>();
-                
+
                 await migrationService.CreateTenantDatabaseAsync(tenant);
-                
+
                 _logger.LogInformation("Successfully created tenant database: {TenantName}", tenant.TenantName);
                 return tenant;
             }
@@ -157,6 +157,7 @@ namespace XR50TrainingAssetRepo.Services
                 _logger.LogError(ex, "Failed to create tenant {TenantName}", tenant.TenantName);
                 throw;
             }
+            
         }
 
         public string GetTenantSchema(string tenantName)

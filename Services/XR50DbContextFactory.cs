@@ -33,7 +33,7 @@ namespace XR50TrainingAssetRepo.Services
                 var currentTenant = _tenantService.GetCurrentTenant();
                 var connectionString = GetTenantConnectionString(currentTenant);
 
-                _logger.LogInformation("🎯 DbContext Factory - Creating context for tenant: {TenantName}", currentTenant);
+                _logger.LogInformation(" DbContext Factory - Creating context for tenant: {TenantName}", currentTenant);
                 _logger.LogInformation("🔗 Using connection: {ConnectionString}", connectionString.Replace("Password=", "Password=***"));
 
                 var optionsBuilder = new DbContextOptionsBuilder<XR50TrainingContext>();
@@ -50,7 +50,7 @@ namespace XR50TrainingAssetRepo.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating tenant DbContext");
+                _logger.LogError(ex, "Error creating tenant DbContext");
                 throw;
             }
         }
@@ -78,7 +78,7 @@ namespace XR50TrainingAssetRepo.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating admin DbContext");
+                _logger.LogError(ex, "Error creating admin DbContext");
                 throw;
             }
         }
@@ -99,7 +99,7 @@ namespace XR50TrainingAssetRepo.Services
             var tenantDatabase = _tenantService.GetTenantSchema(tenantName);
             var tenantConnectionString = baseConnectionString.Replace($"database={baseDatabaseName}", $"database={tenantDatabase}", StringComparison.OrdinalIgnoreCase);
 
-            _logger.LogInformation("🎯 Switching to tenant database: {TenantDatabase} for tenant: {TenantName}", tenantDatabase, tenantName);
+            _logger.LogInformation(" Switching to tenant database: {TenantDatabase} for tenant: {TenantName}", tenantDatabase, tenantName);
 
             return tenantConnectionString;
         }
