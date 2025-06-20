@@ -12,8 +12,9 @@ namespace XR50TrainingAssetRepo.Models
         public int Id { get; set; }
         public string Description { get; set; }
         public string LearningPathName { get; set; }    
+        public virtual ICollection<ProgramLearningPath> ProgramLearningPaths { get; set; } = new List<ProgramLearningPath>();
         public LearningPath()
-        {  
+        {
 
         }
     }

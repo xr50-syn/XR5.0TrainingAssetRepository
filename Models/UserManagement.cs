@@ -14,13 +14,22 @@ namespace XR50TrainingAssetRepo.Models
         public string? UserName { get; set; }
 
     }
-    
-    public class Group {
-        [ForeignKey("Users")]
-        public virtual List<string>? UserList { get; set; }
-        public string? TenantName {get; set;}
-         [Key]
-         public string? GroupName { get; set; }
 
+    public class Group
+    {
+        public virtual ICollection<GroupUser> GroupUsers { get; set; } = new List<GroupUser>();
+        public string? TenantName { get; set; }
+        [Key]
+        public string? GroupName { get; set; }
     }
+    public class GroupUser
+    {
+        public string GroupName { get; set; }
+        public string UserName { get; set; }
+        
+        // Navigation properties
+        public virtual Group Group { get; set; }
+        public virtual User User { get; set; }
+    }
+
 }

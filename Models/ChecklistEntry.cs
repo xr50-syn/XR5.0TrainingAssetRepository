@@ -10,14 +10,14 @@ namespace XR50TrainingAssetRepo.Models
     {
         [Key]
 
-        public string ChecklistEntryId { get; set; }
+        public int ChecklistEntryId { get; set; }
 
         public string Text { get; set; } = null!;
         public string? Description { get; set; }
 
         public ChecklistEntry()
         {
-            ChecklistEntryId = Guid.NewGuid().ToString();
+            
         }
 
 

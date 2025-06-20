@@ -42,7 +42,11 @@ namespace XR50TrainingAssetRepo.Data
         public DbSet<ChecklistEntry> ChecklistEntries { get; set; } = null!;
         public DbSet<VideoTimestamp> VideoTimestamps { get; set; } = null!;
         public DbSet<WorkflowStep> WorkflowSteps { get; set; } = null!;
-
+        public DbSet<ProgramMaterial> ProgramMaterials { get; set; } = null!;
+        public DbSet<ProgramLearningPath> ProgramLearningPaths { get; set; } = null!;
+        public DbSet<GroupUser> GroupUsers { get; set; } = null!;
+        public DbSet<TenantAdmin> TenantAdmins { get; set; } = null!;
+        public DbSet<MaterialRelationship> MaterialRelationships { get; set; } = null!;
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured && _tenantService != null && _configuration != null)
@@ -122,6 +126,31 @@ namespace XR50TrainingAssetRepo.Data
             modelBuilder.Entity<ChecklistMaterial>().Property<DateTime>("UpdatedDate");
             modelBuilder.Entity<ImageMaterial>().Property<DateTime>("CreatedDate");
             modelBuilder.Entity<ImageMaterial>().Property<DateTime>("UpdatedDate");
+
+            // Just configure composite primary keys - EF will figure out the relationships
+            modelBuilder.Entity<ProgramMaterial>()
+                .HasKey(pm => new { pm.TrainingProgramId, pm.MaterialId });
+
+            modelBuilder.Entity<ProgramLearningPath>()
+                .HasKey(plp => new { plp.TrainingProgramId, plp.LearningPathId });
+
+            modelBuilder.Entity<GroupUser>()
+                .HasKey(gu => new { gu.GroupName, gu.UserName });
+
+            modelBuilder.Entity<TenantAdmin>()
+                .HasKey(ta => new { ta.TenantName, ta.UserName });
+
+            // MaterialRelationship has its own GUID primary key
+            modelBuilder.Entity<MaterialRelationship>()
+                .HasKey(mr => mr.Id);
+
+            // Add indexes for performance
+            modelBuilder.Entity<MaterialRelationship>()
+                .HasIndex(mr => mr.MaterialId);
+            
+            modelBuilder.Entity<MaterialRelationship>()
+                .HasIndex(mr => new { mr.RelatedEntityId, mr.RelatedEntityType });
+
         }
 
         // Keep your existing SaveChanges override

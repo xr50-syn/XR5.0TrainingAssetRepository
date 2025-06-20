@@ -1572,7 +1572,7 @@
         }
       }
     },
-    "/xr50/trainingAssetRepository/tenants/{tenantName}/trainingPrograms/{programName}": {
+    "/xr50/trainingAssetRepository/tenants/{tenantName}/trainingPrograms/{Name}": {
       "get": {
         "tags": [
           "trainingPrograms"
@@ -1587,7 +1587,7 @@
             }
           },
           {
-            "name": "programName",
+            "name": "Name",
             "in": "path",
             "required": true,
             "schema": {
@@ -1632,7 +1632,7 @@
             }
           },
           {
-            "name": "programName",
+            "name": "Name",
             "in": "path",
             "required": true,
             "schema": {
@@ -2152,7 +2152,7 @@
             "type": "string",
             "nullable": true
           },
-          "programName": {
+          "Name": {
             "type": "string",
             "nullable": true
           }

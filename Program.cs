@@ -206,6 +206,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddHttpContextAccessor();
         services.AddScoped<IXR50TenantService, XR50TenantService>();
+        services.AddScoped<ITrainingProgramService, TrainingProgramService>(); 
         services.AddScoped<IXR50TenantManagementService, XR50TenantManagementService>();
         services.AddScoped<XR50MigrationService>();
         services.AddScoped<IXR50DatabaseInitializer, XR50DatabaseInitializer>();

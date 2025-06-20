@@ -234,101 +234,191 @@ namespace XR50TrainingAssetRepo.Services
         {
             return new List<string>
             {
+                // Core Entity Tables
                 @"CREATE TABLE IF NOT EXISTS `Users` (
-                    `UserName` varchar(50) NOT NULL,
-                    `FullName` varchar(100) NOT NULL,
+                    `UserName` varchar(255) NOT NULL,
+                    `FullName` varchar(255) DEFAULT NULL,
                     `UserEmail` varchar(255) DEFAULT NULL,
-                    `Password` varchar(50) DEFAULT NULL,
+                    `Password` varchar(255) DEFAULT NULL,
                     `admin` tinyint(1) NOT NULL DEFAULT 0,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`UserName`)
                 )",
 
-                @"CREATE TABLE IF NOT EXISTS `TrainingPrograms` (
-                    `TrainingProgramId` varchar(50) NOT NULL,
-                    `ProgramName` varchar(255) NOT NULL,
+                @"CREATE TABLE IF NOT EXISTS `Assets` (
+                    `Id` int NOT NULL AUTO_INCREMENT,
                     `Description` varchar(1000) DEFAULT NULL,
+                    `Src` varchar(500) DEFAULT NULL,
+                    `Filetype` varchar(100) DEFAULT NULL,
+                    `Filename` varchar(255) NOT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`TrainingProgramId`)
+                    PRIMARY KEY (`Id`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `TrainingPrograms` (
+                    `Id` int NOT NULL AUTO_INCREMENT,
+                    `Name` varchar(255) NOT NULL,
+                    `Created_at` varchar(255) DEFAULT NULL,
+                    `CreatedDate` datetime(6) NOT NULL,
+                    `UpdatedDate` datetime(6) NOT NULL,
+                    PRIMARY KEY (`Id`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `LearningPaths` (
-                    `LearningPathId` varchar(50) NOT NULL,
-                    `PathName` varchar(255) NOT NULL,
-                    `Description` varchar(1000) DEFAULT NULL,
+                    `Id` int NOT NULL AUTO_INCREMENT,
+                    `Description` varchar(1000) NOT NULL,
+                    `LearningPathName` varchar(255) NOT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`LearningPathId`)
+                    PRIMARY KEY (`Id`)
                 )",
 
+                // Materials table with EF Core inheritance (TPH - Table Per Hierarchy)
                 @"CREATE TABLE IF NOT EXISTS `Materials` (
-                    `MaterialId` varchar(50) NOT NULL,
-                    `MaterialName` varchar(255) NOT NULL,
-                    `MaterialType` varchar(50) DEFAULT NULL,
+                    `Id` int NOT NULL AUTO_INCREMENT,
                     `Description` varchar(1000) DEFAULT NULL,
-                    `Discriminator` varchar(255) NOT NULL,
-                    `VideoPath` varchar(500) DEFAULT NULL,
-                    `ImagePath` varchar(500) DEFAULT NULL,
+                    `Name` varchar(255) DEFAULT NULL,
+                    `Created_at` datetime DEFAULT NULL,
+                    `Updated_at` datetime DEFAULT NULL,
+                    `Type` int NOT NULL,
+                    `Discriminator` varchar(50) NOT NULL,
+                    -- MQTT_TemplateMaterial specific
+                    `message_type` varchar(255) DEFAULT NULL,
+                    `message_text` text DEFAULT NULL,
+                    -- UnityDemoMaterial and DefaultMaterial specific
+                    `AssetId` varchar(255) DEFAULT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`MaterialId`)
+                    PRIMARY KEY (`Id`),
+                    INDEX `idx_discriminator` (`Discriminator`),
+                    INDEX `idx_type` (`Type`)
                 )",
 
-                @"CREATE TABLE IF NOT EXISTS `Assets` (
-                    `AssetId` varchar(50) NOT NULL,
-                    `AssetName` varchar(255) NOT NULL,
-                    `AssetType` varchar(50) DEFAULT NULL,
-                    `FilePath` varchar(500) DEFAULT NULL,
+                // Supporting Entity Tables
+                @"CREATE TABLE IF NOT EXISTS `ChecklistEntries` (
+                    `ChecklistEntryId` int NOT NULL AUTO_INCREMENT,
+                    `Text` varchar(1000) NOT NULL,
+                    `Description` varchar(1000) DEFAULT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`AssetId`)
+                    PRIMARY KEY (`ChecklistEntryId`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `QuestionnaireEntries` (
+                    `QuestionnaireEntryId` int NOT NULL AUTO_INCREMENT,
+                    `Text` varchar(1000) NOT NULL,
+                    `Description` varchar(1000) DEFAULT NULL,
+                    `CreatedDate` datetime(6) NOT NULL,
+                    `UpdatedDate` datetime(6) NOT NULL,
+                    PRIMARY KEY (`QuestionnaireEntryId`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `VideoTimestamps` (
+                    `id` int NOT NULL AUTO_INCREMENT,
+                    `Title` varchar(255) NOT NULL,
+                    `Time` varchar(50) NOT NULL,
+                    `Description` varchar(1000) DEFAULT NULL,
+                    `CreatedDate` datetime(6) NOT NULL,
+                    `UpdatedDate` datetime(6) NOT NULL,
+                    PRIMARY KEY (`id`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `WorkflowSteps` (
+                    `Id` int NOT NULL AUTO_INCREMENT,
+                    `Title` varchar(255) NOT NULL,
+                    `Content` text DEFAULT NULL,
+                    `CreatedDate` datetime(6) NOT NULL,
+                    `UpdatedDate` datetime(6) NOT NULL,
+                    PRIMARY KEY (`Id`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `Shares` (
                     `ShareId` varchar(50) NOT NULL,
-                    `ShareType` varchar(50) DEFAULT NULL,
+                    `FileId` varchar(50) DEFAULT NULL,
+                    `Type` int NOT NULL,
+                    `Target` varchar(255) NOT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`ShareId`)
                 )",
 
-                @"CREATE TABLE IF NOT EXISTS `ChecklistEntries` (
-                    `EntryId` varchar(50) NOT NULL,
-                    `EntryText` varchar(500) DEFAULT NULL,
+                @"CREATE TABLE IF NOT EXISTS `Groups` (
+                    `GroupName` varchar(255) NOT NULL,
+                    `TenantName` varchar(255) DEFAULT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`EntryId`)
+                    PRIMARY KEY (`GroupName`)
                 )",
 
-                @"CREATE TABLE IF NOT EXISTS `VideoTimestamps` (
-                    `TimestampId` varchar(50) NOT NULL,
-                    `Description` varchar(500) DEFAULT NULL,
+                @"CREATE TABLE IF NOT EXISTS `TenantDirectories` (
+                    `TenantPath` varchar(500) NOT NULL,
+                    `TenantName` varchar(255) DEFAULT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`TimestampId`)
-                )",
-
-                @"CREATE TABLE IF NOT EXISTS `WorkflowSteps` (
-                    `StepId` varchar(50) NOT NULL,
-                    `StepName` varchar(255) DEFAULT NULL,
-                    `Description` varchar(1000) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`StepId`)
+                    PRIMARY KEY (`TenantPath`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `Tenants` (
-                    `TenantName` varchar(100) NOT NULL,
-                    `TenantGroup` varchar(100) DEFAULT NULL,
-                    `Description` varchar(500) DEFAULT NULL,
+                    `TenantName` varchar(255) NOT NULL,
+                    `TenantGroup` varchar(255) DEFAULT NULL,
+                    `TenantSchema` varchar(255) DEFAULT NULL,
+                    `Description` varchar(1000) DEFAULT NULL,
                     `TenantDirectory` varchar(500) DEFAULT NULL,
                     `OwnerName` varchar(255) DEFAULT NULL,
-                    `TenantSchema` varchar(255) DEFAULT NULL,
                     `CreatedDate` datetime(6) NOT NULL,
                     `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`TenantName`)
+                )",
+
+                // Junction Tables for Many-to-Many Relationships
+                @"CREATE TABLE IF NOT EXISTS `ProgramMaterials` (
+                    `TrainingProgramId` int NOT NULL,
+                    `MaterialId` int NOT NULL,
+                    PRIMARY KEY (`TrainingProgramId`, `MaterialId`),
+                    INDEX `idx_program` (`TrainingProgramId`),
+                    INDEX `idx_material` (`MaterialId`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `ProgramLearningPaths` (
+                    `TrainingProgramId` int NOT NULL,
+                    `LearningPathId` int NOT NULL,
+                    PRIMARY KEY (`TrainingProgramId`, `LearningPathId`),
+                    INDEX `idx_program` (`TrainingProgramId`),
+                    INDEX `idx_path` (`LearningPathId`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `GroupUsers` (
+                    `GroupName` varchar(255) NOT NULL,
+                    `UserName` varchar(255) NOT NULL,
+                    PRIMARY KEY (`GroupName`, `UserName`),
+                    INDEX `idx_group` (`GroupName`),
+                    INDEX `idx_user` (`UserName`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `TenantAdmins` (
+                    `TenantName` varchar(255) NOT NULL,
+                    `UserName` varchar(255) NOT NULL,
+                    PRIMARY KEY (`TenantName`, `UserName`),
+                    INDEX `idx_tenant` (`TenantName`),
+                    INDEX `idx_user` (`UserName`)
+                )",
+
+                // Complex Material Relationships Table
+                @"CREATE TABLE IF NOT EXISTS `MaterialRelationships` (
+                    `Id` varchar(50) NOT NULL,
+                    `MaterialId` int NOT NULL,
+                    `RelatedEntityId` varchar(50) NOT NULL,
+                    `RelatedEntityType` varchar(50) NOT NULL,
+                    `RelationshipType` varchar(50) DEFAULT NULL,
+                    `DisplayOrder` int DEFAULT NULL,
+                    `CreatedDate` datetime(6) NOT NULL,
+                    `UpdatedDate` datetime(6) NOT NULL,
+                    PRIMARY KEY (`Id`),
+                    INDEX `idx_material_id` (`MaterialId`),
+                    INDEX `idx_related_entity` (`RelatedEntityId`, `RelatedEntityType`),
+                    INDEX `idx_relationship_type` (`RelationshipType`)
                 )"
             };
         }

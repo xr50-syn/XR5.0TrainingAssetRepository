@@ -14,92 +14,82 @@ namespace XR50TrainingAssetRepo.Controllers
     [ApiController]
     public class TrainingProgramsController : ControllerBase
     {
-        private readonly IXR50TenantDbContextFactory _dbContextFactory;
+        private readonly ITrainingProgramService _trainingProgramService;
         private readonly ILogger<TrainingProgramsController> _logger;
 
         public TrainingProgramsController(
-            IXR50TenantDbContextFactory dbContextFactory,
+            ITrainingProgramService trainingProgramService,
             ILogger<TrainingProgramsController> logger)
         {
-            _dbContextFactory = dbContextFactory;
+            _trainingProgramService = trainingProgramService;
             _logger = logger;
         }
 
-        // GET: api/{tenantName}/trainingPrograms
+        // GET: api/{tenantName}/trainingprograms
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingPrograms(string tenantName)
         {
-            _logger.LogInformation("Getting trainingPrograms for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("🔍 Getting training programs for tenant: {TenantName}", tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
+            var programs = await _trainingProgramService.GetAllTrainingProgramsAsync();
             
-            var trainingPrograms = await context.TrainingPrograms.ToListAsync();
+            _logger.LogInformation("✅ Found {ProgramCount} training programs for tenant: {TenantName}", programs.Count(), tenantName);
             
-            _logger.LogInformation("Found {TrainingProgramCount} trainingPrograms for tenant: {TenantName}", trainingPrograms.Count, tenantName);
-            
-            return trainingPrograms;
+            return Ok(programs);
         }
 
-        // GET: api/{tenantName}/trainingPrograms/5
-        [HttpGet("{trainingProgramName}")]
-        public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string tenantName, string trainingProgramName)
+        // GET: api/{tenantName}/trainingprograms/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string tenantName, int id)
         {
-            _logger.LogInformation("Getting trainingProgram {TrainingProgramName} for tenant: {TenantName}", trainingProgramName, tenantName);
+            _logger.LogInformation("🔍 Getting training program {Id} for tenant: {TenantName}", id, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
-            
-            var trainingProgram = await context.TrainingPrograms.FindAsync(trainingProgramName);
+            var program = await _trainingProgramService.GetTrainingProgramAsync(id);
 
-            if (trainingProgram == null)
+            if (program == null)
             {
-                _logger.LogWarning("TrainingProgram {TrainingProgramName} not found in tenant: {TenantName}", trainingProgramName, tenantName);
+                _logger.LogWarning("❌ Training program {Id} not found in tenant: {TenantName}", id, tenantName);
                 return NotFound();
             }
 
-            return trainingProgram;
+            return program;
         }
 
-        // POST: api/{tenantName}/trainingPrograms
+        // POST: api/{tenantName}/trainingprograms
         [HttpPost]
-        public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName, TrainingProgram trainingProgram)
+        public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName, TrainingProgram program)
         {
-            _logger.LogInformation(" Creating trainingProgram {TrainingProgramName} for tenant: {TenantName}", trainingProgram.Name, tenantName);
+            _logger.LogInformation("📝 Creating training program {Name} for tenant: {TenantName}", program.Name, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
-            
-            context.TrainingPrograms.Add(trainingProgram);
-            await context.SaveChangesAsync();
+            var createdProgram = await _trainingProgramService.CreateTrainingProgramAsync(program);
 
-            _logger.LogInformation("Created trainingProgram {TrainingProgramName} for tenant: {TenantName}", trainingProgram.Name, tenantName);
+            _logger.LogInformation("✅ Created training program {Name} with ID {Id} for tenant: {TenantName}", 
+                createdProgram.Name, createdProgram.Id, tenantName);
 
             return CreatedAtAction(nameof(GetTrainingProgram), 
-                new { tenantName, trainingProgramName = trainingProgram.Name }, 
-                trainingProgram);
+                new { tenantName, id = createdProgram.Id }, 
+                createdProgram);
         }
 
-        // PUT: api/{tenantName}/trainingPrograms/5
-        [HttpPut("{trainingProgramName}")]
-        public async Task<IActionResult> PutTrainingProgram(string tenantName, string trainingProgramName, TrainingProgram trainingProgram)
+        // PUT: api/{tenantName}/trainingprograms/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutTrainingProgram(string tenantName, int id, TrainingProgram program)
         {
-            if (trainingProgramName != trainingProgram.Name)
+            if (id != program.Id)
             {
-                return BadRequest();
+                return BadRequest("ID mismatch");
             }
 
-            _logger.LogInformation(" Updating trainingProgram {TrainingProgramName} for tenant: {TenantName}", trainingProgramName, tenantName);
+            _logger.LogInformation("📝 Updating training program {Id} for tenant: {TenantName}", id, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
-            
-            context.Entry(trainingProgram).State = EntityState.Modified;
-
             try
             {
-                await context.SaveChangesAsync();
-                _logger.LogInformation("Updated trainingProgram {TrainingProgramName} for tenant: {TenantName}", trainingProgramName, tenantName);
+                await _trainingProgramService.UpdateTrainingProgramAsync(program);
+                _logger.LogInformation("✅ Updated training program {Id} for tenant: {TenantName}", id, tenantName);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await TrainingProgramExistsAsync(trainingProgramName))
+                if (!await _trainingProgramService.TrainingProgramExistsAsync(id))
                 {
                     return NotFound();
                 }
@@ -112,32 +102,22 @@ namespace XR50TrainingAssetRepo.Controllers
             return NoContent();
         }
 
-        // DELETE: api/{tenantName}/trainingPrograms/5
-        [HttpDelete("{trainingProgramName}")]
-        public async Task<IActionResult> DeleteTrainingProgram(string tenantName, string trainingProgramName)
+        // DELETE: api/{tenantName}/trainingprograms/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTrainingProgram(string tenantName, int id)
         {
-            _logger.LogInformation("Deleting trainingProgram {TrainingProgramName} for tenant: {TenantName}", trainingProgramName, tenantName);
+            _logger.LogInformation("🗑️ Deleting training program {Id} for tenant: {TenantName}", id, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
+            var deleted = await _trainingProgramService.DeleteTrainingProgramAsync(id);
             
-            var trainingProgram = await context.TrainingPrograms.FindAsync(trainingProgramName);
-            if (trainingProgram == null)
+            if (!deleted)
             {
                 return NotFound();
             }
 
-            context.TrainingPrograms.Remove(trainingProgram);
-            await context.SaveChangesAsync();
-
-            _logger.LogInformation("Deleted trainingProgram {TrainingProgramName} for tenant: {TenantName}", trainingProgramName, tenantName);
+            _logger.LogInformation("✅ Deleted training program {Id} for tenant: {TenantName}", id, tenantName);
 
             return NoContent();
-        }
-
-        private async Task<bool> TrainingProgramExistsAsync(string trainingProgramName)
-        {
-            using var context = _dbContextFactory.CreateDbContext();
-            return await context.TrainingPrograms.AnyAsync(e => e.Name == trainingProgramName);
         }
     }
 }
