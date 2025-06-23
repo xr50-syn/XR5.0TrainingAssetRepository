@@ -29,11 +29,11 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingPrograms(string tenantName)
         {
-            _logger.LogInformation("🔍 Getting training programs for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting training programs for tenant: {TenantName}", tenantName);
             
             var programs = await _trainingProgramService.GetAllTrainingProgramsAsync();
             
-            _logger.LogInformation("✅ Found {ProgramCount} training programs for tenant: {TenantName}", programs.Count(), tenantName);
+            _logger.LogInformation("Found {ProgramCount} training programs for tenant: {TenantName}", programs.Count(), tenantName);
             
             return Ok(programs);
         }
@@ -42,13 +42,13 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string tenantName, int id)
         {
-            _logger.LogInformation("🔍 Getting training program {Id} for tenant: {TenantName}", id, tenantName);
+            _logger.LogInformation("Getting training program {Id} for tenant: {TenantName}", id, tenantName);
             
             var program = await _trainingProgramService.GetTrainingProgramAsync(id);
 
             if (program == null)
             {
-                _logger.LogWarning("❌ Training program {Id} not found in tenant: {TenantName}", id, tenantName);
+                _logger.LogWarning("Training program {Id} not found in tenant: {TenantName}", id, tenantName);
                 return NotFound();
             }
 
@@ -59,11 +59,11 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost]
         public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName, TrainingProgram program)
         {
-            _logger.LogInformation("📝 Creating training program {Name} for tenant: {TenantName}", program.Name, tenantName);
+            _logger.LogInformation("Creating training program {Name} for tenant: {TenantName}", program.Name, tenantName);
             
             var createdProgram = await _trainingProgramService.CreateTrainingProgramAsync(program);
 
-            _logger.LogInformation("✅ Created training program {Name} with ID {Id} for tenant: {TenantName}", 
+            _logger.LogInformation("Created training program {Name} with ID {Id} for tenant: {TenantName}", 
                 createdProgram.Name, createdProgram.Id, tenantName);
 
             return CreatedAtAction(nameof(GetTrainingProgram), 
@@ -80,12 +80,12 @@ namespace XR50TrainingAssetRepo.Controllers
                 return BadRequest("ID mismatch");
             }
 
-            _logger.LogInformation("📝 Updating training program {Id} for tenant: {TenantName}", id, tenantName);
+            _logger.LogInformation("Updating training program {Id} for tenant: {TenantName}", id, tenantName);
             
             try
             {
                 await _trainingProgramService.UpdateTrainingProgramAsync(program);
-                _logger.LogInformation("✅ Updated training program {Id} for tenant: {TenantName}", id, tenantName);
+                _logger.LogInformation("Updated training program {Id} for tenant: {TenantName}", id, tenantName);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -106,7 +106,7 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrainingProgram(string tenantName, int id)
         {
-            _logger.LogInformation("🗑️ Deleting training program {Id} for tenant: {TenantName}", id, tenantName);
+            _logger.LogInformation("Deleting training program {Id} for tenant: {TenantName}", id, tenantName);
             
             var deleted = await _trainingProgramService.DeleteTrainingProgramAsync(id);
             
@@ -115,7 +115,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound();
             }
 
-            _logger.LogInformation("✅ Deleted training program {Id} for tenant: {TenantName}", id, tenantName);
+            _logger.LogInformation("Deleted training program {Id} for tenant: {TenantName}", id, tenantName);
 
             return NoContent();
         }

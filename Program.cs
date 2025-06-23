@@ -13,12 +13,18 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using XR50TrainingAssetRepo.Data;
 using XR50TrainingAssetRepo.Services;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Http.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddXR50MultitenancyWithDynamicDb(builder.Configuration);
@@ -49,6 +55,7 @@ builder.Services.AddDbContext<XR50TrainingContext>((serviceProvider, options) =>
     
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
+
 /*builder.Services.AddAuthentication(
         CertificateAuthenticationDefaults.AuthenticationScheme)
     .AddCertificate(options =>
@@ -86,7 +93,6 @@ builder.Services.AddSwaggerGen(c =>
 {
     // Define multiple Swagger documents, one for each logical grouping
     c.SwaggerDoc("tenants", new OpenApiInfo { Title = "1. Tenant Management", Version = "v1" });
-    c.SwaggerDoc("test", new OpenApiInfo { Title = "7. test", Version = "v1" });
     c.SwaggerDoc("programs", new OpenApiInfo { Title = "2. Training Program Management", Version = "v1" });
     c.SwaggerDoc("paths", new OpenApiInfo { Title = "3. Learning Path Management", Version = "v1" });
     c.SwaggerDoc("materials", new OpenApiInfo { Title = "4. Material Management", Version = "v1" });
@@ -147,13 +153,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
       {
           // Add endpoints in desired order
-          c.SwaggerEndpoint("/swagger/v1/swagger.json", "Default");
+
           c.SwaggerEndpoint("/swagger/tenants/swagger.json", "1. Tenant Management");
           c.SwaggerEndpoint("/swagger/programs/swagger.json", "2. Training Program Management");
           c.SwaggerEndpoint("/swagger/paths/swagger.json", "3. Learning Path Management");
           c.SwaggerEndpoint("/swagger/materials/swagger.json", "4. Material Management");
           c.SwaggerEndpoint("/swagger/assets/swagger.json", "5. Asset Management");
           c.SwaggerEndpoint("/swagger/users/swagger.json", "6. User Management");
+          c.SwaggerEndpoint("/swagger/v1/swagger.json", "Default");
       });
 }
 
@@ -213,7 +220,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IXR50TenantTroubleshootingService, XR50TenantTroubleshootingService>();
         services.AddScoped<IXR50ManualTableCreator, XR50ManualTableCreator>();
         services.AddScoped<IXR50TenantDbContextFactory, XR50TenantDbContextFactory>();
-
+        services.AddScoped<ILearningPathService, LearningPathService>();
+        services.AddScoped<IMaterialService, MaterialService>();
+        services.AddScoped<IAssetService, AssetService>();
         // Keep the original DbContext registration for admin operations
         services.AddDbContext<XR50TrainingContext>((serviceProvider, options) =>
         {

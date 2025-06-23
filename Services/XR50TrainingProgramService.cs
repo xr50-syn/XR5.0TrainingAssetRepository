@@ -30,15 +30,20 @@ namespace XR50TrainingAssetRepo.Services
         public async Task<IEnumerable<TrainingProgram>> GetAllTrainingProgramsAsync()
         {
             using var context = _dbContextFactory.CreateDbContext();
-            return await context.TrainingPrograms.ToListAsync();
+            return await context.TrainingPrograms
+                .Include(tp => tp.ProgramLearningPaths)  // Show learning path associations
+                .Include(tp => tp.ProgramMaterials)      // Show material associations (if you have this)
+                .ToListAsync();
         }
 
         public async Task<TrainingProgram?> GetTrainingProgramAsync(int id)
         {
             using var context = _dbContextFactory.CreateDbContext();
-            return await context.TrainingPrograms.FindAsync(id);
+            return await context.TrainingPrograms
+                .Include(tp => tp.ProgramLearningPaths)  // Show learning path associations
+                .Include(tp => tp.ProgramMaterials)      // Show material associations (if you have this)
+                .FirstOrDefaultAsync(tp => tp.Id == id);
         }
-
         public async Task<TrainingProgram> CreateTrainingProgramAsync(TrainingProgram program)
         {
             using var context = _dbContextFactory.CreateDbContext();

@@ -1,6 +1,5 @@
 {
   "description": "A non-rigorous description of Amethyst's custom-made epic spells'",
-  "TenantName": "DECEIT Library of Forbidden Texts",
   "Name": "Epic_Spellbook",
   "materialType": 3,
   "steps": [

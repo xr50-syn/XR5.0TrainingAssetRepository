@@ -126,6 +126,8 @@ namespace XR50TrainingAssetRepo.Data
             modelBuilder.Entity<ChecklistMaterial>().Property<DateTime>("UpdatedDate");
             modelBuilder.Entity<ImageMaterial>().Property<DateTime>("CreatedDate");
             modelBuilder.Entity<ImageMaterial>().Property<DateTime>("UpdatedDate");
+            modelBuilder.Entity<Asset>().Property<DateTime>("CreatedDate");
+            modelBuilder.Entity<Asset>().Property<DateTime>("UpdatedDate");
 
             // Just configure composite primary keys - EF will figure out the relationships
             modelBuilder.Entity<ProgramMaterial>()

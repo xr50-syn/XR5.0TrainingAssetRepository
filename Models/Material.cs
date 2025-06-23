@@ -44,10 +44,10 @@ namespace XR50TrainingAssetRepo.Models
     public class ChecklistMaterial : Material
     {
         // Implementation specific to checklist materials
+        public List<ChecklistEntry> ChecklistEntries { get; set; }
         public ChecklistMaterial()
         {
-
-
+            ChecklistEntries = new List<ChecklistEntry>();
             Type = Type.Checklist;
         }
 
@@ -66,9 +66,10 @@ namespace XR50TrainingAssetRepo.Models
     public class VideoMaterial : Material
     {
         // Implementation specific to video materials
-
+        public List<VideoTimestamp> VideoTimestamps { get; set; }
         public VideoMaterial()
         {
+            VideoTimestamps = new List<VideoTimestamp>();
             Type = Type.Video;
         }
     }
@@ -76,9 +77,10 @@ namespace XR50TrainingAssetRepo.Models
     public class WorkflowMaterial : Material
     {
         // Implementation specific to workflow materials
+        public List<WorkflowStep> WorkflowSteps { get; set; }
         public WorkflowMaterial()
         {
-
+            WorkflowSteps = new List<WorkflowStep>();
             Type = Type.Workflow;
         }
     }

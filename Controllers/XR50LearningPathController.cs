@@ -14,92 +14,84 @@ namespace XR50TrainingAssetRepo.Controllers
     [ApiController]
     public class LearningPathsController : ControllerBase
     {
-        private readonly IXR50TenantDbContextFactory _dbContextFactory;
+        private readonly ILearningPathService _learningPathService;
         private readonly ILogger<LearningPathsController> _logger;
 
         public LearningPathsController(
-            IXR50TenantDbContextFactory dbContextFactory,
+            ILearningPathService learningPathService,
             ILogger<LearningPathsController> logger)
         {
-            _dbContextFactory = dbContextFactory;
+            _learningPathService = learningPathService;
             _logger = logger;
         }
 
-        // GET: api/{tenantName}/learningPaths
+        // GET: api/{tenantName}/learningpaths
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LearningPath>>> GetLearningPaths(string tenantName)
         {
-            _logger.LogInformation("Getting learningPaths for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting learning paths for tenant: {TenantName}", tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
+            var learningPaths = await _learningPathService.GetAllLearningPathsAsync();
             
-            var learningPaths = await context.LearningPaths.ToListAsync();
+            _logger.LogInformation("Found {LearningPathCount} learning paths for tenant: {TenantName}", 
+                learningPaths.Count(), tenantName);
             
-            _logger.LogInformation("Found {LearningPathCount} learningPaths for tenant: {TenantName}", learningPaths.Count, tenantName);
-            
-            return learningPaths;
+            return Ok(learningPaths);
         }
 
-        // GET: api/{tenantName}/learningPaths/5
-        [HttpGet("{learningPathId}")]
-        public async Task<ActionResult<LearningPath>> GetLearningPath(string tenantName, int learningPathId)
+        // GET: api/{tenantName}/learningpaths/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<LearningPath>> GetLearningPath(string tenantName, int id)
         {
-            _logger.LogInformation("Getting learningPath {LearningPathId} for tenant: {TenantName}", learningPathId, tenantName);
+            _logger.LogInformation("Getting learning path {Id} for tenant: {TenantName}", id, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
-            
-            var learningPath = await context.LearningPaths.FindAsync(learningPathId);
+            var learningPath = await _learningPathService.GetLearningPathAsync(id);
 
             if (learningPath == null)
             {
-                _logger.LogWarning("LearningPath {LearningPathId} not found in tenant: {TenantName}", learningPathId, tenantName);
+                _logger.LogWarning("Learning path {Id} not found in tenant: {TenantName}", id, tenantName);
                 return NotFound();
             }
 
             return learningPath;
         }
 
-        // POST: api/{tenantName}/learningPaths
+        // POST: api/{tenantName}/learningpaths
         [HttpPost]
         public async Task<ActionResult<LearningPath>> PostLearningPath(string tenantName, LearningPath learningPath)
         {
-            _logger.LogInformation(" Creating learningPath {LearningPathId} for tenant: {TenantName}", learningPath.Id, tenantName);
+            _logger.LogInformation("Creating learning path {Name} for tenant: {TenantName}", 
+                learningPath.LearningPathName, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
-            
-            context.LearningPaths.Add(learningPath);
-            await context.SaveChangesAsync();
+            var createdLearningPath = await _learningPathService.CreateLearningPathAsync(learningPath);
 
-            _logger.LogInformation("Created learningPath {LearningPathId} for tenant: {TenantName}", learningPath.Id, tenantName);
+            _logger.LogInformation("Created learning path {Name} with ID {Id} for tenant: {TenantName}", 
+                createdLearningPath.LearningPathName, createdLearningPath.Id, tenantName);
 
             return CreatedAtAction(nameof(GetLearningPath), 
-                new { tenantName, learningPathId = learningPath.Id }, 
-                learningPath);
+                new { tenantName, id = createdLearningPath.Id }, 
+                createdLearningPath);
         }
 
-        // PUT: api/{tenantName}/learningPaths/5
-        [HttpPut("{learningPathId}")]
-        public async Task<IActionResult> PutLearningPath(string tenantName, int learningPathId, LearningPath learningPath)
+        // PUT: api/{tenantName}/learningpaths/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutLearningPath(string tenantName, int id, LearningPath learningPath)
         {
-            if (learningPathId != learningPath.Id)
+            if (id != learningPath.Id)
             {
-                return BadRequest();
+                return BadRequest("ID mismatch");
             }
 
-            _logger.LogInformation(" Updating learningPath {LearningPathId} for tenant: {TenantName}", learningPathId, tenantName);
+            _logger.LogInformation("Updating learning path {Id} for tenant: {TenantName}", id, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
-            
-            context.Entry(learningPath).State = EntityState.Modified;
-
             try
             {
-                await context.SaveChangesAsync();
-                _logger.LogInformation("Updated learningPath {LearningPathId} for tenant: {TenantName}", learningPathId, tenantName);
+                await _learningPathService.UpdateLearningPathAsync(learningPath);
+                _logger.LogInformation("Updated learning path {Id} for tenant: {TenantName}", id, tenantName);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await LearningPathExistsAsync(learningPathId))
+                if (!await _learningPathService.LearningPathExistsAsync(id))
                 {
                     return NotFound();
                 }
@@ -112,32 +104,77 @@ namespace XR50TrainingAssetRepo.Controllers
             return NoContent();
         }
 
-        // DELETE: api/{tenantName}/learningPaths/5
-        [HttpDelete("{learningPathId}")]
-        public async Task<IActionResult> DeleteLearningPath(string tenantName, string learningPathId)
+        // DELETE: api/{tenantName}/learningpaths/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteLearningPath(string tenantName, int id)
         {
-            _logger.LogInformation("Deleting learningPath {LearningPathId} for tenant: {TenantName}", learningPathId, tenantName);
+            _logger.LogInformation("Deleting learning path {Id} for tenant: {TenantName}", id, tenantName);
             
-            using var context = _dbContextFactory.CreateDbContext();
+            var deleted = await _learningPathService.DeleteLearningPathAsync(id);
             
-            var learningPath = await context.LearningPaths.FindAsync(learningPathId);
-            if (learningPath == null)
+            if (!deleted)
             {
                 return NotFound();
             }
 
-            context.LearningPaths.Remove(learningPath);
-            await context.SaveChangesAsync();
-
-            _logger.LogInformation("Deleted learningPath {LearningPathId} for tenant: {TenantName}", learningPathId, tenantName);
+            _logger.LogInformation("Deleted learning path {Id} for tenant: {TenantName}", id, tenantName);
 
             return NoContent();
         }
 
-        private async Task<bool> LearningPathExistsAsync(int learningPathId)
+        // GET: api/{tenantName}/learningpaths/program/{trainingProgramId}
+        [HttpGet("program/{trainingProgramId}")]
+        public async Task<ActionResult<IEnumerable<LearningPath>>> GetLearningPathsByTrainingProgram(string tenantName, int trainingProgramId)
         {
-            using var context = _dbContextFactory.CreateDbContext();
-            return await context.LearningPaths.AnyAsync(e => e.Id == learningPathId);
+            _logger.LogInformation("Getting learning paths for training program {TrainingProgramId} in tenant: {TenantName}", 
+                trainingProgramId, tenantName);
+            
+            var learningPaths = await _learningPathService.GetLearningPathsByTrainingProgramAsync(trainingProgramId);
+            
+            _logger.LogInformation("Found {Count} learning paths for training program {TrainingProgramId} in tenant: {TenantName}", 
+                learningPaths.Count(), trainingProgramId, tenantName);
+            
+            return Ok(learningPaths);
+        }
+
+        // POST: api/{tenantName}/learningpaths/{learningPathId}/assign/{trainingProgramId}
+        [HttpPost("{learningPathId}/assign/{trainingProgramId}")]
+        public async Task<IActionResult> AssignLearningPathToTrainingProgram(string tenantName, int learningPathId, int trainingProgramId)
+        {
+            _logger.LogInformation("🔗 Assigning learning path {LearningPathId} to training program {TrainingProgramId} for tenant: {TenantName}", 
+                learningPathId, trainingProgramId, tenantName);
+            
+            var success = await _learningPathService.AssignLearningPathToTrainingProgramAsync(trainingProgramId, learningPathId);
+            
+            if (!success)
+            {
+                return BadRequest("Association already exists or entities not found");
+            }
+
+            _logger.LogInformation("Successfully assigned learning path {LearningPathId} to training program {TrainingProgramId} for tenant: {TenantName}", 
+                learningPathId, trainingProgramId, tenantName);
+
+            return Ok(new { Message = "Learning path successfully assigned to training program" });
+        }
+
+        // DELETE: api/{tenantName}/learningpaths/{learningPathId}/unassign/{trainingProgramId}
+        [HttpDelete("{learningPathId}/unassign/{trainingProgramId}")]
+        public async Task<IActionResult> RemoveLearningPathFromTrainingProgram(string tenantName, int learningPathId, int trainingProgramId)
+        {
+            _logger.LogInformation("Removing learning path {LearningPathId} from training program {TrainingProgramId} for tenant: {TenantName}", 
+                learningPathId, trainingProgramId, tenantName);
+            
+            var success = await _learningPathService.RemoveLearningPathFromTrainingProgramAsync(trainingProgramId, learningPathId);
+            
+            if (!success)
+            {
+                return NotFound("Association not found");
+            }
+
+            _logger.LogInformation("Successfully removed learning path {LearningPathId} from training program {TrainingProgramId} for tenant: {TenantName}", 
+                learningPathId, trainingProgramId, tenantName);
+
+            return Ok(new { Message = "Learning path successfully removed from training program" });
         }
     }
 }
