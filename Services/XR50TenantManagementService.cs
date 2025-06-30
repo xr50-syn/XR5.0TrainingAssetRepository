@@ -157,7 +157,7 @@ namespace XR50TrainingAssetRepo.Services
                 await connection.OpenAsync();
 
                 var sql = @"
-                    SELECT UserName, FullName, UserEmail, Password, admin, CreatedDate, UpdatedDate
+                    SELECT UserName, FullName, UserEmail, Password, admin
                     FROM Users 
                     WHERE UserName = @userName";
 
@@ -179,7 +179,6 @@ namespace XR50TrainingAssetRepo.Services
                     UserEmail = reader["UserEmail"]?.ToString(),
                     Password = reader["Password"]?.ToString(),
                     admin = Convert.ToBoolean(reader["admin"]),
-                    // CreatedDate and UpdatedDate are shadow properties, so we don't set them here
                 };
 
                 _logger.LogDebug("Found owner user {OwnerName} in tenant database: {TenantDatabase}", ownerName, tenantDatabaseName);

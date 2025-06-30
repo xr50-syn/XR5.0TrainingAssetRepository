@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
@@ -58,21 +59,167 @@ namespace XR50TrainingAssetRepo.Controllers
             return material;
         }
 
-        // POST: api/{tenantName}/materials
+        // POST: api/{tenantName}/materials - Generic material creation
         [HttpPost]
-        public async Task<ActionResult<Material>> PostMaterial(string tenantName, Material material)
+        public async Task<ActionResult<Material>> PostMaterial(string tenantName, [FromBody] JsonElement materialData)
         {
-            _logger.LogInformation("Creating material {Name} (Type: {Type}) for tenant: {TenantName}", 
-                material.Name, material.GetType().Name, tenantName);
+            try
+            {
+                // Parse the incoming JSON to determine material type
+                var material = ParseMaterialFromJson(materialData);
+                
+                if (material == null)
+                {
+                    return BadRequest("Invalid material data or unsupported material type");
+                }
+
+                _logger.LogInformation("Creating material {Name} (Type: {Type}) for tenant: {TenantName}", 
+                    material.Name, material.GetType().Name, tenantName);
+                
+                var createdMaterial = await _materialService.CreateMaterialAsync(material);
+
+                _logger.LogInformation("Created material {Name} with ID {Id} for tenant: {TenantName}", 
+                    createdMaterial.Name, createdMaterial.Id, tenantName);
+
+                return CreatedAtAction(nameof(GetMaterial), 
+                    new { tenantName, id = createdMaterial.Id }, 
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating material for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error creating material: {ex.Message}");
+            }
+        }
+
+        private Material? ParseMaterialFromJson(JsonElement jsonElement)
+        {
+            // Get the discriminator/type from the JSON
+            string? discriminator = null;
+            string? typeValue = null;
             
-            var createdMaterial = await _materialService.CreateMaterialAsync(material);
+            if (jsonElement.TryGetProperty("discriminator", out var discProp))
+            {
+                discriminator = discProp.GetString();
+            }
+            else if (jsonElement.TryGetProperty("type", out var typeProp))
+            {
+                typeValue = typeProp.GetString();
+            }
+            else if (jsonElement.TryGetProperty("Type", out var typeEnumProp))
+            {
+                typeValue = typeEnumProp.GetString();
+            }
 
-            _logger.LogInformation("Created material {Name} with ID {Id} for tenant: {TenantName}", 
-                createdMaterial.Name, createdMaterial.Id, tenantName);
+            // Create the appropriate material type
+            Material material = (discriminator?.ToLower(), typeValue?.ToLower()) switch
+            {
+                ("videomaterial", _) or (_, "video") => new VideoMaterial(),
+                ("imagematerial", _) or (_, "image") => new ImageMaterial(),
+                ("checklistmaterial", _) or (_, "checklist") => new ChecklistMaterial(),
+                ("workflowmaterial", _) or (_, "workflow") => new WorkflowMaterial(),
+                ("pdfmaterial", _) or (_, "pdf") => new PDFMaterial(),
+                ("unitydemo", _) or (_, "unitydemo") => new UnityDemoMaterial(),
+                ("chatbotmaterial", _) or (_, "chatbot") => new ChatbotMaterial(),
+                ("questionnairematerial", _) or (_, "questionnaire") => new QuestionnaireMaterial(),
+                ("mqtt_templatematerial", _) or (_, "mqtt_template") => new MQTT_TemplateMaterial(),
+                ("defaultmaterial", _) or (_, "default") => new DefaultMaterial(),
+                _ => new DefaultMaterial() // Default fallback
+            };
 
-            return CreatedAtAction(nameof(GetMaterial), 
-                new { tenantName, id = createdMaterial.Id }, 
-                createdMaterial);
+            // Populate common properties
+            if (jsonElement.TryGetProperty("name", out var nameProp))
+                material.Name = nameProp.GetString();
+            
+            if (jsonElement.TryGetProperty("description", out var descProp))
+                material.Description = descProp.GetString();
+
+            // Populate type-specific properties
+            PopulateTypeSpecificProperties(material, jsonElement);
+
+            return material;
+        }
+
+        private void PopulateTypeSpecificProperties(Material material, JsonElement jsonElement)
+        {
+            switch (material)
+            {
+                case MQTT_TemplateMaterial mqtt:
+                    if (jsonElement.TryGetProperty("message_type", out var msgType))
+                        mqtt.message_type = msgType.GetString();
+                    if (jsonElement.TryGetProperty("message_text", out var msgText))
+                        mqtt.message_text = msgText.GetString();
+                    break;
+                    
+                case UnityDemoMaterial unity:
+                    if (jsonElement.TryGetProperty("assetId", out var unityAssetId))
+                        unity.AssetId = unityAssetId.GetString();
+                    if (jsonElement.TryGetProperty("unityVersion", out var version))
+                        unity.UnityVersion = version.GetString();
+                    if (jsonElement.TryGetProperty("unityBuildTarget", out var buildTarget))
+                        unity.UnityBuildTarget = buildTarget.GetString();
+                    if (jsonElement.TryGetProperty("unitySceneName", out var sceneName))
+                        unity.UnitySceneName = sceneName.GetString();
+                    break;
+                    
+                case DefaultMaterial defaultMat:
+                    if (jsonElement.TryGetProperty("assetId", out var defaultAssetId))
+                        defaultMat.AssetId = defaultAssetId.GetString();
+                    break;
+                    
+                case VideoMaterial video:
+                    if (jsonElement.TryGetProperty("assetId", out var videoAssetId))
+                        video.AssetId = videoAssetId.GetString();
+                    if (jsonElement.TryGetProperty("videoPath", out var videoPath))
+                        video.VideoPath = videoPath.GetString();
+                    if (jsonElement.TryGetProperty("videoDuration", out var duration))
+                        video.VideoDuration = duration.GetInt32();
+                    if (jsonElement.TryGetProperty("videoResolution", out var resolution))
+                        video.VideoResolution = resolution.GetString();
+                    break;
+                    
+                case ImageMaterial image:
+                    if (jsonElement.TryGetProperty("assetId", out var imageAssetId))
+                        image.AssetId = imageAssetId.GetString();
+                    if (jsonElement.TryGetProperty("imagePath", out var imagePath))
+                        image.ImagePath = imagePath.GetString();
+                    if (jsonElement.TryGetProperty("imageWidth", out var width))
+                        image.ImageWidth = width.GetInt32();
+                    if (jsonElement.TryGetProperty("imageHeight", out var height))
+                        image.ImageHeight = height.GetInt32();
+                    if (jsonElement.TryGetProperty("imageFormat", out var format))
+                        image.ImageFormat = format.GetString();
+                    break;
+                    
+                case PDFMaterial pdf:
+                    if (jsonElement.TryGetProperty("assetId", out var pdfAssetId))
+                        pdf.AssetId = pdfAssetId.GetString();
+                    if (jsonElement.TryGetProperty("pdfPath", out var pdfPath))
+                        pdf.PdfPath = pdfPath.GetString();
+                    if (jsonElement.TryGetProperty("pdfPageCount", out var pageCount))
+                        pdf.PdfPageCount = pageCount.GetInt32();
+                    if (jsonElement.TryGetProperty("pdfFileSize", out var fileSize))
+                        pdf.PdfFileSize = fileSize.GetInt64();
+                    break;
+                    
+                case ChatbotMaterial chatbot:
+                    if (jsonElement.TryGetProperty("chatbotConfig", out var config))
+                        chatbot.ChatbotConfig = config.GetString();
+                    if (jsonElement.TryGetProperty("chatbotModel", out var model))
+                        chatbot.ChatbotModel = model.GetString();
+                    if (jsonElement.TryGetProperty("chatbotPrompt", out var prompt))
+                        chatbot.ChatbotPrompt = prompt.GetString();
+                    break;
+                    
+                case QuestionnaireMaterial questionnaire:
+                    if (jsonElement.TryGetProperty("questionnaireConfig", out var qConfig))
+                        questionnaire.QuestionnaireConfig = qConfig.GetString();
+                    if (jsonElement.TryGetProperty("questionnaireType", out var qType))
+                        questionnaire.QuestionnaireType = qType.GetString();
+                    if (jsonElement.TryGetProperty("passingScore", out var score))
+                        questionnaire.PassingScore = score.GetDecimal();
+                    break;
+            }
         }
 
         // PUT: api/{tenantName}/materials/5
@@ -184,6 +331,158 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(images);
         }
 
+        // GET: api/{tenantName}/materials/pdfs
+        [HttpGet("pdfs")]
+        public async Task<ActionResult<IEnumerable<PDFMaterial>>> GetPDFMaterials(string tenantName)
+        {
+            _logger.LogInformation("📄 Getting PDF materials for tenant: {TenantName}", tenantName);
+            
+            var pdfs = await _materialService.GetAllPDFMaterialsAsync();
+            
+            _logger.LogInformation("Found {Count} PDF materials for tenant: {TenantName}", 
+                pdfs.Count(), tenantName);
+            
+            return Ok(pdfs);
+        }
+
+        // GET: api/{tenantName}/materials/chatbots
+        [HttpGet("chatbots")]
+        public async Task<ActionResult<IEnumerable<ChatbotMaterial>>> GetChatbotMaterials(string tenantName)
+        {
+            _logger.LogInformation("🤖 Getting chatbot materials for tenant: {TenantName}", tenantName);
+            
+            var chatbots = await _materialService.GetAllChatbotMaterialsAsync();
+            
+            _logger.LogInformation("Found {Count} chatbot materials for tenant: {TenantName}", 
+                chatbots.Count(), tenantName);
+            
+            return Ok(chatbots);
+        }
+
+        // GET: api/{tenantName}/materials/questionnaires
+        [HttpGet("questionnaires")]
+        public async Task<ActionResult<IEnumerable<QuestionnaireMaterial>>> GetQuestionnaireMaterials(string tenantName)
+        {
+            _logger.LogInformation("❓ Getting questionnaire materials for tenant: {TenantName}", tenantName);
+            
+            var questionnaires = await _materialService.GetAllQuestionnaireMaterialsAsync();
+            
+            _logger.LogInformation("Found {Count} questionnaire materials for tenant: {TenantName}", 
+                questionnaires.Count(), tenantName);
+            
+            return Ok(questionnaires);
+        }
+
+        // GET: api/{tenantName}/materials/mqtt-templates
+        [HttpGet("mqtt-templates")]
+        public async Task<ActionResult<IEnumerable<MQTT_TemplateMaterial>>> GetMQTTTemplateMaterials(string tenantName)
+        {
+            _logger.LogInformation("📡 Getting MQTT template materials for tenant: {TenantName}", tenantName);
+            
+            var templates = await _materialService.GetAllMQTTTemplateMaterialsAsync();
+            
+            _logger.LogInformation("Found {Count} MQTT template materials for tenant: {TenantName}", 
+                templates.Count(), tenantName);
+            
+            return Ok(templates);
+        }
+
+        // GET: api/{tenantName}/materials/unity-demos
+        [HttpGet("unity-demos")]
+        public async Task<ActionResult<IEnumerable<UnityDemoMaterial>>> GetUnityDemoMaterials(string tenantName)
+        {
+            _logger.LogInformation("🎮 Getting Unity demo materials for tenant: {TenantName}", tenantName);
+            
+            var unityDemos = await _materialService.GetAllUnityDemoMaterialsAsync();
+            
+            _logger.LogInformation("Found {Count} Unity demo materials for tenant: {TenantName}", 
+                unityDemos.Count(), tenantName);
+            
+            return Ok(unityDemos);
+        }
+
+        #endregion
+
+        #region Complex Material Creation Endpoints (One-shot creation with child entities)
+
+        // POST: api/{tenantName}/materials/workflow-complete
+        [HttpPost("workflow-complete")]
+        public async Task<ActionResult<WorkflowMaterial>> CreateCompleteWorkflow(
+            string tenantName, 
+            [FromBody] CompleteWorkflowRequest request)
+        {
+            _logger.LogInformation("⚙️ Creating complete workflow {Name} with {StepCount} steps for tenant: {TenantName}", 
+                request.Workflow.Name, request.Steps?.Count ?? 0, tenantName);
+            
+            try
+            {
+                var createdMaterial = await _materialService.CreateWorkflowWithStepsAsync(
+                    request.Workflow, 
+                    request.Steps);
+                
+                return CreatedAtAction(nameof(GetMaterial), 
+                    new { tenantName, id = createdMaterial.Id }, 
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating complete workflow for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error creating workflow: {ex.Message}");
+            }
+        }
+
+        // POST: api/{tenantName}/materials/video-complete  
+        [HttpPost("video-complete")]
+        public async Task<ActionResult<VideoMaterial>> CreateCompleteVideo(
+            string tenantName,
+            [FromBody] CompleteVideoRequest request)
+        {
+            _logger.LogInformation("🎥 Creating complete video {Name} with {TimestampCount} timestamps for tenant: {TenantName}", 
+                request.Video.Name, request.Timestamps?.Count ?? 0, tenantName);
+            
+            try
+            {
+                var createdMaterial = await _materialService.CreateVideoWithTimestampsAsync(
+                    request.Video, 
+                    request.Timestamps);
+                
+                return CreatedAtAction(nameof(GetMaterial), 
+                    new { tenantName, id = createdMaterial.Id }, 
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating complete video for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error creating video: {ex.Message}");
+            }
+        }
+
+        // POST: api/{tenantName}/materials/checklist-complete
+        [HttpPost("checklist-complete")]
+        public async Task<ActionResult<ChecklistMaterial>> CreateCompleteChecklist(
+            string tenantName,
+            [FromBody] CompleteChecklistRequest request)
+        {
+            _logger.LogInformation("📋 Creating complete checklist {Name} with {EntryCount} entries for tenant: {TenantName}", 
+                request.Checklist.Name, request.Entries?.Count ?? 0, tenantName);
+            
+            try
+            {
+                var createdMaterial = await _materialService.CreateChecklistWithEntriesAsync(
+                    request.Checklist, 
+                    request.Entries);
+                
+                return CreatedAtAction(nameof(GetMaterial), 
+                    new { tenantName, id = createdMaterial.Id }, 
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating complete checklist for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error creating checklist: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region Video Material Management
@@ -231,7 +530,6 @@ namespace XR50TrainingAssetRepo.Controllers
                 return NotFound(ex.Message);
             }
         }
-
         // DELETE: api/{tenantName}/materials/videos/5/timestamps/3
         [HttpDelete("videos/{videoId}/timestamps/{timestampId}")]
         public async Task<IActionResult> RemoveTimestampFromVideo(string tenantName, int videoId, int timestampId)
@@ -390,7 +688,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
         #endregion
 
-        #region Asset Relationships (Only for Video, Image, Unity, Default Materials)
+        #region Asset Relationships
 
         // GET: api/{tenantName}/materials/by-asset/asset123
         [HttpGet("by-asset/{assetId}")]
@@ -486,22 +784,6 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(relationships);
         }
 
-        // GET: api/{tenantName}/materials/5/relationships/LearningPath
-        [HttpGet("{materialId}/relationships/{entityType}")]
-        public async Task<ActionResult<IEnumerable<MaterialRelationship>>> GetMaterialRelationshipsByType(
-            string tenantName, int materialId, string entityType)
-        {
-            _logger.LogInformation("Getting {EntityType} relationships for material {MaterialId} in tenant: {TenantName}", 
-                entityType, materialId, tenantName);
-            
-            var relationships = await _materialService.GetRelationshipsByTypeAsync(materialId, entityType);
-            
-            _logger.LogInformation("Found {Count} {EntityType} relationships for material {MaterialId} in tenant: {TenantName}", 
-                relationships.Count(), entityType, materialId, tenantName);
-            
-            return Ok(relationships);
-        }
-
         // POST: api/{tenantName}/materials/5/assign-learningpath/3
         [HttpPost("{materialId}/assign-learningpath/{learningPathId}")]
         public async Task<ActionResult<object>> AssignMaterialToLearningPath(
@@ -543,114 +825,80 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(new { Message = "Material successfully removed from learning path" });
         }
 
-        // POST: api/{tenantName}/materials/5/assign-trainingprogram/2
-        [HttpPost("{materialId}/assign-trainingprogram/{trainingProgramId}")]
-        public async Task<ActionResult<object>> AssignMaterialToTrainingProgram(
-            string tenantName, int materialId, int trainingProgramId, [FromQuery] string relationshipType = "assigned")
+        #endregion
+
+        #region Material Type Summary Endpoint
+
+        // GET: api/{tenantName}/materials/summary
+        [HttpGet("summary")]
+        public async Task<ActionResult<MaterialTypeSummary>> GetMaterialTypeSummary(string tenantName)
         {
-            _logger.LogInformation("🔗 Assigning material {MaterialId} to training program {TrainingProgramId} for tenant: {TenantName}", 
-                materialId, trainingProgramId, tenantName);
+            _logger.LogInformation("📊 Getting material type summary for tenant: {TenantName}", tenantName);
             
-            var relationshipId = await _materialService.AssignMaterialToTrainingProgramAsync(materialId, trainingProgramId, relationshipType);
-
-            _logger.LogInformation("Assigned material {MaterialId} to training program {TrainingProgramId} (Relationship: {RelationshipId}) for tenant: {TenantName}", 
-                materialId, trainingProgramId, relationshipId, tenantName);
-
-            return Ok(new { 
-                Message = "Material successfully assigned to training program",
-                RelationshipId = relationshipId,
-                RelationshipType = relationshipType
-            });
-        }
-
-        // DELETE: api/{tenantName}/materials/5/remove-trainingprogram/2
-        [HttpDelete("{materialId}/remove-trainingprogram/{trainingProgramId}")]
-        public async Task<IActionResult> RemoveMaterialFromTrainingProgram(string tenantName, int materialId, int trainingProgramId)
-        {
-            _logger.LogInformation("Removing material {MaterialId} from training program {TrainingProgramId} for tenant: {TenantName}", 
-                materialId, trainingProgramId, tenantName);
-            
-            var success = await _materialService.RemoveMaterialFromTrainingProgramAsync(materialId, trainingProgramId);
-            
-            if (!success)
+            try
             {
-                return NotFound("Relationship not found");
+                var summary = new MaterialTypeSummary
+                {
+                    TenantName = tenantName,
+                    Videos = (await _materialService.GetAllVideoMaterialsAsync()).Count(),
+                    Images = (await _materialService.GetAllImageMaterialsAsync()).Count(),
+                    Checklists = (await _materialService.GetAllChecklistMaterialsAsync()).Count(),
+                    Workflows = (await _materialService.GetAllWorkflowMaterialsAsync()).Count(),
+                    PDFs = (await _materialService.GetAllPDFMaterialsAsync()).Count(),
+                    Chatbots = (await _materialService.GetAllChatbotMaterialsAsync()).Count(),
+                    Questionnaires = (await _materialService.GetAllQuestionnaireMaterialsAsync()).Count(),
+                    MQTTTemplates = (await _materialService.GetAllMQTTTemplateMaterialsAsync()).Count(),
+                    UnityDemos = (await _materialService.GetAllUnityDemoMaterialsAsync()).Count(),
+                    Total = (await _materialService.GetAllMaterialsAsync()).Count()
+                };
+
+                _logger.LogInformation("Generated material summary for tenant: {TenantName} ({Total} total materials)", 
+                    tenantName, summary.Total);
+                
+                return Ok(summary);
             }
-
-            _logger.LogInformation("Removed material {MaterialId} from training program {TrainingProgramId} for tenant: {TenantName}", 
-                materialId, trainingProgramId, tenantName);
-
-            return Ok(new { Message = "Material successfully removed from training program" });
-        }
-
-        // POST: api/{tenantName}/materials/5/add-prerequisite/3
-        [HttpPost("{materialId}/add-prerequisite/{prerequisiteMaterialId}")]
-        public async Task<ActionResult<object>> AddMaterialPrerequisite(
-            string tenantName, int materialId, int prerequisiteMaterialId, [FromQuery] string relationshipType = "prerequisite")
-        {
-            _logger.LogInformation("🔗 Adding prerequisite material {PrerequisiteId} to material {MaterialId} for tenant: {TenantName}", 
-                prerequisiteMaterialId, materialId, tenantName);
-            
-            var relationshipId = await _materialService.CreateMaterialDependencyAsync(materialId, prerequisiteMaterialId, relationshipType);
-
-            _logger.LogInformation("Added prerequisite material {PrerequisiteId} to material {MaterialId} (Relationship: {RelationshipId}) for tenant: {TenantName}", 
-                prerequisiteMaterialId, materialId, relationshipId, tenantName);
-
-            return Ok(new { 
-                Message = "Material prerequisite successfully added",
-                RelationshipId = relationshipId,
-                RelationshipType = relationshipType
-            });
-        }
-
-        // DELETE: api/{tenantName}/materials/5/remove-prerequisite/3
-        [HttpDelete("{materialId}/remove-prerequisite/{prerequisiteMaterialId}")]
-        public async Task<IActionResult> RemoveMaterialPrerequisite(string tenantName, int materialId, int prerequisiteMaterialId)
-        {
-            _logger.LogInformation("Removing prerequisite material {PrerequisiteId} from material {MaterialId} for tenant: {TenantName}", 
-                prerequisiteMaterialId, materialId, tenantName);
-            
-            var success = await _materialService.RemoveMaterialDependencyAsync(materialId, prerequisiteMaterialId);
-            
-            if (!success)
+            catch (Exception ex)
             {
-                return NotFound("Prerequisite relationship not found");
+                _logger.LogError(ex, "Error generating material summary for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error generating summary: {ex.Message}");
             }
-
-            _logger.LogInformation("Removed prerequisite material {PrerequisiteId} from material {MaterialId} for tenant: {TenantName}", 
-                prerequisiteMaterialId, materialId, tenantName);
-
-            return Ok(new { Message = "Material prerequisite successfully removed" });
         }
 
-        // GET: api/{tenantName}/materials/5/prerequisites
-        [HttpGet("{materialId}/prerequisites")]
-        public async Task<ActionResult<IEnumerable<Material>>> GetMaterialPrerequisites(string tenantName, int materialId)
+        #endregion
+
+        #region Request DTOs for Complex Creation
+
+        public class CompleteWorkflowRequest
         {
-            _logger.LogInformation("Getting prerequisites for material {MaterialId} in tenant: {TenantName}", 
-                materialId, tenantName);
-            
-            var prerequisites = await _materialService.GetMaterialPrerequisitesAsync(materialId);
-            
-            _logger.LogInformation("Found {Count} prerequisites for material {MaterialId} in tenant: {TenantName}", 
-                prerequisites.Count(), materialId, tenantName);
-            
-            return Ok(prerequisites);
+            public WorkflowMaterial Workflow { get; set; } = new();
+            public List<WorkflowStep>? Steps { get; set; }
         }
 
-        // GET: api/{tenantName}/materials/5/dependents
-        [HttpGet("{materialId}/dependents")]
-        public async Task<ActionResult<IEnumerable<Material>>> GetMaterialDependents(string tenantName, int materialId)
+        public class CompleteVideoRequest
         {
-            _logger.LogInformation("Getting dependent materials for material {MaterialId} in tenant: {TenantName}", 
-                materialId, tenantName);
-            
-            var dependents = await _materialService.GetMaterialDependentsAsync(materialId);
-            
-            _logger.LogInformation("Found {Count} dependent materials for material {MaterialId} in tenant: {TenantName}", 
-                dependents.Count(), materialId, tenantName);
-            
-            return Ok(dependents);
+            public VideoMaterial Video { get; set; } = new();
+            public List<VideoTimestamp>? Timestamps { get; set; }
+        }
+
+        public class CompleteChecklistRequest
+        {
+            public ChecklistMaterial Checklist { get; set; } = new();
+            public List<ChecklistEntry>? Entries { get; set; }
+        }
+
+        public class MaterialTypeSummary
+        {
+            public string TenantName { get; set; } = "";
+            public int Videos { get; set; }
+            public int Images { get; set; }
+            public int Checklists { get; set; }
+            public int Workflows { get; set; }
+            public int PDFs { get; set; }
+            public int Chatbots { get; set; }
+            public int Questionnaires { get; set; }
+            public int MQTTTemplates { get; set; }
+            public int UnityDemos { get; set; }
+            public int Total { get; set; }
         }
 
         #endregion

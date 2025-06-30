@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿// Updated Material.cs with all properties
+
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -25,6 +27,7 @@ namespace XR50TrainingAssetRepo.Models
 
         }
     }
+
     public enum Type
     {
         Image,
@@ -40,23 +43,27 @@ namespace XR50TrainingAssetRepo.Models
         Default
     }
 
-
     public class ChecklistMaterial : Material
     {
-        // Implementation specific to checklist materials
+        // Uses separate ChecklistEntries table (no new columns in Materials table)
         public List<ChecklistEntry> ChecklistEntries { get; set; }
+        
         public ChecklistMaterial()
         {
             ChecklistEntries = new List<ChecklistEntry>();
             Type = Type.Checklist;
         }
-
     }
 
     public class ImageMaterial : Material
-
     {
-        // Implementation specific to image materials
+        // Image-specific properties stored in Materials table
+        public string? AssetId { get; set; }
+        public string? ImagePath { get; set; }
+        public int? ImageWidth { get; set; }
+        public int? ImageHeight { get; set; }
+        public string? ImageFormat { get; set; }
+        
         public ImageMaterial()
         {
             Type = Type.Image;
@@ -65,8 +72,15 @@ namespace XR50TrainingAssetRepo.Models
 
     public class VideoMaterial : Material
     {
-        // Implementation specific to video materials
+        // Video-specific properties stored in Materials table
+        public string? AssetId { get; set; }
+        public string? VideoPath { get; set; }
+        public int? VideoDuration { get; set; }  // Duration in seconds
+        public string? VideoResolution { get; set; }  // e.g., "1920x1080"
+        
+        // Uses separate VideoTimestamps table
         public List<VideoTimestamp> VideoTimestamps { get; set; }
+        
         public VideoMaterial()
         {
             VideoTimestamps = new List<VideoTimestamp>();
@@ -76,70 +90,97 @@ namespace XR50TrainingAssetRepo.Models
 
     public class WorkflowMaterial : Material
     {
-        // Implementation specific to workflow materials
+        // Uses separate WorkflowSteps table (no new columns in Materials table)
         public List<WorkflowStep> WorkflowSteps { get; set; }
+        
         public WorkflowMaterial()
         {
             WorkflowSteps = new List<WorkflowStep>();
             Type = Type.Workflow;
         }
     }
+
     public class MQTT_TemplateMaterial : Material
     {
-        // Implementation specific to image materials
+        // MQTT-specific properties stored in Materials table
         public string? message_type { get; set; }
         public string? message_text { get; set; }
+        
         public MQTT_TemplateMaterial()
         {
-
             Type = Type.MQTT_Template;
         }
     }
+
     public class PDFMaterial : Material
     {
-        // Implementation specific to image materials
+        // PDF-specific properties stored in Materials table
+        public string? AssetId { get; set; }
+        public string? PdfPath { get; set; }
+        public int? PdfPageCount { get; set; }
+        public long? PdfFileSize { get; set; }  // File size in bytes
+        
         public PDFMaterial()
         {
             Type = Type.PDF;
         }
     }
+
     public class UnityDemoMaterial : Material
     {
-        // Implementation specific to image materials
+        // Unity-specific properties stored in Materials table
         public string? AssetId { get; set; }
+        public string? UnityVersion { get; set; }
+        public string? UnityBuildTarget { get; set; }  // e.g., "WebGL", "Windows", "Android"
+        public string? UnitySceneName { get; set; }
+        
         public UnityDemoMaterial()
         {
             Type = Type.UnityDemo;
         }
     }
+
     public class ChatbotMaterial : Material
     {
-        // Implementation specific to image materials
-
+        // Chatbot-specific properties stored in Materials table
+        public string? ChatbotConfig { get; set; }  // JSON configuration
+        public string? ChatbotModel { get; set; }   // e.g., "gpt-4", "claude-3"
+        public string? ChatbotPrompt { get; set; }  // System prompt
+        
         public ChatbotMaterial()
         {
             Type = Type.Chatbot;
         }
     }
+
     public class QuestionnaireMaterial : Material
     {
-        // Implementation specific to image materials
+        // Questionnaire-specific properties stored in Materials table
+        public string? QuestionnaireConfig { get; set; }  // JSON configuration
+        public string? QuestionnaireType { get; set; }    // e.g., "multiple_choice", "essay", "mixed"
+        public decimal? PassingScore { get; set; }        // Percentage needed to pass
+        
+        // Could also use separate QuestionnaireEntries table if needed
+        public List<QuestionnaireEntry> QuestionnaireEntries { get; set; }
+        
         public QuestionnaireMaterial()
         {
-
+            QuestionnaireEntries = new List<QuestionnaireEntry>();
             Type = Type.Questionnaire;
         }
     }
+
     public class DefaultMaterial : Material
     {
-        // Implementation specific to image materials
+        // Generic material with asset support
         public string? AssetId { get; set; }
+        
         public DefaultMaterial()
         {
-
             Type = Type.Default;
         }
     }
+
     public class MaterialRelationship
     {
         [Key]

@@ -14,7 +14,7 @@ namespace XR50TrainingAssetRepo.Models
 
         public string Text { get; set; } = null!;
         public string? Description { get; set; }
-
+        public int? ChecklistMaterialId { get; set; }
         public ChecklistEntry()
         {
             

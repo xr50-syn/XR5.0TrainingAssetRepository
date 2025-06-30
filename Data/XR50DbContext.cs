@@ -40,6 +40,7 @@ namespace XR50TrainingAssetRepo.Data
         public DbSet<Asset> Assets { get; set; } = null!;
         public DbSet<Share> Shares { get; set; } = null!;
         public DbSet<ChecklistEntry> ChecklistEntries { get; set; } = null!;
+        public DbSet<QuestionnaireEntry> QuestionnaireEntries { get; set; } = null!;
         public DbSet<VideoTimestamp> VideoTimestamps { get; set; } = null!;
         public DbSet<WorkflowStep> WorkflowSteps { get; set; } = null!;
         public DbSet<ProgramMaterial> ProgramMaterials { get; set; } = null!;
@@ -107,29 +108,136 @@ namespace XR50TrainingAssetRepo.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Keep it simple - just add the shadow properties like your original
-            modelBuilder.Entity<XR50Tenant>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<XR50Tenant>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<User>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<User>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<TrainingProgram>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<TrainingProgram>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<LearningPath>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<LearningPath>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<Material>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<Material>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<WorkflowMaterial>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<WorkflowMaterial>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<VideoMaterial>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<VideoMaterial>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<ChecklistMaterial>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<ChecklistMaterial>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<ImageMaterial>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<ImageMaterial>().Property<DateTime>("UpdatedDate");
-            modelBuilder.Entity<Asset>().Property<DateTime>("CreatedDate");
-            modelBuilder.Entity<Asset>().Property<DateTime>("UpdatedDate");
+            // Configure TPH inheritance for Material hierarchy
+            modelBuilder.Entity<Material>()
+                .HasDiscriminator<string>("Discriminator")
+                .HasValue<Material>("Material")
+                .HasValue<VideoMaterial>("VideoMaterial")
+                .HasValue<ImageMaterial>("ImageMaterial")
+                .HasValue<ChecklistMaterial>("ChecklistMaterial")
+                .HasValue<WorkflowMaterial>("WorkflowMaterial")
+                .HasValue<PDFMaterial>("PDFMaterial")
+                .HasValue<UnityDemoMaterial>("UnityDemoMaterial")
+                .HasValue<ChatbotMaterial>("ChatbotMaterial")
+                .HasValue<QuestionnaireMaterial>("QuestionnaireMaterial")
+                .HasValue<MQTT_TemplateMaterial>("MQTT_TemplateMaterial")
+                .HasValue<DefaultMaterial>("DefaultMaterial");
 
-            // Just configure composite primary keys - EF will figure out the relationships
+            // Configure specific properties for MQTT_TemplateMaterial
+            modelBuilder.Entity<MQTT_TemplateMaterial>()
+                .Property(m => m.message_type)
+                .HasColumnName("message_type");
+                
+            modelBuilder.Entity<MQTT_TemplateMaterial>()
+                .Property(m => m.message_text)
+                .HasColumnName("message_text");
+
+            // Configure properties for VideoMaterial
+            modelBuilder.Entity<VideoMaterial>()
+                .Property(m => m.AssetId)
+                .HasColumnName("AssetId");
+            modelBuilder.Entity<VideoMaterial>()
+                .Property(m => m.VideoPath)
+                .HasColumnName("VideoPath");
+            modelBuilder.Entity<VideoMaterial>()
+                .Property(m => m.VideoDuration)
+                .HasColumnName("VideoDuration");
+            modelBuilder.Entity<VideoMaterial>()
+                .Property(m => m.VideoResolution)
+                .HasColumnName("VideoResolution");
+
+            // Configure properties for ImageMaterial
+            modelBuilder.Entity<ImageMaterial>()
+                .Property(m => m.AssetId)
+                .HasColumnName("AssetId");
+            modelBuilder.Entity<ImageMaterial>()
+                .Property(m => m.ImagePath)
+                .HasColumnName("ImagePath");
+            modelBuilder.Entity<ImageMaterial>()
+                .Property(m => m.ImageWidth)
+                .HasColumnName("ImageWidth");
+            modelBuilder.Entity<ImageMaterial>()
+                .Property(m => m.ImageHeight)
+                .HasColumnName("ImageHeight");
+            modelBuilder.Entity<ImageMaterial>()
+                .Property(m => m.ImageFormat)
+                .HasColumnName("ImageFormat");
+
+            // Configure properties for PDFMaterial
+            modelBuilder.Entity<PDFMaterial>()
+                .Property(m => m.AssetId)
+                .HasColumnName("AssetId");
+            modelBuilder.Entity<PDFMaterial>()
+                .Property(m => m.PdfPath)
+                .HasColumnName("PdfPath");
+            modelBuilder.Entity<PDFMaterial>()
+                .Property(m => m.PdfPageCount)
+                .HasColumnName("PdfPageCount");
+            modelBuilder.Entity<PDFMaterial>()
+                .Property(m => m.PdfFileSize)
+                .HasColumnName("PdfFileSize");
+
+            // Configure properties for ChatbotMaterial
+            modelBuilder.Entity<ChatbotMaterial>()
+                .Property(m => m.ChatbotConfig)
+                .HasColumnName("ChatbotConfig");
+            modelBuilder.Entity<ChatbotMaterial>()
+                .Property(m => m.ChatbotModel)
+                .HasColumnName("ChatbotModel");
+            modelBuilder.Entity<ChatbotMaterial>()
+                .Property(m => m.ChatbotPrompt)
+                .HasColumnName("ChatbotPrompt");
+
+            // Configure properties for QuestionnaireMaterial
+            modelBuilder.Entity<QuestionnaireMaterial>()
+                .Property(m => m.QuestionnaireConfig)
+                .HasColumnName("QuestionnaireConfig");
+            modelBuilder.Entity<QuestionnaireMaterial>()
+                .Property(m => m.QuestionnaireType)
+                .HasColumnName("QuestionnaireType");
+            modelBuilder.Entity<QuestionnaireMaterial>()
+                .Property(m => m.PassingScore)
+                .HasColumnName("PassingScore");
+
+            // Configure properties for UnityDemoMaterial
+            modelBuilder.Entity<UnityDemoMaterial>()
+                .Property(m => m.AssetId)
+                .HasColumnName("AssetId");
+            modelBuilder.Entity<UnityDemoMaterial>()
+                .Property(m => m.UnityVersion)
+                .HasColumnName("UnityVersion");
+            modelBuilder.Entity<UnityDemoMaterial>()
+                .Property(m => m.UnityBuildTarget)
+                .HasColumnName("UnityBuildTarget");
+            modelBuilder.Entity<UnityDemoMaterial>()
+                .Property(m => m.UnitySceneName)
+                .HasColumnName("UnitySceneName");
+                
+            // Configure AssetId for DefaultMaterial
+            modelBuilder.Entity<DefaultMaterial>()
+                .Property(m => m.AssetId)
+                .HasColumnName("AssetId");
+
+            // Configure relationships for child entities (separate tables)
+            modelBuilder.Entity<VideoMaterial>()
+                .HasMany(v => v.VideoTimestamps)
+                .WithOne()
+                .HasForeignKey("VideoMaterialId")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ChecklistMaterial>()
+                .HasMany(c => c.ChecklistEntries)
+                .WithOne()
+                .HasForeignKey("ChecklistMaterialId")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorkflowMaterial>()
+                .HasMany(w => w.WorkflowSteps)
+                .WithOne()
+                .HasForeignKey("WorkflowMaterialId")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure composite primary keys for junction tables
             modelBuilder.Entity<ProgramMaterial>()
                 .HasKey(pm => new { pm.TrainingProgramId, pm.MaterialId });
 
@@ -153,7 +261,16 @@ namespace XR50TrainingAssetRepo.Data
             modelBuilder.Entity<MaterialRelationship>()
                 .HasIndex(mr => new { mr.RelatedEntityId, mr.RelatedEntityType });
 
-        }
+            // Add foreign key properties to child tables
+            modelBuilder.Entity<VideoTimestamp>()
+                .Property<int?>("VideoMaterialId");
+            
+            modelBuilder.Entity<ChecklistEntry>()
+                .Property<int?>("ChecklistMaterialId");
+            
+            modelBuilder.Entity<WorkflowStep>()
+                .Property<int?>("WorkflowMaterialId");
+}
 
         // Keep your existing SaveChanges override
         public override int SaveChanges()
@@ -167,29 +284,62 @@ namespace XR50TrainingAssetRepo.Data
             UpdateAuditFields();
             return await base.SaveChangesAsync(cancellationToken);
         }
-
         private void UpdateAuditFields()
         {
             var entries = ChangeTracker.Entries().Where(e =>
-                e.State == EntityState.Added
-                || e.State == EntityState.Modified);
+                e.State == EntityState.Added || e.State == EntityState.Modified);
 
             foreach (var entityEntry in entries)
             {
+                var entity = entityEntry.Entity;
+                
+                // Handle Material entities (which have Created_at and Updated_at properties)
+                if (entity is Material material)
+                {
+                    material.Updated_at = DateTime.UtcNow;
+                    
+                    if (entityEntry.State == EntityState.Added)
+                    {
+                        material.Created_at = DateTime.UtcNow;
+                    }
+                    continue; // Skip shadow property logic for Materials
+                }
+                
+                // Handle TrainingProgram entities (which have Created_at property)
+                if (entity is TrainingProgram program)
+                {
+                    if (entityEntry.State == EntityState.Added && string.IsNullOrEmpty(program.Created_at))
+                    {
+                        program.Created_at = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+                    }
+                    continue; // Skip shadow property logic for TrainingPrograms
+                }
+                
+                // For entities that still use shadow properties (if any)
                 try
                 {
-                    entityEntry.Property("UpdatedDate").CurrentValue = DateTime.UtcNow;
+                    // Check if the entity has shadow properties before trying to update them
+                    var entityType = entityEntry.Metadata;
+                    var updatedDateProperty = entityType.FindProperty("UpdatedDate");
+                    var createdDateProperty = entityType.FindProperty("CreatedDate");
+                    
+                    if (updatedDateProperty != null)
+                    {
+                        entityEntry.Property("UpdatedDate").CurrentValue = DateTime.UtcNow;
+                    }
 
-                    if (entityEntry.State == EntityState.Added)
+                    if (createdDateProperty != null && entityEntry.State == EntityState.Added)
                     {
                         entityEntry.Property("CreatedDate").CurrentValue = DateTime.UtcNow;
                     }
                 }
                 catch (InvalidOperationException)
                 {
-                    // Entity doesn't have shadow properties - skip
+                    // Entity doesn't have shadow properties - this is expected for most entities now
+                    // We can safely ignore this or add specific logging if needed
                 }
             }
+        
         }
     }
 }

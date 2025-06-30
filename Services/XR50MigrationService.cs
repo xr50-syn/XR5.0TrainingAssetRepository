@@ -201,23 +201,20 @@ namespace XR50TrainingAssetRepo.Services
                 // Insert owner as the first user in the tenant database
                 var insertOwnerCommand = new MySqlCommand(@"
                     INSERT INTO `Users` 
-                        (`UserName`, `FullName`, `UserEmail`, `Password`, `admin`, `CreatedDate`, `UpdatedDate`)
+                        (`UserName`, `FullName`, `UserEmail`, `Password`, `admin`)
                     VALUES 
-                        (@userName, @fullName, @userEmail, @password, @admin, @createdDate, @updatedDate)
+                        (@userName, @fullName, @userEmail, @password, @admin)
                     ON DUPLICATE KEY UPDATE
                         `FullName` = @fullName,
                         `UserEmail` = @userEmail,
                         `Password` = @password,
-                        `admin` = @admin,
-                        `UpdatedDate` = @updatedDate", connection);
+                        `admin` = @admin", connection);
 
                 insertOwnerCommand.Parameters.AddWithValue("@userName", owner.UserName ?? "");
                 insertOwnerCommand.Parameters.AddWithValue("@fullName", owner.FullName ?? "");
                 insertOwnerCommand.Parameters.AddWithValue("@userEmail", owner.UserEmail ?? "");
                 insertOwnerCommand.Parameters.AddWithValue("@password", owner.Password ?? "");
                 insertOwnerCommand.Parameters.AddWithValue("@admin", owner.admin);
-                insertOwnerCommand.Parameters.AddWithValue("@createdDate", DateTime.UtcNow);
-                insertOwnerCommand.Parameters.AddWithValue("@updatedDate", DateTime.UtcNow);
 
                 await insertOwnerCommand.ExecuteNonQueryAsync();
 

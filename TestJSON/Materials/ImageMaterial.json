@@ -1,7 +1,5 @@
 {
-  "description": "Amy's distracting Image",
+  "Description": "Amy's distracting Image",
   "Name": "Amy",
-  "parentId": "string",
-  "materialType": 0,
-  "assetId": "0ec0a2f4-97aa-49d2-ac23-4220dfeb536d.png"
+  "Type": 0
 }

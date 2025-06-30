@@ -74,60 +74,171 @@ namespace XR50TrainingAssetRepo.Services
             return await context.Assets.FindAsync(id);
         }
 
-        public async Task<Asset> CreateAssetAsync(Asset asset,string tenantName, IFormFile file)
+        public async Task<Asset> CreateAssetAsync(Asset asset, string tenantName, IFormFile file)
         {
             using var context = _dbContextFactory.CreateDbContext();
             
-            // Auto-detect filetype from filename if not provided
-            if (string.IsNullOrEmpty(asset.Filetype) && !string.IsNullOrEmpty(asset.Filename))
+            try
             {
-                asset.Filetype = GetFiletypeFromFilename(asset.Filename);
-            }
-            var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
-            _logger.LogInformation("Got back {owner}", tenant.OwnerName);
-            var adminUser = await _tenantManagementService.GetOwnerUserAsync(tenant.OwnerName,"xr50_tenant_"+tenantName);
-            string username = adminUser.UserName;
-            string password = adminUser.Password; ;
-            string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
-            // Createe root dir for the TrainingProgram
-            
-            string tempFileName=Path.GetTempFileName();
-            using (var stream = System.IO.File.Create(tempFileName))
-            {
-                  await file.CopyToAsync(stream);
-            }
-	        string cmd="curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory);
-            string Arg= $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{asset.Filename}\"";
-            // Create root dir for the Tenant
-            Console.WriteLine("Executing command:" + cmd + " " + Arg);
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = cmd,
-                Arguments = Arg,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            using (var process = Process.Start(startInfo))
-            {
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-                process.WaitForExit();
-                Console.WriteLine("Output: " + output);
-                Console.WriteLine("Error: " + error);
-            
-            }
+                // Add null checks and logging
+                _logger.LogInformation("Starting asset creation for tenant: {TenantName}", tenantName);
+                
+                // Check if required services are available
+                if (_tenantManagementService == null)
+                {
+                    _logger.LogError("TenantManagementService is null");
+                    throw new InvalidOperationException("TenantManagementService is not available");
+                }
+                
+                if (_configuration == null)
+                {
+                    _logger.LogError("Configuration is null");
+                    throw new InvalidOperationException("Configuration is not available");
+                }
 
-            context.Assets.Add(asset);
-            await context.SaveChangesAsync();
+                // Auto-detect filetype from filename if not provided
+                if (string.IsNullOrEmpty(asset.Filetype) && !string.IsNullOrEmpty(asset.Filename))
+                {
+                    asset.Filetype = GetFiletypeFromFilename(asset.Filename);
+                }
 
-            _logger.LogInformation("Created asset: {Filename} (Type: {Filetype}) with ID: {Id}", 
-                asset.Filename, asset.Filetype, asset.Id);
-            
-            return asset;
+                _logger.LogInformation("Getting tenant information for: {TenantName}", tenantName);
+                var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
+                
+                if (tenant == null)
+                {
+                    _logger.LogError("Tenant not found: {TenantName}", tenantName);
+                    throw new ArgumentException($"Tenant '{tenantName}' not found");
+                }
+
+                _logger.LogInformation("Found tenant: {TenantName}, Owner: {OwnerName}, Schema: {TenantSchema}", 
+                    tenant.TenantName, tenant.OwnerName, tenant.TenantSchema);
+
+                if (string.IsNullOrEmpty(tenant.OwnerName))
+                {
+                    _logger.LogError("Tenant {TenantName} has no owner configured", tenantName);
+                    throw new InvalidOperationException($"Tenant '{tenantName}' has no owner configured");
+                }
+
+                // FIX: Use the tenant's database schema name instead of manually constructing it
+                string tenantDatabaseName = tenant.TenantSchema ?? throw new InvalidOperationException($"Tenant '{tenantName}' has no schema configured");
+                
+                _logger.LogInformation("Getting owner user for: {OwnerName} from database: {TenantDatabase}", 
+                    tenant.OwnerName, tenantDatabaseName);
+                
+                var adminUser = await _tenantManagementService.GetOwnerUserAsync(tenant.OwnerName, tenantDatabaseName);
+                
+                if (adminUser == null)
+                {
+                    _logger.LogError("Owner user not found: {OwnerName} for tenant: {TenantName} in database: {TenantDatabase}", 
+                        tenant.OwnerName, tenantName, tenantDatabaseName);
+                    throw new InvalidOperationException($"Owner user '{tenant.OwnerName}' not found for tenant '{tenantName}' in database '{tenantDatabaseName}'");
+                }
+
+                string username = adminUser.UserName ?? throw new InvalidOperationException("Admin user has no username");
+                string password = adminUser.Password ?? throw new InvalidOperationException("Admin user has no password");
+                
+                string? webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
+                if (string.IsNullOrEmpty(webdav_base))
+                {
+                    _logger.LogError("BaseWebDAV configuration is missing");
+                    throw new InvalidOperationException("BaseWebDAV configuration is not set");
+                }
+
+                if (string.IsNullOrEmpty(tenant.TenantDirectory))
+                {
+                    _logger.LogError("Tenant {TenantName} has no directory configured", tenantName);
+                    throw new InvalidOperationException($"Tenant '{tenantName}' has no directory configured");
+                }
+
+                // Rest of the method continues as before...
+                // Create temp file for upload
+                _logger.LogInformation("Creating temporary file for upload");
+                string tempFileName = Path.GetTempFileName();
+                
+                try
+                {
+                    using (var stream = System.IO.File.Create(tempFileName))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    string cmd = "curl";
+                    string dirl = System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory);
+                    string Arg = $"-X PUT -u {username}:{password} --cookie \"XDEBUG_SESSION=MROW4A;path=/;\" --data-binary @\"{tempFileName}\" \"{webdav_base}/{dirl}/{asset.Filename}\"";
+                    
+                    _logger.LogInformation("Executing WebDAV upload command for file: {Filename}", asset.Filename);
+                    _logger.LogDebug("Command: {Command} {Args}", cmd, Arg.Replace(password, "***"));
+
+                    var startInfo = new ProcessStartInfo
+                    {
+                        FileName = cmd,
+                        Arguments = Arg,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
+
+                    using (var process = Process.Start(startInfo))
+                    {
+                        if (process == null)
+                        {
+                            throw new InvalidOperationException("Failed to start curl process");
+                        }
+
+                        string output = await process.StandardOutput.ReadToEndAsync();
+                        string error = await process.StandardError.ReadToEndAsync();
+                        await process.WaitForExitAsync();
+                        
+                        _logger.LogInformation("Upload process completed. Exit code: {ExitCode}", process.ExitCode);
+                        _logger.LogDebug("Output: {Output}", output);
+                        
+                        if (!string.IsNullOrEmpty(error))
+                        {
+                            _logger.LogWarning("Upload stderr: {Error}", error);
+                        }
+
+                        if (process.ExitCode != 0)
+                        {
+                            _logger.LogError("Upload failed with exit code: {ExitCode}", process.ExitCode);
+                            throw new InvalidOperationException($"File upload failed. Exit code: {process.ExitCode}. Error: {error}");
+                        }
+                    }
+                }
+                finally
+                {
+                    // Clean up temp file
+                    try
+                    {
+                        if (System.IO.File.Exists(tempFileName))
+                        {
+                            System.IO.File.Delete(tempFileName);
+                            _logger.LogDebug("Cleaned up temporary file: {TempFile}", tempFileName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to clean up temporary file: {TempFile}", tempFileName);
+                    }
+                }
+
+                // Save to database
+                _logger.LogInformation("Saving asset to database");
+                context.Assets.Add(asset);
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation("Created asset: {Filename} (Type: {Filetype}) with ID: {Id}", 
+                    asset.Filename, asset.Filetype, asset.Id);
+                
+                return asset;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating asset {Filename} for tenant {TenantName}: {Error}", 
+                    asset.Filename, tenantName, ex.Message);
+                throw;
+            }
         }
-
         public async Task<Asset> UpdateAssetAsync(Asset asset)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -150,11 +261,7 @@ namespace XR50TrainingAssetRepo.Services
             {
                 return false;
             }
-            var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
-            _logger.LogInformation("Got back {owner}", tenant.OwnerName);
-            var adminUser = await _tenantManagementService.GetOwnerUserAsync(tenant.OwnerName,"xr50_tenant_"+tenantName);
-            string username = adminUser.UserName;
-            string password = adminUser.Password; 
+
             // Check if asset is being used by materials
             var materialsUsingAsset = await GetMaterialsUsingAssetAsync(id);
             if (materialsUsingAsset.Any())
@@ -163,19 +270,48 @@ namespace XR50TrainingAssetRepo.Services
                     id, asset.Filename, materialsUsingAsset.Count());
                 return false;
             }
+
+            // Get tenant information
+            var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
+            if (tenant == null)
+            {
+                _logger.LogError("Tenant not found: {TenantName}", tenantName);
+                return false;
+            }
+
+            _logger.LogInformation("Got tenant info, owner: {OwnerName}", tenant.OwnerName);
+
+            // FIX: Use the tenant's database schema name instead of manually constructing it
+            string tenantDatabaseName = tenant.TenantSchema ?? throw new InvalidOperationException($"Tenant '{tenantName}' has no schema configured");
+            
+            var adminUser = await _tenantManagementService.GetOwnerUserAsync(tenant.OwnerName, tenantDatabaseName);
+            if (adminUser == null)
+            {
+                _logger.LogError("Owner user not found: {OwnerName} for tenant: {TenantName} in database: {TenantDatabase}", 
+                    tenant.OwnerName, tenantName, tenantDatabaseName);
+                return false;
+            }
+
+            string username = adminUser.UserName;
+            string password = adminUser.Password; 
+            
             string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
-            // Createe root dir for the TrainingProgram
-	        string cmd= "curl";
-            string dirl=System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory);
-            string Arg=  $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{asset.Filename}\"";
+            
+            // Create root dir for the TrainingProgram
+            string cmd = "curl";
+            string dirl = System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory);
+            string Arg = $"-X DELETE -u {username}:{password} \"{webdav_base}/{dirl}/{asset.Filename}\"";
+            
             Console.WriteLine("Executing command: " + cmd + " " + Arg);
             var startInfo = new ProcessStartInfo
-            {                                                                                                                           FileName = cmd,
+            {
+                FileName = cmd,
                 Arguments = Arg,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true
             };
+            
             using (var process = Process.Start(startInfo))
             {
                 string output = process.StandardOutput.ReadToEnd();
@@ -185,18 +321,13 @@ namespace XR50TrainingAssetRepo.Services
                 Console.WriteLine("Error: " + error);
             }
 
-            // TODO: Delete actual file from storage (OwnCloud/S3)
-            // await DeleteAssetFileAsync(id);
-
             context.Assets.Remove(asset);
             await context.SaveChangesAsync();
 
-            _logger.LogInformation("Deleted asset: {Id} ({Filename})", 
-                id, asset.Filename);
+            _logger.LogInformation("Deleted asset: {Id} ({Filename})", id, asset.Filename);
             
             return true;
         }
-
         public async Task<bool> AssetExistsAsync(int id)
         {
             using var context = _dbContextFactory.CreateDbContext();

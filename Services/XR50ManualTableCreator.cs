@@ -241,8 +241,6 @@ namespace XR50TrainingAssetRepo.Services
                     `UserEmail` varchar(255) DEFAULT NULL,
                     `Password` varchar(255) DEFAULT NULL,
                     `admin` tinyint(1) NOT NULL DEFAULT 0,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`UserName`)
                 )",
 
@@ -252,8 +250,6 @@ namespace XR50TrainingAssetRepo.Services
                     `Src` varchar(500) DEFAULT NULL,
                     `Filetype` varchar(100) DEFAULT NULL,
                     `Filename` varchar(255) NOT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`Id`)
                 )",
 
@@ -261,8 +257,6 @@ namespace XR50TrainingAssetRepo.Services
                     `Id` int NOT NULL AUTO_INCREMENT,
                     `Name` varchar(255) NOT NULL,
                     `Created_at` varchar(255) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`Id`)
                 )",
 
@@ -270,68 +264,101 @@ namespace XR50TrainingAssetRepo.Services
                     `Id` int NOT NULL AUTO_INCREMENT,
                     `Description` varchar(1000) NOT NULL,
                     `LearningPathName` varchar(255) NOT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`Id`)
                 )",
 
-                // Materials table with EF Core inheritance (TPH - Table Per Hierarchy)
-                @"CREATE TABLE IF NOT EXISTS `Materials` (
-                    `Id` int NOT NULL AUTO_INCREMENT,
-                    `Description` varchar(1000) DEFAULT NULL,
-                    `Name` varchar(255) DEFAULT NULL,
-                    `Created_at` datetime DEFAULT NULL,
-                    `Updated_at` datetime DEFAULT NULL,
-                    `Type` int NOT NULL,
-                    `Discriminator` varchar(50) NOT NULL,
-                    -- MQTT_TemplateMaterial specific
-                    `message_type` varchar(255) DEFAULT NULL,
-                    `message_text` text DEFAULT NULL,
-                    -- UnityDemoMaterial and DefaultMaterial specific
-                    `AssetId` varchar(255) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`Id`),
-                    INDEX `idx_discriminator` (`Discriminator`),
-                    INDEX `idx_type` (`Type`)
-                )",
+        // Replace the Materials table creation in GetCreateTableStatements() method
 
-                // Supporting Entity Tables
-                @"CREATE TABLE IF NOT EXISTS `ChecklistEntries` (
-                    `ChecklistEntryId` int NOT NULL AUTO_INCREMENT,
-                    `Text` varchar(1000) NOT NULL,
-                    `Description` varchar(1000) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`ChecklistEntryId`)
-                )",
+        @"CREATE TABLE IF NOT EXISTS `Materials` (
+            `Id` int NOT NULL AUTO_INCREMENT,
+            `Description` varchar(1000) DEFAULT NULL,
+            `Name` varchar(255) DEFAULT NULL,
+            `Created_at` datetime DEFAULT NULL,
+            `Updated_at` datetime DEFAULT NULL,
+            `Type` int NOT NULL,
+            `Discriminator` varchar(50) NOT NULL,
+            
+            -- MQTT_TemplateMaterial specific columns
+            `message_type` varchar(255) DEFAULT NULL,
+            `message_text` text DEFAULT NULL,
+            
+            -- Asset-based materials (Video, Image, Unity, Default, PDF)
+            `AssetId` varchar(255) DEFAULT NULL,
+            
+            -- Video-specific columns
+            `VideoPath` varchar(500) DEFAULT NULL,
+            `VideoDuration` int DEFAULT NULL,
+            `VideoResolution` varchar(20) DEFAULT NULL,
+            
+            -- Image-specific columns  
+            `ImagePath` varchar(500) DEFAULT NULL,
+            `ImageWidth` int DEFAULT NULL,
+            `ImageHeight` int DEFAULT NULL,
+            `ImageFormat` varchar(20) DEFAULT NULL,
+            
+            -- PDF-specific columns
+            `PdfPath` varchar(500) DEFAULT NULL,
+            `PdfPageCount` int DEFAULT NULL,
+            `PdfFileSize` bigint DEFAULT NULL,
+            
+            -- Chatbot-specific columns
+            `ChatbotConfig` text DEFAULT NULL,
+            `ChatbotModel` varchar(100) DEFAULT NULL,
+            `ChatbotPrompt` text DEFAULT NULL,
+            
+            -- Questionnaire-specific columns
+            `QuestionnaireConfig` text DEFAULT NULL,
+            `QuestionnaireType` varchar(50) DEFAULT NULL,
+            `PassingScore` decimal(5,2) DEFAULT NULL,
+            
+            -- Unity Demo specific columns
+            `UnityVersion` varchar(50) DEFAULT NULL,
+            `UnityBuildTarget` varchar(50) DEFAULT NULL,
+            `UnitySceneName` varchar(255) DEFAULT NULL,
+            
+            PRIMARY KEY (`Id`),
+            INDEX `idx_discriminator` (`Discriminator`),
+            INDEX `idx_type` (`Type`),
+            INDEX `idx_asset_id` (`AssetId`),
+            INDEX `idx_video_path` (`VideoPath`),
+            INDEX `idx_image_path` (`ImagePath`),
+            INDEX `idx_pdf_path` (`PdfPath`)
+        )",
 
-                @"CREATE TABLE IF NOT EXISTS `QuestionnaireEntries` (
-                    `QuestionnaireEntryId` int NOT NULL AUTO_INCREMENT,
-                    `Text` varchar(1000) NOT NULL,
-                    `Description` varchar(1000) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`QuestionnaireEntryId`)
-                )",
-
+                // Updated table creation statements with proper foreign keys
                 @"CREATE TABLE IF NOT EXISTS `VideoTimestamps` (
                     `id` int NOT NULL AUTO_INCREMENT,
                     `Title` varchar(255) NOT NULL,
                     `Time` varchar(50) NOT NULL,
                     `Description` varchar(1000) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`id`)
+                    `VideoMaterialId` int DEFAULT NULL,
+                    PRIMARY KEY (`id`),
+                    INDEX `idx_video_material` (`VideoMaterialId`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `ChecklistEntries` (
+                    `ChecklistEntryId` int NOT NULL AUTO_INCREMENT,
+                    `Text` varchar(1000) NOT NULL,
+                    `Description` varchar(1000) DEFAULT NULL,
+                    `ChecklistMaterialId` int DEFAULT NULL,
+                    PRIMARY KEY (`ChecklistEntryId`),
+                    INDEX `idx_checklist_material` (`ChecklistMaterialId`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `WorkflowSteps` (
                     `Id` int NOT NULL AUTO_INCREMENT,
                     `Title` varchar(255) NOT NULL,
                     `Content` text DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
-                    PRIMARY KEY (`Id`)
+                    `WorkflowMaterialId` int DEFAULT NULL,
+                    PRIMARY KEY (`Id`),
+                    INDEX `idx_workflow_material` (`WorkflowMaterialId`)
+                )",
+
+                @"CREATE TABLE IF NOT EXISTS `QuestionnaireEntries` (
+                    `QuestionnaireEntryId` int NOT NULL AUTO_INCREMENT,
+                    `Text` varchar(1000) NOT NULL,
+                    `Description` varchar(1000) DEFAULT NULL,
+                    PRIMARY KEY (`QuestionnaireEntryId`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `Shares` (
@@ -339,24 +366,18 @@ namespace XR50TrainingAssetRepo.Services
                     `FileId` varchar(50) DEFAULT NULL,
                     `Type` int NOT NULL,
                     `Target` varchar(255) NOT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`ShareId`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `Groups` (
                     `GroupName` varchar(255) NOT NULL,
                     `TenantName` varchar(255) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`GroupName`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `TenantDirectories` (
                     `TenantPath` varchar(500) NOT NULL,
                     `TenantName` varchar(255) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`TenantPath`)
                 )",
 
@@ -367,8 +388,6 @@ namespace XR50TrainingAssetRepo.Services
                     `Description` varchar(1000) DEFAULT NULL,
                     `TenantDirectory` varchar(500) DEFAULT NULL,
                     `OwnerName` varchar(255) DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`TenantName`)
                 )",
 
@@ -413,8 +432,6 @@ namespace XR50TrainingAssetRepo.Services
                     `RelatedEntityType` varchar(50) NOT NULL,
                     `RelationshipType` varchar(50) DEFAULT NULL,
                     `DisplayOrder` int DEFAULT NULL,
-                    `CreatedDate` datetime(6) NOT NULL,
-                    `UpdatedDate` datetime(6) NOT NULL,
                     PRIMARY KEY (`Id`),
                     INDEX `idx_material_id` (`MaterialId`),
                     INDEX `idx_related_entity` (`RelatedEntityId`, `RelatedEntityType`),
@@ -432,8 +449,6 @@ CREATE TABLE IF NOT EXISTS `Users` (
     `UserEmail` varchar(255) DEFAULT NULL,
     `Password` varchar(50) DEFAULT NULL,
     `admin` tinyint(1) NOT NULL DEFAULT 0,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
     PRIMARY KEY (`UserName`)
 )
 
@@ -441,8 +456,6 @@ CREATE TABLE IF NOT EXISTS `TrainingPrograms` (
     `TrainingProgramId` varchar(50) NOT NULL,
     `ProgramName` varchar(255) NOT NULL,
     `Description` varchar(1000) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
     PRIMARY KEY (`TrainingProgramId`)
 )
 
@@ -450,8 +463,6 @@ CREATE TABLE IF NOT EXISTS `LearningPaths` (
     `LearningPathId` varchar(50) NOT NULL,
     `PathName` varchar(255) NOT NULL,
     `Description` varchar(1000) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
     PRIMARY KEY (`LearningPathId`)
 )
 
@@ -463,8 +474,6 @@ CREATE TABLE IF NOT EXISTS `Materials` (
     `Discriminator` varchar(255) NOT NULL,
     `VideoPath` varchar(500) DEFAULT NULL,
     `ImagePath` varchar(500) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
     PRIMARY KEY (`MaterialId`)
 )
 
@@ -473,42 +482,42 @@ CREATE TABLE IF NOT EXISTS `Assets` (
     `AssetName` varchar(255) NOT NULL,
     `AssetType` varchar(50) DEFAULT NULL,
     `FilePath` varchar(500) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
     PRIMARY KEY (`AssetId`)
 )
 
 CREATE TABLE IF NOT EXISTS `Shares` (
     `ShareId` varchar(50) NOT NULL,
     `ShareType` varchar(50) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
     PRIMARY KEY (`ShareId`)
 )
 
-CREATE TABLE IF NOT EXISTS `ChecklistEntries` (
-    `EntryId` varchar(50) NOT NULL,
-    `EntryText` varchar(500) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
-    PRIMARY KEY (`EntryId`)
+// Updated table creation statements with proper foreign keys
+CREATE TABLE IF NOT EXISTS `VideoTimestamps` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `Title` varchar(255) NOT NULL,
+    `Time` varchar(50) NOT NULL,
+    `Description` varchar(1000) DEFAULT NULL,
+    `VideoMaterialId` int DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_video_material` (`VideoMaterialId`)
 )
 
-CREATE TABLE IF NOT EXISTS `VideoTimestamps` (
-    `TimestampId` varchar(50) NOT NULL,
-    `Description` varchar(500) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
-    PRIMARY KEY (`TimestampId`)
+CREATE TABLE IF NOT EXISTS `ChecklistEntries` (
+    `ChecklistEntryId` int NOT NULL AUTO_INCREMENT,
+    `Text` varchar(1000) NOT NULL,
+    `Description` varchar(1000) DEFAULT NULL,
+    `ChecklistMaterialId` int DEFAULT NULL,
+    PRIMARY KEY (`ChecklistEntryId`),
+    INDEX `idx_checklist_material` (`ChecklistMaterialId`)
 )
 
 CREATE TABLE IF NOT EXISTS `WorkflowSteps` (
-    `StepId` varchar(50) NOT NULL,
-    `StepName` varchar(255) DEFAULT NULL,
-    `Description` varchar(1000) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
-    PRIMARY KEY (`StepId`)
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Title` varchar(255) NOT NULL,
+    `Content` text DEFAULT NULL,
+    `WorkflowMaterialId` int DEFAULT NULL,
+    PRIMARY KEY (`Id`),
+    INDEX `idx_workflow_material` (`WorkflowMaterialId`)
 )
 
 CREATE TABLE IF NOT EXISTS `Tenants` (
@@ -518,8 +527,6 @@ CREATE TABLE IF NOT EXISTS `Tenants` (
     `TenantDirectory` varchar(500) DEFAULT NULL,
     `OwnerName` varchar(255) DEFAULT NULL,
     `TenantSchema` varchar(255) DEFAULT NULL,
-    `CreatedDate` datetime(6) NOT NULL,
-    `UpdatedDate` datetime(6) NOT NULL,
     PRIMARY KEY (`TenantName`)
 )";
         }
