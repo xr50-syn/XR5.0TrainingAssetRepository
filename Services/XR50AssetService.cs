@@ -84,9 +84,10 @@ namespace XR50TrainingAssetRepo.Services
                 asset.Filetype = GetFiletypeFromFilename(asset.Filename);
             }
             var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
-
-            string username = tenant.Owner.UserName;
-            string password = tenant.Owner.Password; ;
+            _logger.LogInformation("Got back {owner}", tenant.OwnerName);
+            var adminUser = await _tenantManagementService.GetOwnerUserAsync(tenant.OwnerName,"xr50_tenant_"+tenantName);
+            string username = adminUser.UserName;
+            string password = adminUser.Password; ;
             string webdav_base = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
             // Createe root dir for the TrainingProgram
             
@@ -150,10 +151,10 @@ namespace XR50TrainingAssetRepo.Services
                 return false;
             }
             var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
-
-            string username = tenant.Owner.UserName;
-            string password = tenant.Owner.Password; ;
-
+            _logger.LogInformation("Got back {owner}", tenant.OwnerName);
+            var adminUser = await _tenantManagementService.GetOwnerUserAsync(tenant.OwnerName,"xr50_tenant_"+tenantName);
+            string username = adminUser.UserName;
+            string password = adminUser.Password; 
             // Check if asset is being used by materials
             var materialsUsingAsset = await GetMaterialsUsingAssetAsync(id);
             if (materialsUsingAsset.Any())

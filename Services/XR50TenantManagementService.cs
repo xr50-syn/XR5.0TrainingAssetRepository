@@ -26,6 +26,7 @@ namespace XR50TrainingAssetRepo.Services
         Task<IEnumerable<XR50Tenant>> GetAllTenantsAsync();
         Task<XR50Tenant> GetTenantAsync(string tenantName);
         Task<XR50Tenant> CreateTenantAsync(XR50Tenant tenant);
+        Task<User> GetOwnerUserAsync(string ownerName, string tenantName);
         Task DeleteTenantAsync(string tenantName);
         Task DeleteTenantCompletelyAsync(string tenantName); // New method for complete deletion
     }
@@ -142,7 +143,7 @@ namespace XR50TrainingAssetRepo.Services
             return tenant;
         }
 
-        private async Task<User> GetOwnerUserAsync(string ownerName, string tenantDatabaseName)
+        public async Task<User> GetOwnerUserAsync(string ownerName, string tenantDatabaseName)
         {
             try
             {
@@ -237,19 +238,20 @@ namespace XR50TrainingAssetRepo.Services
         {
             //Storage First or otherwise we will nuke db
             await DeleteTenantStorageAsync(tenantName);
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            using var connection = new MySqlConnection(connectionString);
-            await connection.OpenAsync();
+            await DeleteTenantCompletelyAsync(tenantName);
+           /* var connectionString = _configuration.GetConnectionString("DefaultConnection");
+             using var connection = new MySqlConnection(connectionString);
+             await connection.OpenAsync();
 
-            var sql = @"
-                UPDATE XR50TenantRegistry 
-                SET IsActive = 0 
-                WHERE TenantName = @tenantName";
+             var sql = @"
+                 UPDATE XR50TenantRegistry 
+                 SET IsActive = 0 
+                 WHERE TenantName = @tenantName";
 
-            using var command = new MySqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@tenantName", tenantName);
-            await command.ExecuteNonQueryAsync();
-            
+             using var command = new MySqlCommand(sql, connection);
+             command.Parameters.AddWithValue("@tenantName", tenantName);
+             await command.ExecuteNonQueryAsync();
+             */
             _logger.LogInformation("Marked tenant {TenantName} as inactive in registry (database still exists)", tenantName);
         }
 

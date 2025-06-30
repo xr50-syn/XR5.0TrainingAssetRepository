@@ -1,6 +1,5 @@
 {
-  "path": "magical_text.pdf",
+  "src": "magical_text.pdf",
   "description": "A Philosophical Treatment on the nature of reality",
-  "type": "PNG",
-  "trainingName": "Philosophy_LAB"
+  "fileType": "PNG"
 }

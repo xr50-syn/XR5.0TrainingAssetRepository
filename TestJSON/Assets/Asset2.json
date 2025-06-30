@@ -1,8 +1,6 @@
 {
-  "path": "magical_text.pdf",
+  "psrc": "magical_text.pdf",
   "description": "BAD! Do not cast",
   "fileName": "Souleater.pdf",
-  "type": "PDF",
-  "trainingName": "Advanced_Arcana",
-  "Name": "Epic_Spellbook"
+  "fileType": "PDF"
 }
