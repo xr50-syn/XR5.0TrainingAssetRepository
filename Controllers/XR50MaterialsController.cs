@@ -16,13 +16,16 @@ namespace XR50TrainingAssetRepo.Controllers
     public class MaterialsController : ControllerBase
     {
         private readonly IMaterialService _materialService;
+        private readonly ILearningPathService _learningPathService;
         private readonly ILogger<MaterialsController> _logger;
 
         public MaterialsController(
             IMaterialService materialService,
+            ILearningPathService learningPathService,
             ILogger<MaterialsController> logger)
         {
             _materialService = materialService;
+            _learningPathService = learningPathService;
             _logger = logger;
         }
 
@@ -865,9 +868,108 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         #endregion
+                #region Material Relationship Query Endpoints
 
-        #region Request DTOs for Complex Creation
+        /// <summary>
+        /// Get all learning paths that contain this material
+        /// </summary>
+        [HttpGet("{materialId}/learning-paths")]
+        public async Task<ActionResult<IEnumerable<LearningPath>>> GetMaterialLearningPaths(
+            string tenantName,
+            int materialId)
+        {
+            _logger.LogInformation("Getting learning paths containing material {MaterialId} for tenant: {TenantName}",
+                materialId, tenantName);
 
+            // Get relationships where this material is assigned to learning paths
+            var relationships = await _materialService.GetRelationshipsByTypeAsync(materialId, "LearningPath");
+            
+            // Extract learning path IDs and fetch the actual learning paths
+            var learningPathIds = relationships.Select(r => int.Parse(r.RelatedEntityId)).ToList();
+            
+            var learningPaths = new List<LearningPath>();
+            foreach (var id in learningPathIds)
+            {
+                var path = await _learningPathService.GetLearningPathAsync(id);
+                if (path != null)
+                    learningPaths.Add(path);
+            }
+
+            _logger.LogInformation("Found {Count} learning paths containing material {MaterialId} for tenant: {TenantName}",
+                learningPaths.Count, materialId, tenantName);
+
+            return Ok(learningPaths);
+        }
+
+        /// <summary>
+        /// Get all training programs that contain this material
+        /// </summary>
+      /*  [HttpGet("{materialId}/training-programs")]
+        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetMaterialTrainingPrograms(
+            string tenantName,
+            int materialId)
+        {
+            _logger.LogInformation("Getting training programs containing material {MaterialId} for tenant: {TenantName}",
+                materialId, tenantName);
+
+            var programs = await _materialService.GetTrainingProgramsContainingMaterialAsync(materialId);
+
+            _logger.LogInformation("Found {Count} training programs containing material {MaterialId} for tenant: {TenantName}",
+                programs.Count(), materialId, tenantName);
+
+            return Ok(programs);
+        }*/
+
+        /// <summary>
+        /// Get all relationships for this material
+        /// </summary>
+        [HttpGet("{materialId}/all-relationships")]
+        public async Task<ActionResult<object>> GetMaterialAllRelationships(
+            string tenantName,
+            int materialId)
+        {
+            _logger.LogInformation("Getting all relationships for material {MaterialId} for tenant: {TenantName}",
+                materialId, tenantName);
+
+            var relationships = await _materialService.GetMaterialRelationshipsAsync(materialId);
+
+            var groupedRelationships = relationships
+                .GroupBy(r => r.RelatedEntityType)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            _logger.LogInformation("Found {Count} total relationships for material {MaterialId} for tenant: {TenantName}",
+                relationships.Count(), materialId, tenantName);
+
+            return Ok(new
+            {
+                MaterialId = materialId,
+                TotalRelationships = relationships.Count(),
+                RelationshipsByType = groupedRelationships,
+                RelationshipTypes = groupedRelationships.Keys.ToList()
+            });
+        }
+
+        #endregion
+    }
+
+        // Supporting DTOs
+        public class BulkMaterialAssignment
+        {
+            public int MaterialId { get; set; }
+            public string? RelationshipType { get; set; }
+            public int? DisplayOrder { get; set; }
+            public string? Notes { get; set; }
+        }
+
+        public class BulkAssignmentResult
+        {
+            public int SuccessfulAssignments { get; set; }
+            public int FailedAssignments { get; set; }
+            public List<string> Errors { get; set; } = new();
+            public List<string> Warnings { get; set; } = new();
+
+            #region Request DTOs for Complex Creation
+        }
         public class CompleteWorkflowRequest
         {
             public WorkflowMaterial Workflow { get; set; } = new();
@@ -903,4 +1005,3 @@ namespace XR50TrainingAssetRepo.Controllers
 
         #endregion
     }
-}

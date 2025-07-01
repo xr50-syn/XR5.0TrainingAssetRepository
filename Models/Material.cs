@@ -184,7 +184,7 @@ namespace XR50TrainingAssetRepo.Models
     public class MaterialRelationship
     {
         [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public int Id { get; set; }
         
         public int MaterialId { get; set; }
         public string RelatedEntityId { get; set; }
