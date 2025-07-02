@@ -1,0 +1,269 @@
+{
+  "name": "xr50-partner-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for XR5.0 partner verification",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:integration && npm run test:smoke",
+    "test:unit": "jest --testMatch='**/*.unit.test.js'",
+    "test:integration": "jest --testMatch='**/*integration.test.js' --runInBand",
+    "test:api": "jest api-integration.test.js --runInBand",
+    "test:performance": "k6 run performance.js",
+    "test:load": "artillery run load-test.yml",
+    "test:smoke": "./smoke-test.sh",
+    "test:db": "python3 -m pytest database_tests.py -v",
+    "test:all": "npm run test && npm run test:performance && npm run test:db",
+    "verify": "npm run test:smoke && echo '✅ Basic verification complete'",
+    "partner-verify": "npm run test:api && npm run test:smoke && echo '🎉 Partner verification complete!'"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/supertest": "^2.0.15"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testTimeout": 30000,
+    "verbose": true
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
+
+// =============================================================================
+// File: tests/setup.js
+// =============================================================================
+
+// Global test setup
+const axios = require('axios');
+
+// Set default timeout for all requests
+axios.defaults.timeout = 10000;
+
+// Global test configuration
+global.testConfig = {
+  baseURL: process.env.XR50_API_URL || 'http://localhost:5000',
+  testTenant: 'automated-test',
+  timeout: 30000
+};
+
+// Helper functions for tests
+global.createTestMaterial = async (tenant, materialData) => {
+  const defaultMaterial = {
+    name: `Test Material ${Date.now()}`,
+    type: 'Video',
+    discriminator: 'VideoMaterial',
+    ...materialData
+  };
+  
+  const response = await axios.post(
+    `${global.testConfig.baseURL}/api/${tenant}/materials`,
+    defaultMaterial
+  );
+  
+  return response.data;
+};
+
+global.createTestProgram = async (tenant, programData) => {
+  const defaultProgram = {
+    name: `Test Program ${Date.now()}`,
+    ...programData
+  };
+  
+  const response = await axios.post(
+    `${global.testConfig.baseURL}/api/${tenant}/trainingprograms`,
+    defaultProgram
+  );
+  
+  return response.data;
+};
+
+global.cleanup = {
+  materials: [],
+  programs: [],
+  
+  addMaterial: (tenant, materialId) => {
+    global.cleanup.materials.push({ tenant, id: materialId });
+  },
+  
+  addProgram: (tenant, programId) => {
+    global.cleanup.programs.push({ tenant, id: programId });
+  },
+  
+  async run() {
+    // Cleanup materials
+    for (const material of global.cleanup.materials) {
+      try {
+        await axios.delete(
+          `${global.testConfig.baseURL}/api/${material.tenant}/materials/${material.id}`
+        );
+      } catch (e) {
+        console.log(`Failed to cleanup material ${material.id}: ${e.message}`);
+      }
+    }
+    
+    // Cleanup programs
+    for (const program of global.cleanup.programs) {
+      try {
+        await axios.delete(
+          `${global.testConfig.baseURL}/api/${program.tenant}/trainingprograms/${program.id}`
+        );
+      } catch (e) {
+        console.log(`Failed to cleanup program ${program.id}: ${e.message}`);
+      }
+    }
+    
+    // Reset arrays
+    global.cleanup.materials = [];
+    global.cleanup.programs = [];
+  }
+};
+
+// Setup/teardown for each test file
+beforeEach(() => {
+  // Reset cleanup arrays before each test
+  global.cleanup.materials = [];
+  global.cleanup.programs = [];
+});
+
+afterEach(async () => {
+  // Cleanup after each test
+  await global.cleanup.run();
+});
+
+// =============================================================================
+// File: tests/README.md
+// =============================================================================
+
+# XR5.0 Partner Verification Test Suite
+
+This comprehensive test suite helps partners verify their XR5.0 installation and integration.
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Run basic verification
+npm run verify
+
+# Run full partner verification
+npm run partner-verify
+
+# Run all tests (comprehensive)
+npm run test:all
+```
+
+## Test Categories
+
+### 🔧 Unit Tests (C#)
+- Material service functionality
+- Tenant resolution
+- Asset management
+- Core business logic
+
+### 🌐 Integration Tests (Node.js/Jest)
+- API endpoint testing
+- Multi-tenant isolation
+- Material hierarchy creation
+- Training program workflows
+
+### ⚡ Performance Tests (K6)
+- Load testing under realistic conditions
+- Response time validation
+- Concurrent user simulation
+- Scalability verification
+
+### 💾 Database Tests (Python)
+- Schema integrity
+- Foreign key constraints
+- Index performance
+- Multi-tenant isolation
+
+### 🚀 Smoke Tests (Bash)
+- Quick health checks
+- Basic CRUD operations
+- Partner integration verification
+- Deployment validation
+
+## Environment Variables
+
+```bash
+# Required
+export XR50_API_URL="http://your-xr50-instance:5000"
+
+# Optional
+export XR50_TEST_DB="postgresql://user:pass@host/db"
+export TEST_TENANT="your-test-tenant"
+```
+
+## Docker Usage
+
+```bash
+# Build test container
+docker build -f tests/Dockerfile.tests -t xr50-tests .
+
+# Run all tests
+docker run --rm \
+  -e XR50_API_URL=http://your-api:5000 \
+  xr50-tests
+
+# Run specific test type
+docker run --rm xr50-tests npm run test:api
+```
+
+## Partner Integration Checklist
+
+✅ **Basic Verification**
+- [ ] API responds to health checks
+- [ ] Can create materials of all types
+- [ ] Can create training programs
+- [ ] Can assign materials to programs
+
+✅ **Advanced Features**
+- [ ] Material hierarchies work correctly
+- [ ] Circular reference prevention works
+- [ ] Multi-tenant isolation verified
+- [ ] Performance meets requirements
+
+✅ **Production Readiness**
+- [ ] Load tests pass under expected traffic
+- [ ] Database constraints properly enforced
+- [ ] Error handling works correctly
+- [ ] Cleanup operations function properly
+
+## Test Results
+
+After running tests, you'll see output indicating:
+- ✅ Passed tests (system working correctly)
+- ❌ Failed tests (issues to address)
+- ⚠️ Warnings (potential concerns)
+
+## Troubleshooting
+
+**Common Issues:**
+- Connection refused → Check XR50_API_URL
+- 404 errors → Verify tenant exists
+- Timeout errors → Check system performance
+- Database errors → Verify schema migration
+
+**Getting Help:**
+1. Run `npm run test:smoke` for basic validation
+2. Check logs for specific error messages
+3. Verify environment variables are set
+4. Ensure XR5.0 service is running and accessible
+
+## Contributing
+
+When adding new tests:
+1. Follow existing patterns
+2. Include cleanup in test teardown
+3. Use descriptive test names
+4. Add to appropriate test category
+5. Update this README if needed
