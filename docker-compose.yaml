@@ -3,70 +3,94 @@ version: '3.8'
 volumes:
   repodb_mysql:
     driver: local
+  db_migrations:
+    driver: local
+  # OwnCloud volumes (for lab environment)
   owncloud_files:
     driver: local
   owncloud_mysql:
     driver: local
   owncloud_redis:
     driver: local
-  db_migrations:
-    driver: local
-
 
 services:
   mariadb:
-    image: mariadb:10.11 # minimum required ownCloud version is 10.9
+    image: mariadb:10.11
     container_name: mariadb
     ports:
       - "3306:3306"
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${XR50_OWNCLOUD_DB_PASSWORD}
-      MYSQL_USER: ${XR50_OWNCLOUD_DB_USER}
-      MYSQL_PASSWORD: ${XR50_OWNCLOUD_DB_PASSWORD}
-      MYSQL_DATABASE: owncloud
+      MYSQL_ROOT_PASSWORD: ${XR50_REPO_DB_PASSWORD}
+      MYSQL_USER: ${XR50_REPO_DB_USER}
+      MYSQL_PASSWORD: ${XR50_REPO_DB_PASSWORD}
+      MYSQL_DATABASE: ${XR50_REPO_DB_NAME}
       MARIADB_AUTO_UPGRADE: 1
-      XR50_REPO_DB_NAME: ${XR50_REPO_DB_NAME}
-      XR50_REPO_DB_USER: ${XR50_REPO_DB_USER}
-      XR50_REPO_DB_PASSWORD: ${XR50_REPO_DB_PASSWORD}
     command: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-u", "${XR50_OWNCLOUD_DB_USER}", "--password=${XR50_OWNCLOUD_DB_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-u", "${XR50_REPO_DB_USER}", "--password=${XR50_REPO_DB_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
       - repodb_mysql:/var/lib/mysql
-      - ./db-init-scripts:/docker-entrypoint-initdb.d/ # Mount custom scripts for DB initialization
-      
+      - ./db-init-scripts:/docker-entrypoint-initdb.d/
+
+  # Main application - supports both S3 and OwnCloud based on configuration
   training-repo:
     container_name: training-repo
     image: training-repo-image
     depends_on:
       mariadb:
         condition: service_healthy
-      owncloud:
-        condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      
+      # Database Configuration
       XR50_REPO_DB_USER: ${XR50_REPO_DB_USER}
       XR50_REPO_DB_PASSWORD: ${XR50_REPO_DB_PASSWORD}
       XR50_REPO_DB_NAME: ${XR50_REPO_DB_NAME}
-      TenantSettings__BaseAPI: http://owncloud:8080
-      TenantSettings__BaseWebDAV: http://owncloud:8080/remote.php/webdav
-      TenantSettings__Admin: ${XR50_OWNCLOUD_ADMIN_USER}
-      TenantSettings__Password: ${XR50_OWNCLOUD_ADMIN_PASSWORD}
       ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=${XR50_REPO_DB_NAME};user=${XR50_REPO_DB_USER};password=${XR50_REPO_DB_PASSWORD};
       BaseDatabaseName: ${XR50_REPO_DB_NAME}
+      
+      # Storage Configuration - determines which storage to use
+      Storage__Type: ${STORAGE_TYPE:-OwnCloud}  # "S3" or "OwnCloud"
+      
+      # S3 Configuration (used when STORAGE_TYPE=S3)
+      S3Settings__ServiceUrl: ${AWS_HOST:-}
+      S3Settings__AccessKey: ${AWS_ACCESS_KEY_ID:-}
+      S3Settings__SecretKey: ${AWS_SECRET_ACCESS_KEY:-}
+      S3Settings__Region: ${AWS_REGION:-eu-west-1}
+      S3Settings__BaseBucketPrefix: ${S3_BASE_BUCKET_PREFIX:-xr50}
+      S3Settings__ForcePathStyle: ${S3_FORCE_PATH_STYLE:-true}
+      
+      # OwnCloud Configuration (used when STORAGE_TYPE=OwnCloud)
+      TenantSettings__BaseAPI: ${OWNCLOUD_BASE_API:-http://owncloud:8080}
+      TenantSettings__BaseWebDAV: ${OWNCLOUD_BASE_WEBDAV:-http://owncloud:8080/remote.php/webdav}
+      TenantSettings__Admin: ${OWNCLOUD_ADMIN_USER:-admin}
+      TenantSettings__Password: ${OWNCLOUD_ADMIN_PASSWORD:-admin}
+      TenantSettings__GroupsPath: ${OWNCLOUD_GROUPS_PATH:-/ocs/v1.php/cloud/groups}
+      TenantSettings__UsersPath: ${OWNCLOUD_USERS_PATH:-/ocs/v1.php/cloud/users}
+      
+      # AWS Environment Variables (for S3 SDK when STORAGE_TYPE=S3)
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: ${AWS_REGION:-eu-west-1}
+      
     ports:
       - "5286:5286"
       - "7069:7069"
     volumes:
       - db_migrations:/App/Migrations
-  
+    profiles:
+      - lab      # For lab environment with OwnCloud
+      - prod     # For production environment with S3
+      - default  # Always included
+
+  # OwnCloud services (only for lab environment)
   owncloud:
     image: owncloud/server:10.15
     container_name: owncloud_server
@@ -74,18 +98,18 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - mariadb
+      - owncloud_mariadb
       - owncloud_redis
     environment:
       - OWNCLOUD_DOMAIN=localhost:8080
-      - OWNCLOUD_TRUSTED_DOMAINS=${XR50_OWNCLOUD_TRUSTED_DOMAINS}
+      - OWNCLOUD_TRUSTED_DOMAINS=${OWNCLOUD_TRUSTED_DOMAINS:-localhost,owncloud}
       - OWNCLOUD_DB_TYPE=mysql
       - OWNCLOUD_DB_NAME=owncloud
-      - OWNCLOUD_DB_USERNAME=${XR50_OWNCLOUD_DB_USER}
-      - OWNCLOUD_DB_PASSWORD=${XR50_OWNCLOUD_DB_PASSWORD}
-      - OWNCLOUD_DB_HOST=mariadb
-      - OWNCLOUD_ADMIN_USERNAME=${XR50_OWNCLOUD_ADMIN_USER}
-      - OWNCLOUD_ADMIN_PASSWORD=${XR50_OWNCLOUD_ADMIN_PASSWORD}
+      - OWNCLOUD_DB_USERNAME=${OWNCLOUD_DB_USER:-owncloud}
+      - OWNCLOUD_DB_PASSWORD=${OWNCLOUD_DB_PASSWORD:-owncloud}
+      - OWNCLOUD_DB_HOST=owncloud_mariadb
+      - OWNCLOUD_ADMIN_USERNAME=${OWNCLOUD_ADMIN_USER:-admin}
+      - OWNCLOUD_ADMIN_PASSWORD=${OWNCLOUD_ADMIN_PASSWORD:-admin}
       - OWNCLOUD_MYSQL_UTF8MB4=true
       - OWNCLOUD_REDIS_ENABLED=true
       - OWNCLOUD_REDIS_HOST=owncloud_redis
@@ -96,6 +120,29 @@ services:
       retries: 5
     volumes:
       - owncloud_files:/mnt/data
+    profiles:
+      - lab      # Only start with lab profile
+
+  owncloud_mariadb:
+    image: mariadb:10.11
+    container_name: owncloud_mariadb
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${OWNCLOUD_DB_PASSWORD:-owncloud}
+      - MYSQL_USER=${OWNCLOUD_DB_USER:-owncloud}
+      - MYSQL_PASSWORD=${OWNCLOUD_DB_PASSWORD:-owncloud}
+      - MYSQL_DATABASE=owncloud
+      - MARIADB_AUTO_UPGRADE=1
+    command: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "${OWNCLOUD_DB_USER:-owncloud}", "--password=${OWNCLOUD_DB_PASSWORD:-owncloud}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - owncloud_mysql:/var/lib/mysql
+    profiles:
+      - lab      # Only start with lab profile
 
   owncloud_redis:
     image: redis:6
@@ -109,4 +156,25 @@ services:
       retries: 5
     volumes:
       - owncloud_redis:/data
-  
+    profiles:
+      - lab      # Only start with lab profile
+
+  # Optional: MinIO for local S3 testing (alternative to real S3)
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    profiles:
+      - minio    # Only start with --profile minio
+
+volumes:
+  minio_data:
+    driver: local
