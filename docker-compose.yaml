@@ -12,6 +12,9 @@ volumes:
     driver: local
   owncloud_redis:
     driver: local
+  # MinIO volumes (for S3 testing)
+  minio_data:
+    driver: local
 
 services:
   mariadb:
@@ -57,7 +60,7 @@ services:
       BaseDatabaseName: ${XR50_REPO_DB_NAME}
       
       # Storage Configuration - determines which storage to use
-      Storage__Type: ${STORAGE_TYPE:-OwnCloud}  # "S3" or "OwnCloud"
+      Storage__Type: ${STORAGE_TYPE:-OwnCloud}  # "S3", "OwnCloud", "MinIO"
       
       # S3 Configuration (used when STORAGE_TYPE=S3)
       S3Settings__ServiceUrl: ${AWS_HOST:-}
@@ -65,7 +68,12 @@ services:
       S3Settings__SecretKey: ${AWS_SECRET_ACCESS_KEY:-}
       S3Settings__Region: ${AWS_REGION:-eu-west-1}
       S3Settings__BaseBucketPrefix: ${S3_BASE_BUCKET_PREFIX:-xr50}
-      S3Settings__ForcePathStyle: ${S3_FORCE_PATH_STYLE:-true}
+      S3Settings__ForcePathStyle: ${S3_FORCE_PATH_STYLE:-false}
+      
+      # MinIO Configuration (used when STORAGE_TYPE=MinIO)
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
       
       # OwnCloud Configuration (used when STORAGE_TYPE=OwnCloud)
       TenantSettings__BaseAPI: ${OWNCLOUD_BASE_API:-http://owncloud:8080}
@@ -88,6 +96,7 @@ services:
     profiles:
       - lab      # For lab environment with OwnCloud
       - prod     # For production environment with S3
+      - minio    # For MinIO testing environment
       - default  # Always included
 
   # OwnCloud services (only for lab environment)
@@ -174,7 +183,3 @@ services:
       - minio_data:/data
     profiles:
       - minio    # Only start with --profile minio
-
-volumes:
-  minio_data:
-    driver: local

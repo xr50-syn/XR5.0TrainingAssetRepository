@@ -1,3 +1,5 @@
+using XR50TrainingAssetRepo.Models;
+
 namespace XR50TrainingAssetRepo.Services
 {
     /// <summary>
@@ -9,7 +11,7 @@ namespace XR50TrainingAssetRepo.Services
         Task<bool> CreateTenantStorageAsync(string tenantName, XR50Tenant tenant);
         Task<bool> DeleteTenantStorageAsync(string tenantName);
         Task<bool> TenantStorageExistsAsync(string tenantName);
-        
+
         // File Operations
         Task<string> UploadFileAsync(string tenantName, string fileName, Stream fileStream, string contentType = "application/octet-stream");
         Task<Stream> DownloadFileAsync(string tenantName, string fileName);
@@ -17,12 +19,12 @@ namespace XR50TrainingAssetRepo.Services
         Task<bool> DeleteFileAsync(string tenantName, string fileName);
         Task<bool> FileExistsAsync(string tenantName, string fileName);
         Task<long> GetFileSizeAsync(string tenantName, string fileName);
-        
+
         // Storage Info
         Task<StorageStatistics> GetStorageStatisticsAsync(string tenantName);
         string GetStorageType(); // Returns "S3" or "OwnCloud"
     }
-    
+
     public class StorageStatistics
     {
         public string TenantName { get; set; } = "";

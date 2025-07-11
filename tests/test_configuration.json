@@ -12,7 +12,7 @@
     "test:smoke": "./smoke-test.sh",
     "test:db": "python3 -m pytest database_tests.py -v",
     "test:all": "npm run test && npm run test:performance && npm run test:db",
-    "verify": "npm run test:smoke && echo '✅ Basic verification complete'",
+    "verify": "npm run test:smoke && echo 'Basic verification complete'",
     "partner-verify": "npm run test:api && npm run test:smoke && echo '🎉 Partner verification complete!'"
   },
   "dependencies": {
@@ -220,19 +220,19 @@ docker run --rm xr50-tests npm run test:api
 
 ## Partner Integration Checklist
 
-✅ **Basic Verification**
+**Basic Verification**
 - [ ] API responds to health checks
 - [ ] Can create materials of all types
 - [ ] Can create training programs
 - [ ] Can assign materials to programs
 
-✅ **Advanced Features**
+**Advanced Features**
 - [ ] Material hierarchies work correctly
 - [ ] Circular reference prevention works
 - [ ] Multi-tenant isolation verified
 - [ ] Performance meets requirements
 
-✅ **Production Readiness**
+**Production Readiness**
 - [ ] Load tests pass under expected traffic
 - [ ] Database constraints properly enforced
 - [ ] Error handling works correctly
@@ -241,8 +241,8 @@ docker run --rm xr50-tests npm run test:api
 ## Test Results
 
 After running tests, you'll see output indicating:
-- ✅ Passed tests (system working correctly)
-- ❌ Failed tests (issues to address)
+- Passed tests (system working correctly)
+- Failed tests (issues to address)
 - ⚠️ Warnings (potential concerns)
 
 ## Troubleshooting

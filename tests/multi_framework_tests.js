@@ -442,8 +442,8 @@ echo "Test Tenant: $TENANT"
 
 # Test 1: Health Check
 echo "🏥 Testing health endpoint..."
-curl -f "$BASE_URL/health" || (echo "❌ Health check failed" && exit 1)
-echo "✅ Health check passed"
+curl -f "$BASE_URL/health" || (echo "Health check failed" && exit 1)
+echo "Health check passed"
 
 # Test 2: Basic Material Operations
 echo "📚 Testing material operations..."
@@ -456,16 +456,16 @@ MATERIAL_RESPONSE=$(curl -s -X POST "$BASE_URL/api/$TENANT/materials" \
 MATERIAL_ID=$(echo $MATERIAL_RESPONSE | grep -o '"id":[0-9]*' | cut -d':' -f2)
 
 if [ -z "$MATERIAL_ID" ]; then
-  echo "❌ Failed to create material"
+  echo "Failed to create material"
   exit 1
 fi
 
-echo "✅ Created material with ID: $MATERIAL_ID"
+echo "Created material with ID: $MATERIAL_ID"
 
 # Get material
 curl -f "$BASE_URL/api/$TENANT/materials/$MATERIAL_ID" > /dev/null || \
-  (echo "❌ Failed to retrieve material" && exit 1)
-echo "✅ Retrieved material successfully"
+  (echo "Failed to retrieve material" && exit 1)
+echo "Retrieved material successfully"
 
 # Test 3: Training Program Operations
 echo "🎓 Testing training program operations..."
@@ -477,25 +477,25 @@ PROGRAM_RESPONSE=$(curl -s -X POST "$BASE_URL/api/$TENANT/trainingprograms" \
 PROGRAM_ID=$(echo $PROGRAM_RESPONSE | grep -o '"id":[0-9]*' | cut -d':' -f2)
 
 if [ -z "$PROGRAM_ID" ]; then
-  echo "❌ Failed to create training program"
+  echo "Failed to create training program"
   exit 1
 fi
 
-echo "✅ Created training program with ID: $PROGRAM_ID"
+echo "Created training program with ID: $PROGRAM_ID"
 
 # Test 4: Material Assignment
 echo "🔗 Testing material assignment..."
 
 curl -f -X POST "$BASE_URL/api/$TENANT/trainingprograms/$PROGRAM_ID/assign-material/$MATERIAL_ID" || \
-  (echo "❌ Failed to assign material to program" && exit 1)
-echo "✅ Assigned material to training program"
+  (echo "Failed to assign material to program" && exit 1)
+echo "Assigned material to training program"
 
 # Test 5: Data Retrieval
 echo "📊 Testing data retrieval..."
 
 curl -f "$BASE_URL/api/$TENANT/trainingprograms/$PROGRAM_ID/materials" | \
-  grep -q "$MATERIAL_ID" || (echo "❌ Material not found in program" && exit 1)
-echo "✅ Retrieved materials from training program"
+  grep -q "$MATERIAL_ID" || (echo "Material not found in program" && exit 1)
+echo "Retrieved materials from training program"
 
 # Cleanup
 echo "🧹 Cleaning up test data..."

@@ -1,14 +1,16 @@
 {
   "TenantName": "Emmie's Stash of picture books",
-  "TenantGroup": "DECEIT Library of Forbidden Texts",
+  "TenantGroup": "Stash",
   "TenantDirectory": "Emmie",
-  "Description": "NSFW",
+  "Description": "Emmie's Stash of picture books",
   "OwnerName":  "emmie",
   "Owner": {
     "userName": "emmie2",
     "fullName": "Fairy Queen Emerald burner NSFW account",
     "userEmail": "emmie@fairy.gov",
+    "TenantName": "Emmie's Stash of picture books",
     "password": "123",
+    ""
     "admin": true
     
   },

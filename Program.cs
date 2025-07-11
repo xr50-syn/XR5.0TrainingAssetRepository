@@ -140,7 +140,7 @@ else
     // Configure OwnCloud Storage (default for lab environment)
     builder.Services.AddScoped<IStorageService, OwnCloudStorageServiceImplementation>();
     
-    Console.WriteLine("🏠 Configured for OwnCloud storage");
+    Console.WriteLine("Configured for OwnCloud storage");
 }
 builder.Services.AddSwaggerGen(c =>
 {
@@ -277,6 +277,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMaterialService, MaterialService>();
         services.AddScoped<IAssetService, AssetService>();
         // Keep the original DbContext registration for admin operations
+        
         services.AddDbContext<XR50TrainingContext>((serviceProvider, options) =>
         {
             var configuration = serviceProvider.GetService<IConfiguration>();

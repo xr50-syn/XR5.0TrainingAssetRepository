@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
 using XR50TrainingAssetRepo.Services;
-using Amazon.S3;
-using Amazon.S3.Model;
+using System.Diagnostics;
 
 namespace XR50TrainingAssetRepo.Services
 {
@@ -13,7 +12,7 @@ namespace XR50TrainingAssetRepo.Services
         Task<Asset?> GetAssetAsync(int id);
         Task<Asset> CreateAssetAsync(Asset asset, string tenantName, IFormFile file);
         Task<Asset> UpdateAssetAsync(Asset asset);
-        Task<bool> DeleteAssetAsync(string tenantName,int id);
+        Task<bool> DeleteAssetAsync(string tenantName, int id);
         Task<bool> AssetExistsAsync(int id);
         
         // Asset Search and Filtering
@@ -25,7 +24,7 @@ namespace XR50TrainingAssetRepo.Services
         Task<IEnumerable<Material>> GetMaterialsUsingAssetAsync(int assetId);
         Task<int> GetAssetUsageCountAsync(int assetId);
         
-        // File Management Placeholders (to be implemented with OwnCloud/S3)
+        // File Management with Storage Service
         Task<string> GetAssetDownloadUrlAsync(int assetId);
         Task<Asset> UploadAssetAsync(IFormFile file, string tenantName, string filename, string? description = null);
         Task<bool> DeleteAssetFileAsync(int assetId);
@@ -78,60 +77,29 @@ namespace XR50TrainingAssetRepo.Services
         public async Task<Asset> CreateAssetAsync(Asset asset, string tenantName, IFormFile file)
         {
             using var context = _dbContextFactory.CreateDbContext();
-
+            
             try
             {
-                _logger.LogInformation("Creating asset for tenant: {TenantName} using {StorageType} storage",
-                    tenantName, _storageService.GetStorageType());
-
-                // Validate tenant exists
-                var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
-                if (tenant == null)
-                {
-                    throw new ArgumentException($"Tenant '{tenantName}' not found");
-                }
-
-                // Auto-detect filetype if not provided
-                if (string.IsNullOrEmpty(asset.Filetype) && !string.IsNullOrEmpty(asset.Filename))
-                {
-                    asset.Filetype = GetFiletypeFromFilename(asset.Filename);
-                }
-
-                // Ensure tenant storage exists
-                if (!await _storageService.TenantStorageExistsAsync(tenantName))
-                {
-                    _logger.LogInformation("Creating storage for tenant: {TenantName}", tenantName);
-                    var storageCreated = await _storageService.CreateTenantStorageAsync(tenantName, tenant);
-                    if (!storageCreated)
-                    {
-                        throw new InvalidOperationException($"Failed to create storage for tenant '{tenantName}'");
-                    }
-                }
-
-                // Upload file using unified storage interface
-                _logger.LogInformation("Uploading file: {Filename} to {StorageType}",
-                    asset.Filename, _storageService.GetStorageType());
-
-                var contentType = GetContentType(asset.Filename, asset.Filetype);
-                using var fileStream = file.OpenReadStream();
-                var storageUrl = await _storageService.UploadFileAsync(tenantName, asset.Filename, fileStream, contentType);
-
+                // Upload file to storage first
+                using var stream = file.OpenReadStream();
+                var uploadResult = await _storageService.UploadFileAsync(tenantName, asset.Filename, stream, file.ContentType);
+                
                 // Update asset with storage URL
-                asset.Src = storageUrl;
-
+                asset.Src = uploadResult;
+                
                 // Save to database
                 context.Assets.Add(asset);
                 await context.SaveChangesAsync();
-
-                _logger.LogInformation("Created asset: {Filename} (Type: {Filetype}) with ID: {Id} in {StorageType}",
-                    asset.Filename, asset.Filetype, asset.Id, _storageService.GetStorageType());
-
+                
+                _logger.LogInformation("Created asset {AssetId} ({Filename}) in {StorageType} storage", 
+                    asset.Id, asset.Filename, _storageService.GetStorageType());
+                
                 return asset;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating asset {Filename} for tenant {TenantName}: {Error}",
-                    asset.Filename, tenantName, ex.Message);
+                _logger.LogError(ex, "Failed to create asset {Filename} for tenant {TenantName}", 
+                    asset.Filename, tenantName);
                 throw;
             }
         }
@@ -139,63 +107,55 @@ namespace XR50TrainingAssetRepo.Services
         public async Task<Asset> UpdateAssetAsync(Asset asset)
         {
             using var context = _dbContextFactory.CreateDbContext();
-
-            context.Entry(asset).State = EntityState.Modified;
+            
+            context.Assets.Update(asset);
             await context.SaveChangesAsync();
-
-            _logger.LogInformation("Updated asset: {Id} ({Filename})", asset.Id, asset.Filename);
+            
+            _logger.LogInformation("Updated asset {AssetId} ({Filename})", asset.Id, asset.Filename);
+            
             return asset;
         }
 
         public async Task<bool> DeleteAssetAsync(string tenantName, int id)
         {
             using var context = _dbContextFactory.CreateDbContext();
-
+            
             var asset = await context.Assets.FindAsync(id);
             if (asset == null)
             {
                 return false;
             }
 
-            // Check if asset is being used by materials
-            var materialsUsingAsset = await GetMaterialsUsingAssetAsync(id);
-            if (materialsUsingAsset.Any())
-            {
-                _logger.LogWarning("Cannot delete asset {Id} ({Filename}) - it is being used by {Count} materials",
-                    id, asset.Filename, materialsUsingAsset.Count());
-                return false;
-            }
-
-            // Delete from storage
             try
             {
-                var deleted = await _storageService.DeleteFileAsync(tenantName, asset.Filename);
-                if (!deleted)
+                // Delete file from storage
+                var storageDeleted = await _storageService.DeleteFileAsync(tenantName, asset.Filename);
+                if (!storageDeleted)
                 {
-                    _logger.LogWarning("Failed to delete file from {StorageType}: {Filename}",
-                        _storageService.GetStorageType(), asset.Filename);
+                    _logger.LogWarning("Failed to delete file {Filename} from storage, but continuing with database deletion", 
+                        asset.Filename);
                 }
+
+                // Delete from database
+                context.Assets.Remove(asset);
+                await context.SaveChangesAsync();
+                
+                _logger.LogInformation("Deleted asset {AssetId} ({Filename}) from {StorageType} storage", 
+                    id, asset.Filename, _storageService.GetStorageType());
+                
+                return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting file from {StorageType} for asset {Id}",
-                    _storageService.GetStorageType(), id);
+                _logger.LogError(ex, "Failed to delete asset {AssetId} ({Filename})", id, asset.Filename);
+                throw;
             }
-
-            // Delete from database
-            context.Assets.Remove(asset);
-            await context.SaveChangesAsync();
-
-            _logger.LogInformation("Deleted asset: {Id} ({Filename}) from {StorageType}",
-                id, asset.Filename, _storageService.GetStorageType());
-
-            return true;
         }
 
         public async Task<bool> AssetExistsAsync(int id)
         {
             using var context = _dbContextFactory.CreateDbContext();
-            return await context.Assets.AnyAsync(e => e.Id == id);
+            return await context.Assets.AnyAsync(a => a.Id == id);
         }
 
         #endregion
@@ -265,9 +225,7 @@ namespace XR50TrainingAssetRepo.Services
             try
             {
                 // Extract tenant name from context or determine from asset
-                // For this implementation, we'll use a simplified approach
-                // In production, you might store tenant info with the asset or extract it from context
-                var tenantName = ExtractTenantNameFromContext(); // Implement this method based on your needs
+                var tenantName = ExtractTenantNameFromContext();
 
                 var downloadUrl = await _storageService.GetDownloadUrlAsync(tenantName, asset.Filename);
 
@@ -285,17 +243,30 @@ namespace XR50TrainingAssetRepo.Services
 
         public async Task<Asset> UploadAssetAsync(IFormFile file, string tenantName, string filename, string? description = null)
         {
-            _logger.LogInformation("Uploading file {Filename} to {StorageType} for tenant: {TenantName}",
-                filename, _storageService.GetStorageType(), tenantName);
-
-            var asset = new Asset
+            try
             {
-                Filename = filename,
-                Description = description,
-                Filetype = GetFiletypeFromFilename(filename)
-            };
+                _logger.LogInformation("Uploading asset {Filename} to {StorageType} storage", filename, _storageService.GetStorageType());
+                
+                // Upload file to storage
+                using var stream = file.OpenReadStream();
+                var uploadResult = await _storageService.UploadFileAsync(tenantName, filename, stream, file.ContentType);
+                
+                // Create asset record
+                var asset = new Asset
+                {
+                    Filename = filename,
+                    Description = description,
+                    Filetype = GetFiletypeFromFilename(filename),
+                    Src = uploadResult
+                };
 
-            return await CreateAssetAsync(asset, tenantName, file);
+                return await CreateAssetAsync(asset, tenantName, file);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to upload asset {Filename} to tenant {TenantName}", filename, tenantName);
+                throw;
+            }
         }
 
         public async Task<bool> DeleteAssetFileAsync(int assetId)
@@ -308,18 +279,17 @@ namespace XR50TrainingAssetRepo.Services
 
             try
             {
-                var tenantName = ExtractTenantNameFromContext(); // Implement based on your needs
+                var tenantName = ExtractTenantNameFromContext();
                 var deleted = await _storageService.DeleteFileAsync(tenantName, asset.Filename);
-
-                _logger.LogInformation("Deleted file from {StorageType} for asset {AssetId} ({Filename}): {Success}",
-                    _storageService.GetStorageType(), assetId, asset.Filename, deleted);
-
+                
+                _logger.LogInformation("Deleted file for asset {AssetId} ({Filename}) from {StorageType} storage", 
+                    assetId, asset.Filename, _storageService.GetStorageType());
+                
                 return deleted;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to delete file from {StorageType} for asset {AssetId}",
-                    _storageService.GetStorageType(), assetId);
+                _logger.LogError(ex, "Failed to delete file for asset {AssetId} ({Filename})", assetId, asset.Filename);
                 return false;
             }
         }
@@ -334,18 +304,17 @@ namespace XR50TrainingAssetRepo.Services
 
             try
             {
-                var tenantName = ExtractTenantNameFromContext(); // Implement based on your needs
+                var tenantName = ExtractTenantNameFromContext();
                 var size = await _storageService.GetFileSizeAsync(tenantName, asset.Filename);
-
-                _logger.LogInformation("Retrieved file size from {StorageType} for asset {AssetId} ({Filename}): {Size} bytes",
-                    _storageService.GetStorageType(), assetId, asset.Filename, size);
-
+                
+                _logger.LogInformation("Retrieved file size for asset {AssetId} ({Filename}): {Size} bytes", 
+                    assetId, asset.Filename, size);
+                
                 return size;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get file size from {StorageType} for asset {AssetId}",
-                    _storageService.GetStorageType(), assetId);
+                _logger.LogError(ex, "Failed to get file size for asset {AssetId} ({Filename})", assetId, asset.Filename);
                 return 0;
             }
         }
@@ -360,18 +329,17 @@ namespace XR50TrainingAssetRepo.Services
 
             try
             {
-                var tenantName = ExtractTenantNameFromContext(); // Implement based on your needs
+                var tenantName = ExtractTenantNameFromContext();
                 var exists = await _storageService.FileExistsAsync(tenantName, asset.Filename);
-
-                _logger.LogInformation("Checked file existence in {StorageType} for asset {AssetId} ({Filename}): {Exists}",
-                    _storageService.GetStorageType(), assetId, asset.Filename, exists);
-
+                
+                _logger.LogInformation("File existence check for asset {AssetId} ({Filename}): {Exists}", 
+                    assetId, asset.Filename, exists);
+                
                 return exists;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to check file existence in {StorageType} for asset {AssetId}",
-                    _storageService.GetStorageType(), assetId);
+                _logger.LogError(ex, "Failed to check file existence for asset {AssetId} ({Filename})", assetId, asset.Filename);
                 return false;
             }
         }
@@ -383,25 +351,24 @@ namespace XR50TrainingAssetRepo.Services
         public async Task<AssetStatistics> GetAssetStatisticsAsync()
         {
             using var context = _dbContextFactory.CreateDbContext();
-
+            
             var totalAssets = await context.Assets.CountAsync();
             var filetypeGroups = await context.Assets
                 .GroupBy(a => a.Filetype)
                 .Select(g => new { Filetype = g.Key, Count = g.Count() })
                 .ToListAsync();
 
-            // Calculate storage statistics using the unified storage service
+            // Calculate total storage used by querying storage service
             long totalStorageUsed = 0;
             try
             {
-                var tenantName = ExtractTenantNameFromContext(); // Implement based on your needs
+                var tenantName = ExtractTenantNameFromContext();
                 var storageStats = await _storageService.GetStorageStatisticsAsync(tenantName);
                 totalStorageUsed = storageStats.TotalSizeBytes;
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Could not get storage statistics from {StorageType}",
-                    _storageService.GetStorageType());
+                _logger.LogWarning(ex, "Failed to get storage statistics for asset statistics calculation");
             }
 
             var statistics = new AssetStatistics
@@ -409,8 +376,7 @@ namespace XR50TrainingAssetRepo.Services
                 TotalAssets = totalAssets,
                 FiletypeBreakdown = filetypeGroups.ToDictionary(g => g.Filetype ?? "unknown", g => g.Count),
                 TotalStorageUsed = totalStorageUsed,
-                AverageFileSize = totalAssets > 0 ? totalStorageUsed / totalAssets : 0,
-                StorageType = _storageService.GetStorageType()
+                AverageFileSize = totalAssets > 0 ? totalStorageUsed / totalAssets : 0
             };
 
             return statistics;
@@ -426,7 +392,7 @@ namespace XR50TrainingAssetRepo.Services
                 return "unknown";
 
             var extension = Path.GetExtension(filename).ToLowerInvariant();
-
+            
             return extension switch
             {
                 ".mp4" or ".avi" or ".mov" or ".wmv" or ".webm" => "video",
@@ -445,56 +411,23 @@ namespace XR50TrainingAssetRepo.Services
             };
         }
 
-        private string GetContentType(string filename, string? filetype = null)
-        {
-            var extension = Path.GetExtension(filename).ToLowerInvariant();
-
-            return extension switch
-            {
-                ".mp4" => "video/mp4",
-                ".avi" => "video/x-msvideo",
-                ".mov" => "video/quicktime",
-                ".wmv" => "video/x-ms-wmv",
-                ".webm" => "video/webm",
-                ".jpg" or ".jpeg" => "image/jpeg",
-                ".png" => "image/png",
-                ".gif" => "image/gif",
-                ".bmp" => "image/bmp",
-                ".svg" => "image/svg+xml",
-                ".webp" => "image/webp",
-                ".pdf" => "application/pdf",
-                ".doc" => "application/msword",
-                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                ".xls" => "application/vnd.ms-excel",
-                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                ".ppt" => "application/vnd.ms-powerpoint",
-                ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                ".txt" => "text/plain",
-                ".md" => "text/markdown",
-                ".json" => "application/json",
-                ".zip" => "application/zip",
-                ".rar" => "application/x-rar-compressed",
-                ".7z" => "application/x-7z-compressed",
-                ".wav" => "audio/wav",
-                ".mp3" => "audio/mpeg",
-                ".ogg" => "audio/ogg",
-                ".flac" => "audio/flac",
-                _ => "application/octet-stream"
-            };
-        }
-
         private string ExtractTenantNameFromContext()
         {
-            // This is a placeholder - implement based on your tenant resolution logic
-            // You might get this from HTTP context, dependency injection, or other means
-            // For now, return a default value
-            return "default";
+            // This is a simplified implementation
+            // In a real scenario, you might extract tenant from:
+            // - HTTP context (URL path, headers, claims)
+            // - Database lookup
+            // - Configuration
+            
+            // For now, return a default tenant name
+            // TODO: Implement proper tenant resolution
+            return "default-tenant";
         }
 
         #endregion
     }
 
-    #region Updated Asset DTOs and Models
+    #region Asset DTOs and Models
 
     public class AssetStatistics
     {
@@ -502,7 +435,6 @@ namespace XR50TrainingAssetRepo.Services
         public Dictionary<string, int> FiletypeBreakdown { get; set; } = new();
         public long TotalStorageUsed { get; set; } // In bytes
         public long AverageFileSize { get; set; } // In bytes
-        public string StorageType { get; set; } = ""; // "S3" or "OwnCloud"
     }
 
     public class AssetUploadRequest

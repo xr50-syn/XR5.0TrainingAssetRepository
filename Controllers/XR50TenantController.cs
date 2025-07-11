@@ -80,7 +80,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     tenant.S3BucketArn = request.S3Config.BucketArn;
                     tenant.StorageEndpoint = request.S3Config.Endpoint;
                     
-                    _logger.LogInformation("📦 S3 Configuration - Bucket: {BucketName}, Region: {Region}", 
+                    _logger.LogInformation("S3 Configuration - Bucket: {BucketName}, Region: {Region}", 
                         tenant.S3BucketName, tenant.S3BucketRegion);
                 }
                 else if (request.StorageType.Equals("OwnCloud", StringComparison.OrdinalIgnoreCase))
@@ -88,7 +88,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     tenant.TenantDirectory = request.OwnCloudConfig!.TenantDirectory;
                     tenant.StorageEndpoint = request.OwnCloudConfig.Endpoint;
                     
-                    _logger.LogInformation("🏠 OwnCloud Configuration - Directory: {Directory}", 
+                    _logger.LogInformation("OwnCloud Configuration - Directory: {Directory}", 
                         tenant.TenantDirectory);
                 }
 
@@ -111,7 +111,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     tenant.ValidateS3Configuration();
                     
                     // Validate that the S3 bucket exists and is accessible
-                    _logger.LogInformation("🔍 Validating pre-provisioned S3 bucket: {BucketName}", tenant.S3BucketName);
+                    _logger.LogInformation("Validating pre-provisioned S3 bucket: {BucketName}", tenant.S3BucketName);
                     
                     var storageValidated = await _storageService.CreateTenantStorageAsync(request.TenantName, tenant);
                     if (!storageValidated)
@@ -139,24 +139,24 @@ namespace XR50TrainingAssetRepo.Controllers
                 
                 var response = TenantResponse.FromTenant(createdTenant);
                 
-                _logger.LogInformation("✅ Successfully created tenant: {TenantName} with {StorageType} storage", 
+                _logger.LogInformation("Successfully created tenant: {TenantName} with {StorageType} storage", 
                     request.TenantName, request.StorageType);
 
                 return Ok(response);
             }
             catch (ArgumentException ex)
             {
-                _logger.LogWarning("❌ Invalid request for tenant creation: {Error}", ex.Message);
+                _logger.LogWarning("Invalid request for tenant creation: {Error}", ex.Message);
                 return BadRequest(new { Error = "Invalid request", Details = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                _logger.LogError("❌ Tenant creation failed: {Error}", ex.Message);
+                _logger.LogError("Tenant creation failed: {Error}", ex.Message);
                 return BadRequest(new { Error = "Tenant creation failed", Details = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Unexpected error creating tenant: {TenantName}", request.TenantName);
+                _logger.LogError(ex, "Unexpected error creating tenant: {TenantName}", request.TenantName);
                 return StatusCode(500, new { Error = "Tenant creation failed", Details = ex.Message });
             }
         }
@@ -196,11 +196,11 @@ namespace XR50TrainingAssetRepo.Controllers
         {
             try
             {
-                _logger.LogWarning("🗑️ Deleting tenant: {TenantName}", tenantName);
+                _logger.LogWarning("Deleting tenant: {TenantName}", tenantName);
                 
                 await _tenantManagementService.DeleteTenantAsync(tenantName);
                 
-                _logger.LogInformation("✅ Successfully deleted tenant: {TenantName}", tenantName);
+                _logger.LogInformation("Successfully deleted tenant: {TenantName}", tenantName);
                 
                 return Ok(new 
                 { 
@@ -210,7 +210,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error deleting tenant: {TenantName}", tenantName);
+                _logger.LogError(ex, "Error deleting tenant: {TenantName}", tenantName);
                 return StatusCode(500, new { Error = "Failed to delete tenant", Details = ex.Message });
             }
         }
@@ -218,7 +218,7 @@ namespace XR50TrainingAssetRepo.Controllers
         /// <summary>
         /// Validate tenant storage configuration
         /// </summary>
-        [HttpPost("{tenantName}/validate-storage")]
+        [HttpGet("{tenantName}/validate-storage")]
         public async Task<ActionResult<object>> ValidateTenantStorage(string tenantName)
         {
             try
@@ -231,24 +231,34 @@ namespace XR50TrainingAssetRepo.Controllers
                     return NotFound(new { Error = $"Tenant '{tenantName}' not found" });
                 }
 
-                // Validate storage based on tenant configuration
-                var validationResult = await _storageService.CreateTenantStorageAsync(tenantName, tenant);
+                var validationResult = await _storageService.TenantStorageExistsAsync(tenantName);
                 
-                var response = new
+                // FIX: Create configuration object separately
+                object configuration;
+                if (tenant.IsS3Storage())
                 {
-                    TenantName = tenantName,
-                    StorageType = tenant.StorageType,
-                    IsValid = validationResult,
-                    Timestamp = DateTime.UtcNow,
-                    Configuration = tenant.IsS3Storage() ? new
+                    configuration = new
                     {
                         BucketName = tenant.S3BucketName,
                         BucketRegion = tenant.S3BucketRegion,
                         BucketArn = tenant.S3BucketArn
-                    } : new
+                    };
+                }
+                else
+                {
+                    configuration = new
                     {
                         TenantDirectory = tenant.TenantDirectory
-                    }
+                    };
+                }
+
+                var response = new
+                {
+                    TenantName = tenantName,
+                    StorageType = tenant.StorageType,
+                    ValidationResult = validationResult,
+                    Message = validationResult ? "Storage validation successful" : "Storage validation failed",
+                    Configuration = configuration
                 };
 
                 if (validationResult)
@@ -287,6 +297,24 @@ namespace XR50TrainingAssetRepo.Controllers
 
                 var statistics = await _storageService.GetStorageStatisticsAsync(tenantName);
                 
+                // FIX: Create configuration object separately
+                object configuration;
+                if (tenant.IsS3Storage())
+                {
+                    configuration = new
+                    {
+                        BucketName = tenant.S3BucketName,
+                        BucketRegion = tenant.S3BucketRegion
+                    };
+                }
+                else
+                {
+                    configuration = new
+                    {
+                        TenantDirectory = tenant.TenantDirectory
+                    };
+                }
+                
                 var response = new
                 {
                     TenantName = statistics.TenantName,
@@ -295,14 +323,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     TotalSizeBytes = statistics.TotalSizeBytes,
                     TotalSizeGB = Math.Round(statistics.TotalSizeBytes / (1024.0 * 1024.0 * 1024.0), 2),
                     LastCalculated = statistics.LastCalculated,
-                    Configuration = tenant.IsS3Storage() ? new
-                    {
-                        BucketName = tenant.S3BucketName,
-                        BucketRegion = tenant.S3BucketRegion
-                    } : new
-                    {
-                        TenantDirectory = tenant.TenantDirectory
-                    }
+                    Configuration = configuration
                 };
 
                 return Ok(response);
@@ -313,7 +334,6 @@ namespace XR50TrainingAssetRepo.Controllers
                 return StatusCode(500, new { Error = "Failed to get storage statistics", Details = ex.Message });
             }
         }
-
         /// <summary>
         /// Get example request for creating tenants with different storage types
         /// </summary>

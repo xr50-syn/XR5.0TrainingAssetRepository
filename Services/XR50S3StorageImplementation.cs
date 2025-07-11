@@ -5,21 +5,6 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Services
 {
-     public interface IS3StorageService
-    {
-        Task<bool> CreateBucketAsync(string bucketName);
-        Task<bool> DoesBucketExistAsync(string bucketName);
-        Task<bool> DeleteBucketAsync(string bucketName);
-        Task<string> UploadFileAsync(string bucketName, string key, Stream fileStream, string contentType = "application/octet-stream");
-        Task<Stream> DownloadFileAsync(string bucketName, string key);
-        Task<bool> DeleteFileAsync(string bucketName, string key);
-        Task<bool> FileExistsAsync(string bucketName, string key);
-        Task<long> GetFileSizeAsync(string bucketName, string key);
-        Task<List<S3Object>> ListFilesAsync(string bucketName, string prefix = "");
-        Task<string> GeneratePresignedUrlAsync(string bucketName, string key, TimeSpan expiration);
-        Task<bool> CopyFileAsync(string sourceBucket, string sourceKey, string destinationBucket, string destinationKey);
-        string GetTenantBucketName(string tenantName);
-    }
     public class S3StorageServiceImplementation : IStorageService
     {
         private readonly IAmazonS3 _s3Client;
@@ -54,7 +39,9 @@ namespace XR50TrainingAssetRepo.Services
 
                 var bucketName = GetTenantBucketName(tenantName);
 
-                if (await DoesBucketExistAsync(bucketName))
+                // Check if bucket already exists
+                var bucketExists = await DoesBucketExistAsync(bucketName);
+                if (bucketExists)
                 {
                     _logger.LogInformation("S3 bucket already exists: {BucketName}", bucketName);
                     return true;
@@ -86,37 +73,25 @@ namespace XR50TrainingAssetRepo.Services
 
                 var bucketName = GetTenantBucketName(tenantName);
 
-                if (!await DoesBucketExistAsync(bucketName))
+                // Check if bucket exists before trying to delete
+                var bucketExists = await DoesBucketExistAsync(bucketName);
+                if (!bucketExists)
                 {
                     _logger.LogInformation("S3 bucket does not exist: {BucketName}", bucketName);
-                    return true;
+                    return true; // Consider it successful if bucket doesn't exist
                 }
 
-                // Delete all objects first
-                var listRequest = new ListObjectsV2Request { BucketName = bucketName };
-                ListObjectsV2Response listResponse;
+                // First, delete all objects in the bucket
+                await DeleteAllObjectsInBucketAsync(bucketName);
 
-                do
+                // Then delete the bucket
+                var deleteRequest = new DeleteBucketRequest
                 {
-                    listResponse = await _s3Client.ListObjectsV2Async(listRequest);
+                    BucketName = bucketName
+                };
 
-                    if (listResponse.S3Objects.Count > 0)
-                    {
-                        var deleteRequest = new DeleteObjectsRequest
-                        {
-                            BucketName = bucketName,
-                            Objects = listResponse.S3Objects.Select(obj => new KeyVersion { Key = obj.Key }).ToList()
-                        };
-                        await _s3Client.DeleteObjectsAsync(deleteRequest);
-                    }
-
-                    listRequest.ContinuationToken = listResponse.NextContinuationToken;
-                } while (listResponse.IsTruncated);
-
-                // Delete the bucket
-                var deleteBucketRequest = new DeleteBucketRequest { BucketName = bucketName };
-                var response = await _s3Client.DeleteBucketAsync(deleteBucketRequest);
-
+                var response = await _s3Client.DeleteBucketAsync(deleteRequest);
+                
                 _logger.LogInformation("Deleted S3 bucket: {BucketName}", bucketName);
                 return response.HttpStatusCode == System.Net.HttpStatusCode.NoContent;
             }
@@ -217,12 +192,11 @@ namespace XR50TrainingAssetRepo.Services
                 };
 
                 var url = await _s3Client.GetPreSignedURLAsync(request);
-                _logger.LogInformation("Generated presigned URL for S3 object: {BucketName}/{Key}", bucketName, key);
                 return url;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to generate presigned URL: {TenantName}/{FileName}", tenantName, fileName);
+                _logger.LogError(ex, "Failed to generate download URL for S3: {TenantName}/{FileName}", tenantName, fileName);
                 throw;
             }
         }
@@ -270,6 +244,11 @@ namespace XR50TrainingAssetRepo.Services
             {
                 return false;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if file exists in S3: {TenantName}/{FileName}", tenantName, fileName);
+                return false;
+            }
         }
 
         public async Task<long> GetFileSizeAsync(string tenantName, string fileName)
@@ -309,10 +288,10 @@ namespace XR50TrainingAssetRepo.Services
                 do
                 {
                     response = await _s3Client.ListObjectsV2Async(request);
-                    totalFiles += response.S3Objects.Count;
-                    totalSize += response.S3Objects.Sum(obj => obj.Size);
+                    totalFiles += response.S3Objects?.Count ?? 0;
+                    totalSize += response.S3Objects?.Sum(obj => obj.Size) ?? 0;
                     request.ContinuationToken = response.NextContinuationToken;
-                } while (response.IsTruncated);
+                } while (response.IsTruncated == true);
 
                 return new StorageStatistics
                 {
@@ -329,6 +308,8 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
+        #region Private Helper Methods
+
         private async Task<bool> DoesBucketExistAsync(string bucketName)
         {
             try
@@ -340,6 +321,43 @@ namespace XR50TrainingAssetRepo.Services
             {
                 return false;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking if bucket exists: {BucketName}", bucketName);
+                return false;
+            }
         }
+
+        private async Task DeleteAllObjectsInBucketAsync(string bucketName)
+        {
+            try
+            {
+                var request = new ListObjectsV2Request { BucketName = bucketName };
+                ListObjectsV2Response response;
+
+                do
+                {
+                    response = await _s3Client.ListObjectsV2Async(request);
+                    if (response.S3Objects.Count > 0)
+                    {
+                        var deleteRequest = new DeleteObjectsRequest
+                        {
+                            BucketName = bucketName,
+                            Objects = response.S3Objects.Select(obj => new KeyVersion { Key = obj.Key }).ToList()
+                        };
+
+                        await _s3Client.DeleteObjectsAsync(deleteRequest);
+                    }
+                    request.ContinuationToken = response.NextContinuationToken;
+                } while (response.IsTruncated == true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete all objects in bucket: {BucketName}", bucketName);
+                throw;
+            }
+        }
+
+        #endregion
     }
 }
