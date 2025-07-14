@@ -38,6 +38,7 @@ namespace XR50TrainingAssetRepo.Models
         public string? Src { get; set; }
         public string? Filetype { get; set; }
         public string Filename  { get; set; }
+        public string URL { get; set; }
 	    [Key]
         public int Id { get; set; }
         public Asset ()

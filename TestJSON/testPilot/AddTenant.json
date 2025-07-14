@@ -1,0 +1,18 @@
+{
+  "tenantName": "pilot5",
+  "tenantGroup": "research",
+  "description": "XR Training Curriculum Development",
+  "storageType": "OwnCloud",
+  "ownCloudConfig": {
+    "tenantDirectory": "mduino",
+    "endpoint": "http://owncloud:8080"
+  },
+  "owner": {
+    "userName": "pilot5_tech_lead",
+    "fullName": "EM Black",
+    "userEmail": "em_black@pilot5.xr50.eu",
+    "password": "space+123",
+    "tenantName": "pilot5",
+    "admin": true
+  }
+}

@@ -34,7 +34,7 @@ namespace XR50TrainingAssetRepo.Services
                 var connectionString = GetTenantConnectionString(currentTenant);
 
                 _logger.LogInformation(" DbContext Factory - Creating context for tenant: {TenantName}", currentTenant);
-                _logger.LogInformation("🔗 Using connection: {ConnectionString}", connectionString.Replace("Password=", "Password=***"));
+                _logger.LogInformation("Using connection: {ConnectionString}", connectionString.Replace("Password=", "Password=***"));
 
                 var optionsBuilder = new DbContextOptionsBuilder<XR50TrainingContext>();
                 optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
@@ -62,7 +62,7 @@ namespace XR50TrainingAssetRepo.Services
                 var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
 
                 _logger.LogInformation("🔧 DbContext Factory - Creating ADMIN context for magical_library");
-                _logger.LogInformation("🔗 Using admin connection: {ConnectionString}", baseConnectionString.Replace("Password=", "Password=***"));
+                _logger.LogInformation("Using admin connection: {ConnectionString}", baseConnectionString.Replace("Password=", "Password=***"));
 
                 var optionsBuilder = new DbContextOptionsBuilder<XR50TrainingContext>();
                 optionsBuilder.UseMySql(baseConnectionString, ServerVersion.AutoDetect(baseConnectionString));

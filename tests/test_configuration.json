@@ -13,7 +13,7 @@
     "test:db": "python3 -m pytest database_tests.py -v",
     "test:all": "npm run test && npm run test:performance && npm run test:db",
     "verify": "npm run test:smoke && echo 'Basic verification complete'",
-    "partner-verify": "npm run test:api && npm run test:smoke && echo '🎉 Partner verification complete!'"
+    "partner-verify": "npm run test:api && npm run test:smoke && echo 'Partner verification complete!'"
   },
   "dependencies": {
     "axios": "^1.6.0",
@@ -174,7 +174,7 @@ npm run test:all
 - Material hierarchy creation
 - Training program workflows
 
-### ⚡ Performance Tests (K6)
+### Performance Tests (K6)
 - Load testing under realistic conditions
 - Response time validation
 - Concurrent user simulation
@@ -186,7 +186,7 @@ npm run test:all
 - Index performance
 - Multi-tenant isolation
 
-### 🚀 Smoke Tests (Bash)
+### Smoke Tests (Bash)
 - Quick health checks
 - Basic CRUD operations
 - Partner integration verification

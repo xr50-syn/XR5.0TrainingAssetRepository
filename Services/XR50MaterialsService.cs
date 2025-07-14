@@ -12,6 +12,7 @@ namespace XR50TrainingAssetRepo.Services
         Task<IEnumerable<Material>> GetAllMaterialsAsync();
         Task<Material?> GetMaterialAsync(int id);
         Task<Material> CreateMaterialAsync(Material material);
+        Task<Material> CreateMaterialAsyncComplete(Material material);
         Task<Material> UpdateMaterialAsync(Material material);
         Task<bool> DeleteMaterialAsync(int id);
         Task<bool> MaterialExistsAsync(int id);
@@ -22,7 +23,9 @@ namespace XR50TrainingAssetRepo.Services
         Task<IEnumerable<ChecklistMaterial>> GetAllChecklistMaterialsAsync();
         Task<IEnumerable<WorkflowMaterial>> GetAllWorkflowMaterialsAsync();
         Task<IEnumerable<ImageMaterial>> GetAllImageMaterialsAsync();
-        
+        Task<object?> GetCompleteMaterialDetailsAsync(int materialId);
+        Task<Material?> GetCompleteMaterialAsync(int materialId);
+
         // Additional Material Type Operations
         Task<IEnumerable<PDFMaterial>> GetAllPDFMaterialsAsync();
         Task<PDFMaterial?> GetPDFMaterialAsync(int id);
@@ -143,7 +146,25 @@ namespace XR50TrainingAssetRepo.Services
 
             return material;
         }
+        public async Task<Material> CreateMaterialAsyncComplete(Material material)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
 
+            // Set timestamps
+            material.Created_at = DateTime.UtcNow;
+            material.Updated_at = DateTime.UtcNow;
+
+            // Ensure the Type property matches the actual class type
+            SetMaterialTypeFromClass(material);
+
+            context.Materials.Add(material);
+            await context.SaveChangesAsync();
+
+            _logger.LogInformation("Created material: {Name} (Type: {Type}, Discriminator: {Discriminator}) with ID: {Id}",
+                material.Name, material.Type, material.GetType().Name, material.Id);
+
+            return material;
+        }
         private void SetMaterialTypeFromClass(Material material)
         {
             material.Type = material switch
@@ -207,7 +228,427 @@ namespace XR50TrainingAssetRepo.Services
             using var context = _dbContextFactory.CreateDbContext();
             return await context.Materials.AnyAsync(e => e.Id == id);
         }
+    
+        #endregion
+        public async Task<object?> GetCompleteMaterialDetailsAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            // First get the basic material to determine type
+            var baseMaterial = await context.Materials.FindAsync(materialId);
+            if (baseMaterial == null)
+            {
+                return null;
+            }
 
+            // Switch based on material type and get complete details
+            return baseMaterial.Type switch
+            {
+                MaterialType.Video => await GetVideoMaterialCompleteAsync(materialId),
+                MaterialType.Checklist => await GetChecklistMaterialCompleteAsync(materialId),
+                MaterialType.Workflow => await GetWorkflowMaterialCompleteAsync(materialId),
+                MaterialType.Questionnaire => await GetQuestionnaireMaterialCompleteAsync(materialId),
+                MaterialType.Image => await GetImageMaterialCompleteAsync(materialId),
+                MaterialType.PDF => await GetPDFMaterialCompleteAsync(materialId),
+                MaterialType.UnityDemo => await GetUnityDemoMaterialCompleteAsync(materialId),
+                MaterialType.Chatbot => await GetChatbotMaterialCompleteAsync(materialId),
+                MaterialType.MQTT_Template => await GetMQTTTemplateMaterialCompleteAsync(materialId),
+                _ => await GetBasicMaterialCompleteAsync(materialId)
+            };
+        }
+
+        public async Task<Material?> GetCompleteMaterialAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            // First get the basic material to determine type
+            var baseMaterial = await context.Materials.FindAsync(materialId);
+            if (baseMaterial == null)
+            {
+                return null;
+            }
+
+            // Return the appropriate strongly-typed material with all data loaded
+            return baseMaterial.Type switch
+            {
+                MaterialType.Video => await GetVideoMaterialWithTimestampsAsync(materialId),
+                MaterialType.Checklist => await GetChecklistMaterialWithEntriesAsync(materialId),
+                MaterialType.Workflow => await GetWorkflowMaterialWithStepsAsync(materialId),
+                MaterialType.Questionnaire => await GetQuestionnaireMaterialWithEntriesAsync(materialId),
+                MaterialType.Image => await GetImageMaterialAsync(materialId),
+                MaterialType.PDF => await GetPDFMaterialAsync(materialId),
+                MaterialType.UnityDemo => await GetUnityDemoMaterialAsync(materialId),
+                MaterialType.Chatbot => await GetChatbotMaterialAsync(materialId),
+                MaterialType.MQTT_Template => await GetMQTTTemplateMaterialAsync(materialId),
+                _ => baseMaterial
+            };
+        }
+        
+        #region Private Helper Methods for Complete Material Details
+        public async Task<ImageMaterial?> GetImageMaterialAsync(int id)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            return await context.Materials
+                .OfType<ImageMaterial>()
+                .FirstOrDefaultAsync(m => m.Id == id);
+        }
+
+        private async Task<object> GetVideoMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var video = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    // Video-specific properties (using raw SQL or discriminator)
+                    AssetId = EF.Property<string>(m, "AssetId"),
+                    VideoPath = EF.Property<string>(m, "VideoPath"),
+                    VideoDuration = EF.Property<int?>(m, "VideoDuration"),
+                    VideoResolution = EF.Property<string>(m, "VideoResolution"),
+                    
+                    // Related data
+                    VideoTimestamps = context.VideoTimestamps
+                        .Where(vt => vt.VideoMaterialId == materialId)
+                        .Select(vt => new
+                        {
+                            vt.id,
+                            vt.Title,
+                            vt.Time,
+                            vt.Description
+                        }).ToList(),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return video;
+        }
+
+        private async Task<object> GetChecklistMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var checklist = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    ChecklistEntries = context.ChecklistEntries
+                        .Where(ce => ce.ChecklistMaterialId == materialId)
+                        .Select(ce => new
+                        {
+                            ce.ChecklistEntryId,
+                            ce.Text,
+                            ce.Description
+                        }).ToList(),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return checklist;
+        }
+
+        private async Task<object> GetWorkflowMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var workflow = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    WorkflowSteps = context.WorkflowSteps
+                        .Where(ws => ws.WorkflowMaterialId == materialId)
+                        .Select(ws => new
+                        {
+                            ws.Id,
+                            ws.Title,
+                            ws.Content
+                        }).ToList(),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return workflow;
+        }
+
+        private async Task<object> GetQuestionnaireMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var questionnaire = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    // Questionnaire-specific properties
+                    QuestionnaireType = EF.Property<string>(m, "QuestionnaireType"),
+                    PassingScore = EF.Property<decimal?>(m, "PassingScore"),
+                    
+                    // Use the psychologists' preferred field structure:
+                    QuestionnaireEntries = context.QuestionnaireEntries
+                        .Where(qe => qe.QuestionnaireMaterialId == materialId)
+                        .Select(qe => new
+                        {
+                            qe.QuestionnaireEntryId,
+                            qe.Text,        // Keep as Text (not Question)
+                            qe.Description  // Keep as Description (not Answer/QuestionType)
+                        }).ToList(),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return questionnaire;
+        }
+
+        private async Task<object> GetImageMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var image = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    // Image-specific properties
+                    AssetId = EF.Property<string>(m, "AssetId"),
+                    ImagePath = EF.Property<string>(m, "ImagePath"),
+                    ImageWidth = EF.Property<int?>(m, "ImageWidth"),
+                    ImageHeight = EF.Property<int?>(m, "ImageHeight"),
+                    ImageFormat = EF.Property<string>(m, "ImageFormat"),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return image;
+        }
+
+        private async Task<object> GetPDFMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var pdf = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    // PDF-specific properties
+                    AssetId = EF.Property<string>(m, "AssetId"),
+                    PdfPath = EF.Property<string>(m, "PdfPath"),
+                    PdfPageCount = EF.Property<int?>(m, "PdfPageCount"),
+                    PdfFileSize = EF.Property<long?>(m, "PdfFileSize"),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return pdf;
+        }
+
+        private async Task<object> GetUnityDemoMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var unity = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    // Unity-specific properties
+                    AssetId = EF.Property<string>(m, "AssetId"),
+                    UnityVersion = EF.Property<string>(m, "UnityVersion"),
+                    UnityBuildTarget = EF.Property<string>(m, "UnityBuildTarget"),
+                    UnitySceneName = EF.Property<string>(m, "UnitySceneName"),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return unity;
+        }
+
+        private async Task<object> GetChatbotMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var chatbot = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    // Chatbot-specific properties
+                    ChatbotConfig = EF.Property<string>(m, "ChatbotConfig"),
+                    ChatbotModel = EF.Property<string>(m, "ChatbotModel"),
+                    ChatbotPrompt = EF.Property<string>(m, "ChatbotPrompt"),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return chatbot;
+        }
+
+        private async Task<object> GetMQTTTemplateMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var mqtt = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    // MQTT-specific properties
+                    MessageType = EF.Property<string>(m, "message_type"),
+                    MessageText = EF.Property<string>(m, "message_text"),
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return mqtt;
+        }
+
+        private async Task<object> GetBasicMaterialCompleteAsync(int materialId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var material = await context.Materials
+                .Where(m => m.Id == materialId)
+                .Select(m => new
+                {
+                    Id = m.Id,
+                    Name = m.Name,
+                    Description = m.Description,
+                    Type = m.Type.ToString(),
+                    Created_at = m.Created_at,
+                    Updated_at = m.Updated_at,
+                    
+                    MaterialRelationships = m.MaterialRelationships.Select(mr => new
+                    {
+                        mr.Id,
+                        mr.RelatedEntityType,
+                        mr.RelatedEntityId,
+                        mr.RelationshipType
+                    }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return material;
+        }
         #endregion
 
         #region Material Type-Specific Operations

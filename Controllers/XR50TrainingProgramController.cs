@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
 using XR50TrainingAssetRepo.Data;
+using XR50TrainingAssetRepo.Models.DTOs;
 using XR50TrainingAssetRepo.Services;
 
 namespace XR50TrainingAssetRepo.Controllers
@@ -26,36 +27,6 @@ namespace XR50TrainingAssetRepo.Controllers
             _trainingProgramService = trainingProgramService;
             _materialService = materialService;
             _logger = logger;
-        }
-
-        // GET: api/{tenantName}/trainingprograms
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetTrainingPrograms(string tenantName)
-        {
-            _logger.LogInformation("Getting training programs for tenant: {TenantName}", tenantName);
-            
-            var programs = await _trainingProgramService.GetAllTrainingProgramsAsync();
-            
-            _logger.LogInformation("Found {ProgramCount} training programs for tenant: {TenantName}", programs.Count(), tenantName);
-            
-            return Ok(programs);
-        }
-
-        // GET: api/{tenantName}/trainingprograms/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TrainingProgram>> GetTrainingProgram(string tenantName, int id)
-        {
-            _logger.LogInformation("Getting training program {Id} for tenant: {TenantName}", id, tenantName);
-            
-            var program = await _trainingProgramService.GetTrainingProgramAsync(id);
-
-            if (program == null)
-            {
-                _logger.LogWarning("Training program {Id} not found in tenant: {TenantName}", id, tenantName);
-                return NotFound();
-            }
-
-            return program;
         }
 
         // POST: api/{tenantName}/trainingprograms
@@ -167,19 +138,24 @@ namespace XR50TrainingAssetRepo.Controllers
 
             try
             {
-                var relationshipId = await _materialService.AssignMaterialToTrainingProgramAsync(
-                    materialId, trainingProgramId, relationshipType);
+                // Use TrainingProgramService for simple assignment
+                var success = await _trainingProgramService.AssignMaterialToTrainingProgramAsync(trainingProgramId, materialId);
 
-                _logger.LogInformation("Successfully assigned material {MaterialId} to training program {TrainingProgramId} (Relationship: {RelationshipId}) for tenant: {TenantName}",
-                    materialId, trainingProgramId, relationshipId, tenantName);
+                if (!success)
+                {
+                    return BadRequest("Assignment already exists");
+                }
+
+                _logger.LogInformation("Successfully assigned material {MaterialId} to training program {TrainingProgramId} for tenant: {TenantName}",
+                    materialId, trainingProgramId, tenantName);
 
                 return Ok(new
                 {
                     Message = "Material successfully assigned to training program",
-                    RelationshipId = relationshipId,
                     TrainingProgramId = trainingProgramId,
                     MaterialId = materialId,
-                    RelationshipType = relationshipType
+                    RelationshipType = relationshipType,
+                    AssignmentType = "Simple" // Indicate this is a simple assignment
                 });
             }
             catch (ArgumentException ex)
@@ -187,10 +163,6 @@ namespace XR50TrainingAssetRepo.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
-        /// <summary>
-        /// Remove a material from this training program
-        /// </summary>
         [HttpDelete("{trainingProgramId}/remove-material/{materialId}")]
         public async Task<IActionResult> RemoveMaterialFromTrainingProgram(
             string tenantName,
@@ -200,7 +172,8 @@ namespace XR50TrainingAssetRepo.Controllers
             _logger.LogInformation("Removing material {MaterialId} from training program {TrainingProgramId} for tenant: {TenantName}",
                 materialId, trainingProgramId, tenantName);
 
-            var success = await _materialService.RemoveMaterialFromTrainingProgramAsync(materialId, trainingProgramId);
+            // Use TrainingProgramService for simple removal
+            var success = await _trainingProgramService.RemoveMaterialFromTrainingProgramAsync(trainingProgramId, materialId);
 
             if (!success)
             {
@@ -212,6 +185,96 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Ok(new { Message = "Material successfully removed from training program" });
         }
+        #region Complete Training Program Endpoints
+
+        /// <summary>
+        /// Create a complete training program with materials and learning paths in one request
+        /// </summary>
+        [HttpPost("complete")]
+        public async Task<ActionResult<CompleteTrainingProgramResponse>> CreateCompleteTrainingProgram(
+            string tenantName, 
+            [FromBody] CompleteTrainingProgramRequest request)
+        {
+            _logger.LogInformation("Creating complete training program: {Name} with {MaterialCount} materials for tenant: {TenantName}",
+                request.Name, request.MaterialIds.Count + (request.MaterialsToCreate?.Count ?? 0), tenantName);
+
+            try
+            {
+                var result = await _trainingProgramService.CreateCompleteTrainingProgramAsync(request);
+
+                _logger.LogInformation("Successfully created complete training program {Id} with {MaterialCount} materials",
+                    result.Id, result.Summary.TotalMaterials);
+
+                return CreatedAtAction(
+                    nameof(GetCompleteTrainingProgram),
+                    new { tenantName, id = result.Id },
+                    result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create complete training program: {Name}", request.Name);
+                return StatusCode(500, new { Error = "Failed to create training program", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get a complete training program with all materials and learning paths
+        /// </summary>
+        [HttpGet("{id}/complete")]
+        public async Task<ActionResult<CompleteTrainingProgramResponse>> GetCompleteTrainingProgram(
+            string tenantName, 
+            int id)
+        {
+            _logger.LogInformation("Getting complete training program {Id} for tenant: {TenantName}", id, tenantName);
+
+            var result = await _trainingProgramService.GetCompleteTrainingProgramAsync(id);
+
+            if (result == null)
+            {
+                _logger.LogWarning("Training program {Id} not found in tenant: {TenantName}", id, tenantName);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Retrieved complete training program {Id}: {MaterialCount} materials, {PathCount} learning paths",
+                id, result.Summary.TotalMaterials, result.Summary.TotalLearningPaths);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get all training programs with complete information
+        /// </summary>
+        [HttpGet("complete")]
+        public async Task<ActionResult<IEnumerable<CompleteTrainingProgramResponse>>> GetAllCompleteTrainingPrograms(
+            string tenantName)
+        {
+            _logger.LogInformation("Getting all complete training programs for tenant: {TenantName}", tenantName);
+
+            var results = await _trainingProgramService.GetAllCompleteTrainingProgramsAsync();
+
+            _logger.LogInformation("Retrieved {Count} complete training programs for tenant: {TenantName}",
+                results.Count(), tenantName);
+
+            return Ok(results);
+        }
+
+        #endregion
+
+        // Update the existing GET method to return complete data by default
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CompleteTrainingProgramResponse>> GetTrainingProgram(string tenantName, int id)
+        {
+            // Redirect to complete endpoint for consistency
+            return await GetCompleteTrainingProgram(tenantName, id);
+        }
+
+        // Update the existing GET all method to return complete data by default  
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<CompleteTrainingProgramResponse>>> GetTrainingPrograms(string tenantName)
+        {
+            // Redirect to complete endpoint for consistency
+            return await GetAllCompleteTrainingPrograms(tenantName);
+        }
 
         /// <summary>
         /// Bulk assign materials to this training program
@@ -222,7 +285,7 @@ namespace XR50TrainingAssetRepo.Controllers
             int trainingProgramId,
             [FromBody] IEnumerable<BulkMaterialAssignment> assignments)
         {
-            _logger.LogInformation("⚡ Bulk assigning {Count} materials to training program {TrainingProgramId} for tenant: {TenantName}",
+            _logger.LogInformation("Bulk assigning {Count} materials to training program {TrainingProgramId} for tenant: {TenantName}",
                 assignments.Count(), trainingProgramId, tenantName);
 
             var result = new BulkAssignmentResult();

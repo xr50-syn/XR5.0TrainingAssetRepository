@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
 using XR50TrainingAssetRepo.Data;
 using XR50TrainingAssetRepo.Services;
+using MaterialType = XR50TrainingAssetRepo.Models.Type;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
@@ -36,12 +37,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<Material>>> GetMaterials(string tenantName)
         {
             _logger.LogInformation("Getting materials for tenant: {TenantName}", tenantName);
-            
+
             var materials = await _materialService.GetAllMaterialsAsync();
-            
-            _logger.LogInformation("Found {MaterialCount} materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {MaterialCount} materials for tenant: {TenantName}",
                 materials.Count(), tenantName);
-            
+
             return Ok(materials);
         }
 
@@ -50,7 +51,7 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<Material>> GetMaterial(string tenantName, int id)
         {
             _logger.LogInformation("Getting material {Id} for tenant: {TenantName}", id, tenantName);
-            
+
             var material = await _materialService.GetMaterialAsync(id);
 
             if (material == null)
@@ -61,31 +62,167 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
+        // Add this to your MaterialsController class
 
+        /// <summary>
+        /// Get complete material details with all type-specific properties and child entities
+        /// This replaces the need to call different endpoints for different material types
+        /// </summary>
+        [HttpGet("{id}/detail")]
+        public async Task<ActionResult<object>> GetCompleteMaterialDetails(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Getting complete details for material: {MaterialId}", id);
+
+                var materialDetails = await _materialService.GetCompleteMaterialDetailsAsync(id);
+
+                if (materialDetails == null)
+                {
+                    _logger.LogWarning("Material not found: {MaterialId}", id);
+                    return NotFound(new { Error = $"Material with ID {id} not found" });
+                }
+
+                _logger.LogInformation("Retrieved complete details for material: {MaterialId}", id);
+                return Ok(materialDetails);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting complete material details: {MaterialId}", id);
+                return StatusCode(500, new { Error = "Failed to retrieve material details", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get complete material as strongly typed object (useful for internal processing)
+        /// </summary>
+        [HttpGet("{id}/typed")]
+        public async Task<ActionResult<Material>> GetCompleteMaterial(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Getting complete typed material: {MaterialId}", id);
+
+                var material = await _materialService.GetCompleteMaterialAsync(id);
+
+                if (material == null)
+                {
+                    _logger.LogWarning("Material not found: {MaterialId}", id);
+                    return NotFound(new { Error = $"Material with ID {id} not found" });
+                }
+
+                _logger.LogInformation("Retrieved complete typed material: {MaterialId} (Type: {MaterialType})",
+                    id, material.Type);
+                return Ok(material);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting complete typed material: {MaterialId}", id);
+                return StatusCode(500, new { Error = "Failed to retrieve material", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get materials by type with complete details (bulk operation)
+        /// </summary>
+        [HttpGet("type/{materialType}/complete")]
+        public async Task<ActionResult<object[]>> GetCompleteMaterialsByType(string materialType)
+        {
+            try
+            {
+                _logger.LogInformation("Getting complete materials by type: {MaterialType}", materialType);
+
+                // Parse the material type - use MaterialType alias for your enum
+                if (!Enum.TryParse<MaterialType>(materialType, true, out var type))
+                {
+                    return BadRequest(new { Error = $"Invalid material type: {materialType}" });
+                }
+
+                // Use the enum overload of GetMaterialsByTypeAsync
+                var materials = await _materialService.GetMaterialsByTypeAsync(GetSystemTypeFromMaterialType(type));
+
+                // Get complete details for each
+                var completeMaterials = new List<object>();
+                foreach (var material in materials)
+                {
+                    var completeDetails = await _materialService.GetCompleteMaterialDetailsAsync(material.Id);
+                    if (completeDetails != null)
+                    {
+                        completeMaterials.Add(completeDetails);
+                    }
+                }
+
+                _logger.LogInformation("Retrieved {Count} complete materials of type: {MaterialType}",
+                    completeMaterials.Count, materialType);
+
+                return Ok(completeMaterials.ToArray());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting complete materials by type: {MaterialType}", materialType);
+                return StatusCode(500, new { Error = "Failed to retrieve materials", Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{id}/summary")]
+        public async Task<ActionResult<object>> GetMaterialSummary(int id)
+        {
+            try
+            {
+                _logger.LogInformation("Getting material summary: {MaterialId}", id);
+                
+                // Use the service instead of direct DbContext access
+                var material = await _materialService.GetMaterialAsync(id);
+                if (material == null)
+                {
+                    return NotFound(new { Error = $"Material with ID {id} not found" });
+                }
+
+                var summary = new
+                {
+                    Id = material.Id,
+                    Name = material.Name,
+                    Description = material.Description,
+                    Type = material.Type.ToString(),
+                    Created_at = material.Created_at,
+                    Updated_at = material.Updated_at,
+                    // Note: Child entity counts would need separate service calls
+                    // Or move this logic to the MaterialService
+                };
+
+                return Ok(summary);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting material summary: {MaterialId}", id);
+                return StatusCode(500, new { Error = "Failed to retrieve material summary", Details = ex.Message });
+            }
+        }
         // POST: api/{tenantName}/materials - Generic material creation
         [HttpPost]
+
         public async Task<ActionResult<Material>> PostMaterial(string tenantName, [FromBody] JsonElement materialData)
         {
             try
             {
                 // Parse the incoming JSON to determine material type
                 var material = ParseMaterialFromJson(materialData);
-                
+
                 if (material == null)
                 {
                     return BadRequest("Invalid material data or unsupported material type");
                 }
 
-                _logger.LogInformation("Creating material {Name} (Type: {Type}) for tenant: {TenantName}", 
+                _logger.LogInformation("Creating material {Name} (Type: {Type}) for tenant: {TenantName}",
                     material.Name, material.GetType().Name, tenantName);
-                
+
                 var createdMaterial = await _materialService.CreateMaterialAsync(material);
 
-                _logger.LogInformation("Created material {Name} with ID {Id} for tenant: {TenantName}", 
+                _logger.LogInformation("Created material {Name} with ID {Id} for tenant: {TenantName}",
                     createdMaterial.Name, createdMaterial.Id, tenantName);
 
-                return CreatedAtAction(nameof(GetMaterial), 
-                    new { tenantName, id = createdMaterial.Id }, 
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
                     createdMaterial);
             }
             catch (Exception ex)
@@ -94,13 +231,43 @@ namespace XR50TrainingAssetRepo.Controllers
                 return StatusCode(500, $"Error creating material: {ex.Message}");
             }
         }
+        [HttpPost("detail")]
+        public async Task<ActionResult<Material>> PostMaterialDetailed(string tenantName, [FromBody] JsonElement materialData)
+        {
+            try
+            {
+                // Parse the incoming JSON to determine material type
+                var material = ParseMaterialFromJson(materialData);
 
+                if (material == null)
+                {
+                    return BadRequest("Invalid material data or unsupported material type");
+                }
+
+                _logger.LogInformation("Creating material {Name} (Type: {Type}) for tenant: {TenantName}",
+                    material.Name, material.GetType().Name, tenantName);
+
+                var createdMaterial = await _materialService.CreateMaterialAsyncComplete(material);
+
+                _logger.LogInformation("Created material {Name} with ID {Id} for tenant: {TenantName}",
+                    createdMaterial.Name, createdMaterial.Id, tenantName);
+
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating material for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error creating material: {ex.Message}");
+            }
+        }
         private Material? ParseMaterialFromJson(JsonElement jsonElement)
         {
             // Get the discriminator/type from the JSON
             string? discriminator = null;
             string? typeValue = null;
-            
+
             if (jsonElement.TryGetProperty("discriminator", out var discProp))
             {
                 discriminator = discProp.GetString();
@@ -133,7 +300,7 @@ namespace XR50TrainingAssetRepo.Controllers
             // Populate common properties
             if (jsonElement.TryGetProperty("name", out var nameProp))
                 material.Name = nameProp.GetString();
-            
+
             if (jsonElement.TryGetProperty("description", out var descProp))
                 material.Description = descProp.GetString();
 
@@ -153,7 +320,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     if (jsonElement.TryGetProperty("message_text", out var msgText))
                         mqtt.message_text = msgText.GetString();
                     break;
-                    
+
                 case UnityDemoMaterial unity:
                     if (jsonElement.TryGetProperty("assetId", out var unityAssetId))
                         unity.AssetId = unityAssetId.GetString();
@@ -164,12 +331,12 @@ namespace XR50TrainingAssetRepo.Controllers
                     if (jsonElement.TryGetProperty("unitySceneName", out var sceneName))
                         unity.UnitySceneName = sceneName.GetString();
                     break;
-                    
+
                 case DefaultMaterial defaultMat:
                     if (jsonElement.TryGetProperty("assetId", out var defaultAssetId))
                         defaultMat.AssetId = defaultAssetId.GetString();
                     break;
-                    
+
                 case VideoMaterial video:
                     if (jsonElement.TryGetProperty("assetId", out var videoAssetId))
                         video.AssetId = videoAssetId.GetString();
@@ -180,7 +347,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     if (jsonElement.TryGetProperty("videoResolution", out var resolution))
                         video.VideoResolution = resolution.GetString();
                     break;
-                    
+
                 case ImageMaterial image:
                     if (jsonElement.TryGetProperty("assetId", out var imageAssetId))
                         image.AssetId = imageAssetId.GetString();
@@ -193,7 +360,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     if (jsonElement.TryGetProperty("imageFormat", out var format))
                         image.ImageFormat = format.GetString();
                     break;
-                    
+
                 case PDFMaterial pdf:
                     if (jsonElement.TryGetProperty("assetId", out var pdfAssetId))
                         pdf.AssetId = pdfAssetId.GetString();
@@ -204,7 +371,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     if (jsonElement.TryGetProperty("pdfFileSize", out var fileSize))
                         pdf.PdfFileSize = fileSize.GetInt64();
                     break;
-                    
+
                 case ChatbotMaterial chatbot:
                     if (jsonElement.TryGetProperty("chatbotConfig", out var config))
                         chatbot.ChatbotConfig = config.GetString();
@@ -213,7 +380,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     if (jsonElement.TryGetProperty("chatbotPrompt", out var prompt))
                         chatbot.ChatbotPrompt = prompt.GetString();
                     break;
-                    
+
                 case QuestionnaireMaterial questionnaire:
                     if (jsonElement.TryGetProperty("questionnaireConfig", out var qConfig))
                         questionnaire.QuestionnaireConfig = qConfig.GetString();
@@ -235,7 +402,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
 
             _logger.LogInformation("Updating material {Id} for tenant: {TenantName}", id, tenantName);
-            
+
             try
             {
                 await _materialService.UpdateMaterialAsync(material);
@@ -261,9 +428,9 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<IActionResult> DeleteMaterial(string tenantName, int id)
         {
             _logger.LogInformation("Deleting material {Id} for tenant: {TenantName}", id, tenantName);
-            
+
             var deleted = await _materialService.DeleteMaterialAsync(id);
-            
+
             if (!deleted)
             {
                 return NotFound();
@@ -283,12 +450,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<VideoMaterial>>> GetVideoMaterials(string tenantName)
         {
             _logger.LogInformation("🎥 Getting video materials for tenant: {TenantName}", tenantName);
-            
+
             var videos = await _materialService.GetAllVideoMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} video materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} video materials for tenant: {TenantName}",
                 videos.Count(), tenantName);
-            
+
             return Ok(videos);
         }
 
@@ -296,13 +463,13 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("checklists")]
         public async Task<ActionResult<IEnumerable<ChecklistMaterial>>> GetChecklistMaterials(string tenantName)
         {
-            _logger.LogInformation("📋 Getting checklist materials for tenant: {TenantName}", tenantName);
-            
+            _logger.LogInformation("Getting checklist materials for tenant: {TenantName}", tenantName);
+
             var checklists = await _materialService.GetAllChecklistMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} checklist materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} checklist materials for tenant: {TenantName}",
                 checklists.Count(), tenantName);
-            
+
             return Ok(checklists);
         }
 
@@ -311,12 +478,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterials(string tenantName)
         {
             _logger.LogInformation("⚙️ Getting workflow materials for tenant: {TenantName}", tenantName);
-            
+
             var workflows = await _materialService.GetAllWorkflowMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} workflow materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} workflow materials for tenant: {TenantName}",
                 workflows.Count(), tenantName);
-            
+
             return Ok(workflows);
         }
 
@@ -325,12 +492,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<ImageMaterial>>> GetImageMaterials(string tenantName)
         {
             _logger.LogInformation("🖼️ Getting image materials for tenant: {TenantName}", tenantName);
-            
+
             var images = await _materialService.GetAllImageMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} image materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} image materials for tenant: {TenantName}",
                 images.Count(), tenantName);
-            
+
             return Ok(images);
         }
 
@@ -339,12 +506,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<PDFMaterial>>> GetPDFMaterials(string tenantName)
         {
             _logger.LogInformation("📄 Getting PDF materials for tenant: {TenantName}", tenantName);
-            
+
             var pdfs = await _materialService.GetAllPDFMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} PDF materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} PDF materials for tenant: {TenantName}",
                 pdfs.Count(), tenantName);
-            
+
             return Ok(pdfs);
         }
 
@@ -353,12 +520,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<ChatbotMaterial>>> GetChatbotMaterials(string tenantName)
         {
             _logger.LogInformation("🤖 Getting chatbot materials for tenant: {TenantName}", tenantName);
-            
+
             var chatbots = await _materialService.GetAllChatbotMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} chatbot materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} chatbot materials for tenant: {TenantName}",
                 chatbots.Count(), tenantName);
-            
+
             return Ok(chatbots);
         }
 
@@ -367,12 +534,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<QuestionnaireMaterial>>> GetQuestionnaireMaterials(string tenantName)
         {
             _logger.LogInformation("❓ Getting questionnaire materials for tenant: {TenantName}", tenantName);
-            
+
             var questionnaires = await _materialService.GetAllQuestionnaireMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} questionnaire materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} questionnaire materials for tenant: {TenantName}",
                 questionnaires.Count(), tenantName);
-            
+
             return Ok(questionnaires);
         }
 
@@ -381,12 +548,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<MQTT_TemplateMaterial>>> GetMQTTTemplateMaterials(string tenantName)
         {
             _logger.LogInformation("📡 Getting MQTT template materials for tenant: {TenantName}", tenantName);
-            
+
             var templates = await _materialService.GetAllMQTTTemplateMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} MQTT template materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} MQTT template materials for tenant: {TenantName}",
                 templates.Count(), tenantName);
-            
+
             return Ok(templates);
         }
 
@@ -395,12 +562,12 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<IEnumerable<UnityDemoMaterial>>> GetUnityDemoMaterials(string tenantName)
         {
             _logger.LogInformation("🎮 Getting Unity demo materials for tenant: {TenantName}", tenantName);
-            
+
             var unityDemos = await _materialService.GetAllUnityDemoMaterialsAsync();
-            
-            _logger.LogInformation("Found {Count} Unity demo materials for tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} Unity demo materials for tenant: {TenantName}",
                 unityDemos.Count(), tenantName);
-            
+
             return Ok(unityDemos);
         }
 
@@ -411,20 +578,20 @@ namespace XR50TrainingAssetRepo.Controllers
         // POST: api/{tenantName}/materials/workflow-complete
         [HttpPost("workflow-complete")]
         public async Task<ActionResult<WorkflowMaterial>> CreateCompleteWorkflow(
-            string tenantName, 
+            string tenantName,
             [FromBody] CompleteWorkflowRequest request)
         {
-            _logger.LogInformation("⚙️ Creating complete workflow {Name} with {StepCount} steps for tenant: {TenantName}", 
+            _logger.LogInformation("⚙️ Creating complete workflow {Name} with {StepCount} steps for tenant: {TenantName}",
                 request.Workflow.Name, request.Steps?.Count ?? 0, tenantName);
-            
+
             try
             {
                 var createdMaterial = await _materialService.CreateWorkflowWithStepsAsync(
-                    request.Workflow, 
+                    request.Workflow,
                     request.Steps);
-                
-                return CreatedAtAction(nameof(GetMaterial), 
-                    new { tenantName, id = createdMaterial.Id }, 
+
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
                     createdMaterial);
             }
             catch (Exception ex)
@@ -440,17 +607,17 @@ namespace XR50TrainingAssetRepo.Controllers
             string tenantName,
             [FromBody] CompleteVideoRequest request)
         {
-            _logger.LogInformation("🎥 Creating complete video {Name} with {TimestampCount} timestamps for tenant: {TenantName}", 
+            _logger.LogInformation("🎥 Creating complete video {Name} with {TimestampCount} timestamps for tenant: {TenantName}",
                 request.Video.Name, request.Timestamps?.Count ?? 0, tenantName);
-            
+
             try
             {
                 var createdMaterial = await _materialService.CreateVideoWithTimestampsAsync(
-                    request.Video, 
+                    request.Video,
                     request.Timestamps);
-                
-                return CreatedAtAction(nameof(GetMaterial), 
-                    new { tenantName, id = createdMaterial.Id }, 
+
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
                     createdMaterial);
             }
             catch (Exception ex)
@@ -466,17 +633,17 @@ namespace XR50TrainingAssetRepo.Controllers
             string tenantName,
             [FromBody] CompleteChecklistRequest request)
         {
-            _logger.LogInformation("📋 Creating complete checklist {Name} with {EntryCount} entries for tenant: {TenantName}", 
+            _logger.LogInformation("Creating complete checklist {Name} with {EntryCount} entries for tenant: {TenantName}",
                 request.Checklist.Name, request.Entries?.Count ?? 0, tenantName);
-            
+
             try
             {
                 var createdMaterial = await _materialService.CreateChecklistWithEntriesAsync(
-                    request.Checklist, 
+                    request.Checklist,
                     request.Entries);
-                
-                return CreatedAtAction(nameof(GetMaterial), 
-                    new { tenantName, id = createdMaterial.Id }, 
+
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
                     createdMaterial);
             }
             catch (Exception ex)
@@ -494,20 +661,20 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("videos/{id}/with-timestamps")]
         public async Task<ActionResult<VideoMaterial>> GetVideoWithTimestamps(string tenantName, int id)
         {
-            _logger.LogInformation("🎥 Getting video material {Id} with timestamps for tenant: {TenantName}", 
+            _logger.LogInformation("🎥 Getting video material {Id} with timestamps for tenant: {TenantName}",
                 id, tenantName);
-            
+
             var video = await _materialService.GetVideoMaterialWithTimestampsAsync(id);
-            
+
             if (video == null)
             {
                 _logger.LogWarning("Video material {Id} not found in tenant: {TenantName}", id, tenantName);
                 return NotFound();
             }
 
-            _logger.LogInformation("Retrieved video material {Id} with {Count} timestamps for tenant: {TenantName}", 
+            _logger.LogInformation("Retrieved video material {Id} with {Count} timestamps for tenant: {TenantName}",
                 id, video.VideoTimestamps?.Count() ?? 0, tenantName);
-            
+
             return Ok(video);
         }
 
@@ -515,16 +682,16 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost("videos/{videoId}/timestamps")]
         public async Task<ActionResult<VideoMaterial>> AddTimestampToVideo(string tenantName, int videoId, VideoTimestamp timestamp)
         {
-            _logger.LogInformation("⏱️ Adding timestamp '{Title}' to video {VideoId} for tenant: {TenantName}", 
+            _logger.LogInformation("⏱️ Adding timestamp '{Title}' to video {VideoId} for tenant: {TenantName}",
                 timestamp.Title, videoId, tenantName);
-            
+
             try
             {
                 var video = await _materialService.AddTimestampToVideoAsync(videoId, timestamp);
-                
-                _logger.LogInformation("Added timestamp to video {VideoId} for tenant: {TenantName}", 
+
+                _logger.LogInformation("Added timestamp to video {VideoId} for tenant: {TenantName}",
                     videoId, tenantName);
-                
+
                 return Ok(video);
             }
             catch (ArgumentException ex)
@@ -537,17 +704,17 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpDelete("videos/{videoId}/timestamps/{timestampId}")]
         public async Task<IActionResult> RemoveTimestampFromVideo(string tenantName, int videoId, int timestampId)
         {
-            _logger.LogInformation("Removing timestamp {TimestampId} from video {VideoId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removing timestamp {TimestampId} from video {VideoId} for tenant: {TenantName}",
                 timestampId, videoId, tenantName);
-            
+
             var removed = await _materialService.RemoveTimestampFromVideoAsync(videoId, timestampId);
-            
+
             if (!removed)
             {
                 return NotFound("Timestamp not found");
             }
 
-            _logger.LogInformation("Removed timestamp {TimestampId} from video {VideoId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removed timestamp {TimestampId} from video {VideoId} for tenant: {TenantName}",
                 timestampId, videoId, tenantName);
 
             return NoContent();
@@ -561,20 +728,20 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("checklists/{id}/with-entries")]
         public async Task<ActionResult<ChecklistMaterial>> GetChecklistWithEntries(string tenantName, int id)
         {
-            _logger.LogInformation("📋 Getting checklist material {Id} with entries for tenant: {TenantName}", 
+            _logger.LogInformation("Getting checklist material {Id} with entries for tenant: {TenantName}",
                 id, tenantName);
-            
+
             var checklist = await _materialService.GetChecklistMaterialWithEntriesAsync(id);
-            
+
             if (checklist == null)
             {
                 _logger.LogWarning("Checklist material {Id} not found in tenant: {TenantName}", id, tenantName);
                 return NotFound();
             }
 
-            _logger.LogInformation("Retrieved checklist material {Id} with {Count} entries for tenant: {TenantName}", 
+            _logger.LogInformation("Retrieved checklist material {Id} with {Count} entries for tenant: {TenantName}",
                 id, checklist.ChecklistEntries?.Count() ?? 0, tenantName);
-            
+
             return Ok(checklist);
         }
 
@@ -582,16 +749,16 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost("checklists/{checklistId}/entries")]
         public async Task<ActionResult<ChecklistMaterial>> AddEntryToChecklist(string tenantName, int checklistId, ChecklistEntry entry)
         {
-            _logger.LogInformation("✔️ Adding entry '{Text}' to checklist {ChecklistId} for tenant: {TenantName}", 
+            _logger.LogInformation("✔️ Adding entry '{Text}' to checklist {ChecklistId} for tenant: {TenantName}",
                 entry.Text, checklistId, tenantName);
-            
+
             try
             {
                 var checklist = await _materialService.AddEntryToChecklistAsync(checklistId, entry);
-                
-                _logger.LogInformation("Added entry to checklist {ChecklistId} for tenant: {TenantName}", 
+
+                _logger.LogInformation("Added entry to checklist {ChecklistId} for tenant: {TenantName}",
                     checklistId, tenantName);
-                
+
                 return Ok(checklist);
             }
             catch (ArgumentException ex)
@@ -605,17 +772,17 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpDelete("checklists/{checklistId}/entries/{entryId}")]
         public async Task<IActionResult> RemoveEntryFromChecklist(string tenantName, int checklistId, int entryId)
         {
-            _logger.LogInformation("Removing entry {EntryId} from checklist {ChecklistId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removing entry {EntryId} from checklist {ChecklistId} for tenant: {TenantName}",
                 entryId, checklistId, tenantName);
-            
+
             var removed = await _materialService.RemoveEntryFromChecklistAsync(checklistId, entryId);
-            
+
             if (!removed)
             {
                 return NotFound("Entry not found");
             }
 
-            _logger.LogInformation("Removed entry {EntryId} from checklist {ChecklistId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removed entry {EntryId} from checklist {ChecklistId} for tenant: {TenantName}",
                 entryId, checklistId, tenantName);
 
             return NoContent();
@@ -629,20 +796,20 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("workflows/{id}/with-steps")]
         public async Task<ActionResult<WorkflowMaterial>> GetWorkflowWithSteps(string tenantName, int id)
         {
-            _logger.LogInformation("⚙️ Getting workflow material {Id} with steps for tenant: {TenantName}", 
+            _logger.LogInformation("⚙️ Getting workflow material {Id} with steps for tenant: {TenantName}",
                 id, tenantName);
-            
+
             var workflow = await _materialService.GetWorkflowMaterialWithStepsAsync(id);
-            
+
             if (workflow == null)
             {
                 _logger.LogWarning("Workflow material {Id} not found in tenant: {TenantName}", id, tenantName);
                 return NotFound();
             }
 
-            _logger.LogInformation("Retrieved workflow material {Id} with {Count} steps for tenant: {TenantName}", 
+            _logger.LogInformation("Retrieved workflow material {Id} with {Count} steps for tenant: {TenantName}",
                 id, workflow.WorkflowSteps?.Count() ?? 0, tenantName);
-            
+
             return Ok(workflow);
         }
 
@@ -650,16 +817,16 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost("workflows/{workflowId}/steps")]
         public async Task<ActionResult<WorkflowMaterial>> AddStepToWorkflow(string tenantName, int workflowId, WorkflowStep step)
         {
-            _logger.LogInformation("➕ Adding step '{Title}' to workflow {WorkflowId} for tenant: {TenantName}", 
+            _logger.LogInformation("➕ Adding step '{Title}' to workflow {WorkflowId} for tenant: {TenantName}",
                 step.Title, workflowId, tenantName);
-            
+
             try
             {
                 var workflow = await _materialService.AddStepToWorkflowAsync(workflowId, step);
-                
-                _logger.LogInformation("Added step to workflow {WorkflowId} for tenant: {TenantName}", 
+
+                _logger.LogInformation("Added step to workflow {WorkflowId} for tenant: {TenantName}",
                     workflowId, tenantName);
-                
+
                 return Ok(workflow);
             }
             catch (ArgumentException ex)
@@ -673,17 +840,17 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpDelete("workflows/{workflowId}/steps/{stepId}")]
         public async Task<IActionResult> RemoveStepFromWorkflow(string tenantName, int workflowId, int stepId)
         {
-            _logger.LogInformation("Removing step {StepId} from workflow {WorkflowId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removing step {StepId} from workflow {WorkflowId} for tenant: {TenantName}",
                 stepId, workflowId, tenantName);
-            
+
             var removed = await _materialService.RemoveStepFromWorkflowAsync(workflowId, stepId);
-            
+
             if (!removed)
             {
                 return NotFound("Step not found");
             }
 
-            _logger.LogInformation("Removed step {StepId} from workflow {WorkflowId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removed step {StepId} from workflow {WorkflowId} for tenant: {TenantName}",
                 stepId, workflowId, tenantName);
 
             return NoContent();
@@ -697,14 +864,14 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("by-asset/{assetId}")]
         public async Task<ActionResult<IEnumerable<Material>>> GetMaterialsByAsset(string tenantName, string assetId)
         {
-            _logger.LogInformation("Getting materials for asset {AssetId} in tenant: {TenantName}", 
+            _logger.LogInformation("Getting materials for asset {AssetId} in tenant: {TenantName}",
                 assetId, tenantName);
-            
+
             var materials = await _materialService.GetMaterialsByAssetIdAsync(assetId);
-            
-            _logger.LogInformation("Found {Count} materials for asset {AssetId} in tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} materials for asset {AssetId} in tenant: {TenantName}",
                 materials.Count(), assetId, tenantName);
-            
+
             return Ok(materials);
         }
 
@@ -712,19 +879,19 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("{materialId}/asset")]
         public async Task<ActionResult<object>> GetMaterialAsset(string tenantName, int materialId)
         {
-            _logger.LogInformation("Getting asset for material {MaterialId} in tenant: {TenantName}", 
+            _logger.LogInformation("Getting asset for material {MaterialId} in tenant: {TenantName}",
                 materialId, tenantName);
-            
+
             var assetId = await _materialService.GetMaterialAssetIdAsync(materialId);
-            
+
             if (assetId == null)
             {
                 return Ok(new { AssetId = (string?)null, Message = "Material does not support assets or has no asset assigned" });
             }
 
-            _logger.LogInformation("Material {MaterialId} has asset {AssetId} in tenant: {TenantName}", 
+            _logger.LogInformation("Material {MaterialId} has asset {AssetId} in tenant: {TenantName}",
                 materialId, assetId, tenantName);
-            
+
             return Ok(new { AssetId = assetId });
         }
 
@@ -732,17 +899,17 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost("{materialId}/assign-asset/{assetId}")]
         public async Task<IActionResult> AssignAssetToMaterial(string tenantName, int materialId, string assetId)
         {
-            _logger.LogInformation("🔗 Assigning asset {AssetId} to material {MaterialId} for tenant: {TenantName}", 
+            _logger.LogInformation("Assigning asset {AssetId} to material {MaterialId} for tenant: {TenantName}",
                 assetId, materialId, tenantName);
-            
+
             var success = await _materialService.AssignAssetToMaterialAsync(materialId, assetId);
-            
+
             if (!success)
             {
                 return BadRequest("Material not found or material type does not support assets");
             }
 
-            _logger.LogInformation("Assigned asset {AssetId} to material {MaterialId} for tenant: {TenantName}", 
+            _logger.LogInformation("Assigned asset {AssetId} to material {MaterialId} for tenant: {TenantName}",
                 assetId, materialId, tenantName);
 
             return Ok(new { Message = "Asset successfully assigned to material" });
@@ -752,17 +919,17 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpDelete("{materialId}/remove-asset")]
         public async Task<IActionResult> RemoveAssetFromMaterial(string tenantName, int materialId)
         {
-            _logger.LogInformation("Removing asset from material {MaterialId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removing asset from material {MaterialId} for tenant: {TenantName}",
                 materialId, tenantName);
-            
+
             var success = await _materialService.RemoveAssetFromMaterialAsync(materialId);
-            
+
             if (!success)
             {
                 return BadRequest("Material not found or material type does not support assets");
             }
 
-            _logger.LogInformation("Removed asset from material {MaterialId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removed asset from material {MaterialId} for tenant: {TenantName}",
                 materialId, tenantName);
 
             return Ok(new { Message = "Asset successfully removed from material" });
@@ -776,14 +943,14 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("{materialId}/relationships")]
         public async Task<ActionResult<IEnumerable<MaterialRelationship>>> GetMaterialRelationships(string tenantName, int materialId)
         {
-            _logger.LogInformation("Getting relationships for material {MaterialId} in tenant: {TenantName}", 
+            _logger.LogInformation("Getting relationships for material {MaterialId} in tenant: {TenantName}",
                 materialId, tenantName);
-            
+
             var relationships = await _materialService.GetMaterialRelationshipsAsync(materialId);
-            
-            _logger.LogInformation("Found {Count} relationships for material {MaterialId} in tenant: {TenantName}", 
+
+            _logger.LogInformation("Found {Count} relationships for material {MaterialId} in tenant: {TenantName}",
                 relationships.Count(), materialId, tenantName);
-            
+
             return Ok(relationships);
         }
 
@@ -792,15 +959,16 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<object>> AssignMaterialToLearningPath(
             string tenantName, int materialId, int learningPathId, [FromQuery] string relationshipType = "contains", [FromQuery] int? displayOrder = null)
         {
-            _logger.LogInformation("🔗 Assigning material {MaterialId} to learning path {LearningPathId} for tenant: {TenantName}", 
+            _logger.LogInformation("Assigning material {MaterialId} to learning path {LearningPathId} for tenant: {TenantName}",
                 materialId, learningPathId, tenantName);
-            
+
             var relationshipId = await _materialService.AssignMaterialToLearningPathAsync(materialId, learningPathId, relationshipType, displayOrder);
 
-            _logger.LogInformation("Assigned material {MaterialId} to learning path {LearningPathId} (Relationship: {RelationshipId}) for tenant: {TenantName}", 
+            _logger.LogInformation("Assigned material {MaterialId} to learning path {LearningPathId} (Relationship: {RelationshipId}) for tenant: {TenantName}",
                 materialId, learningPathId, relationshipId, tenantName);
 
-            return Ok(new { 
+            return Ok(new
+            {
                 Message = "Material successfully assigned to learning path",
                 RelationshipId = relationshipId,
                 RelationshipType = relationshipType,
@@ -812,17 +980,17 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpDelete("{materialId}/remove-learningpath/{learningPathId}")]
         public async Task<IActionResult> RemoveMaterialFromLearningPath(string tenantName, int materialId, int learningPathId)
         {
-            _logger.LogInformation("Removing material {MaterialId} from learning path {LearningPathId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removing material {MaterialId} from learning path {LearningPathId} for tenant: {TenantName}",
                 materialId, learningPathId, tenantName);
-            
+
             var success = await _materialService.RemoveMaterialFromLearningPathAsync(materialId, learningPathId);
-            
+
             if (!success)
             {
                 return NotFound("Relationship not found");
             }
 
-            _logger.LogInformation("Removed material {MaterialId} from learning path {LearningPathId} for tenant: {TenantName}", 
+            _logger.LogInformation("Removed material {MaterialId} from learning path {LearningPathId} for tenant: {TenantName}",
                 materialId, learningPathId, tenantName);
 
             return Ok(new { Message = "Material successfully removed from learning path" });
@@ -837,7 +1005,7 @@ namespace XR50TrainingAssetRepo.Controllers
         public async Task<ActionResult<MaterialTypeSummary>> GetMaterialTypeSummary(string tenantName)
         {
             _logger.LogInformation("📊 Getting material type summary for tenant: {TenantName}", tenantName);
-            
+
             try
             {
                 var summary = new MaterialTypeSummary
@@ -855,9 +1023,9 @@ namespace XR50TrainingAssetRepo.Controllers
                     Total = (await _materialService.GetAllMaterialsAsync()).Count()
                 };
 
-                _logger.LogInformation("Generated material summary for tenant: {TenantName} ({Total} total materials)", 
+                _logger.LogInformation("Generated material summary for tenant: {TenantName} ({Total} total materials)",
                     tenantName, summary.Total);
-                
+
                 return Ok(summary);
             }
             catch (Exception ex)
@@ -868,7 +1036,7 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         #endregion
-                #region Material Relationship Query Endpoints
+        #region Material Relationship Query Endpoints
 
         /// <summary>
         /// Get all learning paths that contain this material
@@ -883,10 +1051,10 @@ namespace XR50TrainingAssetRepo.Controllers
 
             // Get relationships where this material is assigned to learning paths
             var relationships = await _materialService.GetRelationshipsByTypeAsync(materialId, "LearningPath");
-            
+
             // Extract learning path IDs and fetch the actual learning paths
             var learningPathIds = relationships.Select(r => int.Parse(r.RelatedEntityId)).ToList();
-            
+
             var learningPaths = new List<LearningPath>();
             foreach (var id in learningPathIds)
             {
@@ -950,6 +1118,22 @@ namespace XR50TrainingAssetRepo.Controllers
         }
 
         #endregion
+        private System.Type GetSystemTypeFromMaterialType(MaterialType materialType)
+        {
+            return materialType switch
+            {
+                MaterialType.Video => typeof(VideoMaterial),
+                MaterialType.Image => typeof(ImageMaterial),
+                MaterialType.PDF => typeof(PDFMaterial),
+                MaterialType.Checklist => typeof(ChecklistMaterial),
+                MaterialType.Workflow => typeof(WorkflowMaterial),
+                MaterialType.Questionnaire => typeof(QuestionnaireMaterial),
+                MaterialType.UnityDemo => typeof(UnityDemoMaterial),
+                MaterialType.Chatbot => typeof(ChatbotMaterial),
+                MaterialType.MQTT_Template => typeof(MQTT_TemplateMaterial),
+                _ => typeof(Material)
+            };
+        }
     }
 
         // Supporting DTOs

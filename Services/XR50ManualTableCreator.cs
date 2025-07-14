@@ -426,7 +426,7 @@ namespace XR50TrainingAssetRepo.Services
 
                 // Complex Material Relationships Table
                 @"CREATE TABLE IF NOT EXISTS `MaterialRelationships` (
-                    `Id` varchar(50) NOT NULL,
+                    `Id` int NOT NULL AUTO_INCREMENT,
                     `MaterialId` int NOT NULL,
                     `RelatedEntityId` varchar(50) NOT NULL,
                     `RelatedEntityType` varchar(50) NOT NULL,

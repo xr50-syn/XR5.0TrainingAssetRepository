@@ -144,7 +144,7 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpPost("{learningPathId}/assign/{trainingProgramId}")]
         public async Task<IActionResult> AssignLearningPathToTrainingProgram(string tenantName, int learningPathId, int trainingProgramId)
         {
-            _logger.LogInformation("🔗 Assigning learning path {LearningPathId} to training program {TrainingProgramId} for tenant: {TenantName}",
+            _logger.LogInformation("Assigning learning path {LearningPathId} to training program {TrainingProgramId} for tenant: {TenantName}",
                 learningPathId, trainingProgramId, tenantName);
 
             var success = await _learningPathService.AssignLearningPathToTrainingProgramAsync(trainingProgramId, learningPathId);
@@ -220,7 +220,7 @@ namespace XR50TrainingAssetRepo.Controllers
             [FromQuery] string relationshipType = "contains",
             [FromQuery] int? displayOrder = null)
         {
-            _logger.LogInformation("🔗 Assigning material {MaterialId} to learning path {LearningPathId} for tenant: {TenantName}",
+            _logger.LogInformation("Assigning material {MaterialId} to learning path {LearningPathId} for tenant: {TenantName}",
                 materialId, learningPathId, tenantName);
 
             try
@@ -306,7 +306,7 @@ namespace XR50TrainingAssetRepo.Controllers
             int learningPathId,
             [FromBody] IEnumerable<BulkMaterialAssignment> assignments)
         {
-            _logger.LogInformation("⚡ Bulk assigning {Count} materials to learning path {LearningPathId} for tenant: {TenantName}",
+            _logger.LogInformation("Bulk assigning {Count} materials to learning path {LearningPathId} for tenant: {TenantName}",
                 assignments.Count(), learningPathId, tenantName);
 
             var result = new BulkAssignmentResult();

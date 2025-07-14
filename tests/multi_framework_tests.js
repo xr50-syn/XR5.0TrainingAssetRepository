@@ -436,7 +436,7 @@ set -e
 BASE_URL="${XR50_API_URL:-http://localhost:5000}"
 TENANT="smoke-test"
 
-echo "🚀 Starting XR5.0 Smoke Tests"
+echo "Starting XR5.0 Smoke Tests"
 echo "API URL: $BASE_URL"
 echo "Test Tenant: $TENANT"
 
@@ -484,7 +484,7 @@ fi
 echo "Created training program with ID: $PROGRAM_ID"
 
 # Test 4: Material Assignment
-echo "🔗 Testing material assignment..."
+echo "Testing material assignment..."
 
 curl -f -X POST "$BASE_URL/api/$TENANT/trainingprograms/$PROGRAM_ID/assign-material/$MATERIAL_ID" || \
   (echo "Failed to assign material to program" && exit 1)
@@ -504,7 +504,7 @@ curl -f -X DELETE "$BASE_URL/api/$TENANT/materials/$MATERIAL_ID" || \
 curl -f -X DELETE "$BASE_URL/api/$TENANT/trainingprograms/$PROGRAM_ID" || \
   echo "⚠️ Failed to delete program (may not exist)"
 
-echo "🎉 All smoke tests passed!"
+echo "All smoke tests passed!"
 echo ""
 echo "Partner Integration Verification Complete ✅"
 echo "Your XR5.0 installation is working correctly!"

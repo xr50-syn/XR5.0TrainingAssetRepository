@@ -341,7 +341,7 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("filetypes")]
         public async Task<ActionResult<IEnumerable<string>>> GetAvailableFiletypes(string tenantName)
         {
-            _logger.LogInformation("📋 Getting available filetypes for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting available filetypes for tenant: {TenantName}", tenantName);
             
             var assets = await _assetService.GetAllAssetsAsync();
             var filetypes = assets.Select(a => a.Filetype).Distinct().Where(ft => !string.IsNullOrEmpty(ft)).ToList();

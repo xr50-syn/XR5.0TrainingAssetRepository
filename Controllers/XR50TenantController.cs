@@ -263,18 +263,18 @@ namespace XR50TrainingAssetRepo.Controllers
 
                 if (validationResult)
                 {
-                    _logger.LogInformation("✅ Storage validation successful for tenant: {TenantName}", tenantName);
+                    _logger.LogInformation("Storage validation successful for tenant: {TenantName}", tenantName);
                     return Ok(response);
                 }
                 else
                 {
-                    _logger.LogWarning("❌ Storage validation failed for tenant: {TenantName}", tenantName);
+                    _logger.LogWarning("Storage validation failed for tenant: {TenantName}", tenantName);
                     return BadRequest(response);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error validating storage for tenant: {TenantName}", tenantName);
+                _logger.LogError(ex, "Error validating storage for tenant: {TenantName}", tenantName);
                 return StatusCode(500, new { Error = "Storage validation failed", Details = ex.Message });
             }
         }
@@ -330,7 +330,7 @@ namespace XR50TrainingAssetRepo.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error getting storage statistics for tenant: {TenantName}", tenantName);
+                _logger.LogError(ex, "Error getting storage statistics for tenant: {TenantName}", tenantName);
                 return StatusCode(500, new { Error = "Failed to get storage statistics", Details = ex.Message });
             }
         }

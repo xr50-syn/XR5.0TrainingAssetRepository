@@ -133,7 +133,7 @@ if (storageType.Equals("S3", StringComparison.OrdinalIgnoreCase))
     // Register S3 Storage Service
     builder.Services.AddScoped<IStorageService, S3StorageServiceImplementation>();
     
-    Console.WriteLine("🚀 Configured for S3 storage");
+    Console.WriteLine("Configured for S3 storage");
 }
 else
 {
