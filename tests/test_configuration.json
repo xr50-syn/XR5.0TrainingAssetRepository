@@ -162,7 +162,7 @@ npm run test:all
 
 ## Test Categories
 
-### 🔧 Unit Tests (C#)
+###  Unit Tests (C#)
 - Material service functionality
 - Tenant resolution
 - Asset management
@@ -243,7 +243,7 @@ docker run --rm xr50-tests npm run test:api
 After running tests, you'll see output indicating:
 - Passed tests (system working correctly)
 - Failed tests (issues to address)
-- ⚠️ Warnings (potential concerns)
+- Warnings (potential concerns)
 
 ## Troubleshooting
 

@@ -22,7 +22,7 @@ namespace XR50TrainingAssetRepo.Services
         }
 
         public string GetStorageType() => "OwnCloud";
-
+        public bool SupportsSharing() => true;
         public async Task<bool> CreateTenantStorageAsync(string tenantName, XR50Tenant tenant)
         {
             try
@@ -74,11 +74,11 @@ namespace XR50TrainingAssetRepo.Services
 
                 // Note: This is a simplified implementation
                 // In a real scenario, you'd need to get tenant details first
-                
+
                 // Delete directory (using curl command for simplicity)
                 var tenantDirectory = tenantName; // Simplified
                 var deleteDirectoryResult = await ExecuteWebDAVCommand("DELETE", tenantDirectory, null);
-                
+
                 _logger.LogInformation("Deleted OwnCloud storage for tenant: {TenantName}", tenantName);
                 return true;
             }
@@ -112,7 +112,7 @@ namespace XR50TrainingAssetRepo.Services
 
                 // Create temp file for upload
                 string tempFileName = Path.GetTempFileName();
-                
+
                 try
                 {
                     using (var fileWriteStream = File.Create(tempFileName))
@@ -121,14 +121,14 @@ namespace XR50TrainingAssetRepo.Services
                     }
 
                     var success = await ExecuteWebDAVCommand("PUT", $"{tenantName}/{fileName}", tempFileName);
-                    
+
                     if (success)
                     {
                         var url = $"/owncloud/{tenantName}/{fileName}";
                         _logger.LogInformation("Successfully uploaded file to OwnCloud: {Url}", url);
                         return url;
                     }
-                    
+
                     throw new InvalidOperationException("File upload failed");
                 }
                 finally
@@ -157,13 +157,13 @@ namespace XR50TrainingAssetRepo.Services
                 // This is a simplified placeholder
                 var webdavBase = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
                 var url = $"{webdavBase}/{tenantName}/{fileName}";
-                
+
                 var response = await _httpClient.GetAsync(url);
                 if (response.IsSuccessStatusCode)
                 {
                     return await response.Content.ReadAsStreamAsync();
                 }
-                
+
                 throw new InvalidOperationException($"Download failed with status: {response.StatusCode}");
             }
             catch (Exception ex)
@@ -181,7 +181,7 @@ namespace XR50TrainingAssetRepo.Services
                 // Note: This doesn't implement actual expiration - that would require OwnCloud share API
                 var webdavBase = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
                 var url = $"{webdavBase}/{tenantName}/{fileName}";
-                
+
                 _logger.LogInformation("Generated OwnCloud download URL: {TenantName}/{FileName}", tenantName, fileName);
                 return url;
             }
@@ -197,14 +197,14 @@ namespace XR50TrainingAssetRepo.Services
             try
             {
                 _logger.LogInformation("Deleting file from OwnCloud: {TenantName}/{FileName}", tenantName, fileName);
-                
+
                 var success = await ExecuteWebDAVCommand("DELETE", $"{tenantName}/{fileName}", null);
-                
+
                 if (success)
                 {
                     _logger.LogInformation("Successfully deleted file from OwnCloud: {TenantName}/{FileName}", tenantName, fileName);
                 }
-                
+
                 return success;
             }
             catch (Exception ex)
@@ -275,17 +275,17 @@ namespace XR50TrainingAssetRepo.Services
                 {
                     new KeyValuePair<string, string>("groupid", groupName)
                 };
-                
+
                 var messageContent = new FormUrlEncodedContent(values);
                 var uri_path = _configuration.GetValue<string>("TenantSettings:GroupsPath");
-                
+
                 var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
                 {
                     Content = messageContent
                 };
-                
+
                 AddBasicAuthHeader(request);
-                
+
                 var result = await _httpClient.SendAsync(request);
                 return result.IsSuccessStatusCode;
             }
@@ -308,17 +308,17 @@ namespace XR50TrainingAssetRepo.Services
                     new KeyValuePair<string, string>("display", user.FullName),
                     new KeyValuePair<string, string>("groups[]", groupName)
                 };
-                
+
                 var messageContent = new FormUrlEncodedContent(values);
                 var uri_path = _configuration.GetValue<string>("TenantSettings:UsersPath");
-                
+
                 var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
                 {
                     Content = messageContent
                 };
-                
+
                 AddBasicAuthHeader(request);
-                
+
                 var result = await _httpClient.SendAsync(request);
                 return result.IsSuccessStatusCode;
             }
@@ -349,17 +349,17 @@ namespace XR50TrainingAssetRepo.Services
                 var webdavBase = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
                 var username = user?.UserName ?? _configuration.GetValue<string>("TenantSettings:Admin");
                 var password = user?.Password ?? _configuration.GetValue<string>("TenantSettings:Password");
-                
+
                 var encodedPath = System.Web.HttpUtility.UrlEncode(path);
                 var args = method switch
                 {
-                    "PUT" when !string.IsNullOrEmpty(filePath) => 
+                    "PUT" when !string.IsNullOrEmpty(filePath) =>
                         $"-X PUT -u {username}:{password} --data-binary @\"{filePath}\" \"{webdavBase}/{encodedPath}\"",
-                    "DELETE" => 
+                    "DELETE" =>
                         $"-X DELETE -u {username}:{password} \"{webdavBase}/{encodedPath}\"",
-                    "MKCOL" => 
+                    "MKCOL" =>
                         $"-X MKCOL -u {username}:{password} \"{webdavBase}/{encodedPath}/\"",
-                    "HEAD" => 
+                    "HEAD" =>
                         $"-X HEAD -u {username}:{password} \"{webdavBase}/{encodedPath}\"",
                     _ => throw new ArgumentException($"Unsupported WebDAV method: {method}")
                 };
@@ -386,7 +386,7 @@ namespace XR50TrainingAssetRepo.Services
                 await process.WaitForExitAsync();
 
                 _logger.LogDebug("WebDAV command completed. Exit code: {ExitCode}", process.ExitCode);
-                
+
                 if (!string.IsNullOrEmpty(error) && process.ExitCode != 0)
                 {
                     _logger.LogWarning("WebDAV command stderr: {Error}", error);
@@ -407,10 +407,165 @@ namespace XR50TrainingAssetRepo.Services
             var password = _configuration.GetValue<string>("TenantSettings:Password");
             var authenticationString = $"{username}:{password}";
             var base64EncodedAuthenticationString = Convert.ToBase64String(Encoding.ASCII.GetBytes(authenticationString));
-            
+
             request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64EncodedAuthenticationString);
+        }
+        #endregion
+
+        #region Share Management
+
+        /// <summary>
+        /// Create a share in OwnCloud and return the share URL
+        /// </summary>
+        public async Task<string> CreateShareAsync(string tenantName, XR50Tenant tenant, Asset asset)
+        {
+            try
+            {
+                _logger.LogInformation("Creating OwnCloud share for asset {AssetId} in tenant {TenantName}",
+                    asset.Id, tenantName);
+
+                var values = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("shareType", "1"), // Group share
+                    new KeyValuePair<string, string>("shareWith", tenant.TenantGroup ?? ""),
+                    new KeyValuePair<string, string>("permissions", "1"), // Read permission
+                    new KeyValuePair<string, string>("path", $"{tenant.TenantDirectory}/{asset.Filename}")
+                };
+
+                var messageContent = new FormUrlEncodedContent(values);
+                var uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+                var uri_share = _configuration.GetValue<string>("TenantSettings:SharesPath");
+
+                var request = new HttpRequestMessage(HttpMethod.Post, uri_share)
+                {
+                    Content = messageContent
+                };
+
+                AddBasicAuthHeader(request, tenant.Owner);
+
+                _httpClient.BaseAddress = new Uri(uri_base);
+                var result = await _httpClient.SendAsync(request);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var content = await result.Content.ReadAsStringAsync();
+                    var shareUrl = ParseShareUrlFromResponse(content);
+
+                    _logger.LogInformation("OwnCloud share created successfully for asset {AssetId}: {ShareUrl}",
+                        asset.Id, shareUrl);
+
+                    return shareUrl;
+                }
+                else
+                {
+                    _logger.LogError("Failed to create OwnCloud share for asset {AssetId}. Status: {StatusCode}",
+                        asset.Id, result.StatusCode);
+                    return string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating OwnCloud share for asset {AssetId}", asset.Id);
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Delete a share from OwnCloud
+        /// </summary>
+        public async Task<bool> DeleteShareAsync(string tenantName, string shareId)
+        {
+            try
+            {
+                _logger.LogInformation("Deleting OwnCloud share {ShareId} for tenant {TenantName}",
+                    shareId, tenantName);
+
+                var uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
+                var uri_share = _configuration.GetValue<string>("TenantSettings:SharesPath");
+
+                var request = new HttpRequestMessage(HttpMethod.Delete, $"{uri_share}/{shareId}");
+
+                // For deletion, we'd need tenant info to get the owner credentials
+                // This is a simplification - in practice you'd need to get the tenant
+                var username = _configuration.GetValue<string>("TenantSettings:Admin");
+                var password = _configuration.GetValue<string>("TenantSettings:Password");
+                AddBasicAuthHeader(request, username, password);
+
+                _httpClient.BaseAddress = new Uri(uri_base);
+                var result = await _httpClient.SendAsync(request);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Successfully deleted OwnCloud share {ShareId}", shareId);
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("Failed to delete OwnCloud share {ShareId}. Status: {StatusCode}",
+                        shareId, result.StatusCode);
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting OwnCloud share {ShareId}", shareId);
+                return false;
+            }
         }
 
         #endregion
+
+        #region Helper Methods
+
+        /// <summary>
+        /// Parse the share URL from OwnCloud XML response
+        /// </summary>
+        private string ParseShareUrlFromResponse(string xmlResponse)
+        {
+            try
+            {
+                // Simple XML parsing for share URL
+                var doc = System.Xml.Linq.XDocument.Parse(xmlResponse);
+                var url = doc.Root?.Element("data")?.Element("url")?.Value;
+                return url ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error parsing share URL from OwnCloud response");
+                return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Add basic authentication header for OwnCloud requests
+        /// </summary>
+        private void AddBasicAuthHeader(HttpRequestMessage request, User user)
+        {
+            if (user != null)
+            {
+                var authenticationString = $"{user.UserName}:{user.Password}";
+                var base64EncodedAuthenticationString = Convert.ToBase64String(
+                    System.Text.Encoding.ASCII.GetBytes(authenticationString));
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                    "Basic", base64EncodedAuthenticationString);
+            }
+        }
+
+        /// <summary>
+        /// Add basic authentication header with username/password
+        /// </summary>
+        private void AddBasicAuthHeader(HttpRequestMessage request, string username, string password)
+        {
+            var authenticationString = $"{username}:{password}";
+            var base64EncodedAuthenticationString = Convert.ToBase64String(
+                System.Text.Encoding.ASCII.GetBytes(authenticationString));
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Basic", base64EncodedAuthenticationString);
+        }
+
+        #endregion
+
+        // ... rest of existing methods ...
     }
 }
+        

@@ -62,40 +62,266 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
-        // Add this to your MaterialsController class
-
         /// <summary>
-        /// Get complete material details with all type-specific properties and child entities
-        /// This replaces the need to call different endpoints for different material types
-        /// </summary>
-        [HttpGet("{id}/detail")]
-        public async Task<ActionResult<object>> GetCompleteMaterialDetails(int id)
+/// Get complete material details with all type-specific properties and child entities
+/// This replaces the need to call different endpoints for different material types
+/// </summary>
+[HttpGet("{id}/detail")]
+public async Task<ActionResult<object>> GetCompleteMaterialDetails(string tenantName, int id)
+{
+    try
+    {
+        _logger.LogInformation("Getting complete details for material: {MaterialId} in tenant: {TenantName}", id, tenantName);
+
+        // First get the basic material to determine type
+        var baseMaterial = await _materialService.GetMaterialAsync(id);
+        if (baseMaterial == null)
         {
-            try
-            {
-                _logger.LogInformation("Getting complete details for material: {MaterialId}", id);
-
-                var materialDetails = await _materialService.GetCompleteMaterialDetailsAsync(id);
-
-                if (materialDetails == null)
-                {
-                    _logger.LogWarning("Material not found: {MaterialId}", id);
-                    return NotFound(new { Error = $"Material with ID {id} not found" });
-                }
-
-                _logger.LogInformation("Retrieved complete details for material: {MaterialId}", id);
-                return Ok(materialDetails);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting complete material details: {MaterialId}", id);
-                return StatusCode(500, new { Error = "Failed to retrieve material details", Details = ex.Message });
-            }
+            _logger.LogWarning("Material not found: {MaterialId}", id);
+            return NotFound(new { Error = $"Material with ID {id} not found" });
         }
 
-        /// <summary>
-        /// Get complete material as strongly typed object (useful for internal processing)
-        /// </summary>
+        // Use the existing service methods that work with Include() patterns
+        object materialDetails = baseMaterial.Type switch
+        {
+            MaterialType.Workflow => await GetWorkflowDetails(id),
+            MaterialType.Video => await GetVideoDetails(id),
+            MaterialType.Checklist => await GetChecklistDetails(id),
+            MaterialType.Questionnaire => await GetQuestionnaireDetails(id),
+            MaterialType.Image => await GetImageDetails(id),
+            MaterialType.PDF => await GetPDFDetails(id),
+            MaterialType.UnityDemo => await GetUnityDemoDetails(id),
+            MaterialType.Chatbot => await GetChatbotDetails(id),
+            MaterialType.MQTT_Template => await GetMQTTTemplateDetails(id),
+            _ => await GetBasicMaterialDetails(id)
+        };
+
+        if (materialDetails == null)
+        {
+            return NotFound(new { Error = $"Material with ID {id} not found" });
+        }
+
+        _logger.LogInformation("Retrieved complete details for material: {MaterialId} (Type: {MaterialType})", 
+            id, baseMaterial.Type);
+        
+        return Ok(materialDetails);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting complete material details: {MaterialId}", id);
+        return StatusCode(500, new { Error = "Failed to retrieve material details", Details = ex.Message });
+    }
+}
+
+private async Task<object?> GetWorkflowDetails(int materialId)
+{
+    var workflow = await _materialService.GetWorkflowMaterialWithStepsAsync(materialId);
+    if (workflow == null) return null;
+
+    return new
+    {
+        Id = workflow.Id,
+        Name = workflow.Name,
+        Description = workflow.Description,
+        Type = workflow.Type.ToString(),
+        Created_at = workflow.Created_at,
+        Updated_at = workflow.Updated_at,
+        WorkflowSteps = workflow.WorkflowSteps?.Select(ws => new
+        {
+            Id = ws.Id,
+            Title = ws.Title,
+            Content = ws.Content
+        }) ?? Enumerable.Empty<object>()
+    };
+}
+
+private async Task<object?> GetVideoDetails(int materialId)
+{
+    var video = await _materialService.GetVideoMaterialWithTimestampsAsync(materialId);
+    if (video == null) return null;
+
+    return new
+    {
+        Id = video.Id,
+        Name = video.Name,
+        Description = video.Description,
+        Type = video.Type.ToString(),
+        Created_at = video.Created_at,
+        Updated_at = video.Updated_at,
+        AssetId = video.AssetId,
+        VideoPath = video.VideoPath,
+        VideoDuration = video.VideoDuration,
+        VideoResolution = video.VideoResolution,
+        VideoTimestamps = video.VideoTimestamps?.Select(vt => new
+        {
+            Id = vt.id,
+            Title = vt.Title,
+            Time = vt.Time,
+            Description = vt.Description
+        }) ?? Enumerable.Empty<object>()
+    };
+}
+
+private async Task<object?> GetChecklistDetails(int materialId)
+{
+    var checklist = await _materialService.GetChecklistMaterialWithEntriesAsync(materialId);
+    if (checklist == null) return null;
+
+    return new
+    {
+        Id = checklist.Id,
+        Name = checklist.Name,
+        Description = checklist.Description,
+        Type = checklist.Type.ToString(),
+        Created_at = checklist.Created_at,
+        Updated_at = checklist.Updated_at,
+        ChecklistEntries = checklist.ChecklistEntries?.Select(ce => new
+        {
+            Id = ce.ChecklistEntryId,
+            Text = ce.Text,
+            Description = ce.Description
+        }) ?? Enumerable.Empty<object>()
+    };
+}
+
+private async Task<object?> GetQuestionnaireDetails(int materialId)
+{
+    var questionnaire = await _materialService.GetQuestionnaireMaterialWithEntriesAsync(materialId);
+    if (questionnaire == null) return null;
+
+    return new
+    {
+        Id = questionnaire.Id,
+        Name = questionnaire.Name,
+        Description = questionnaire.Description,
+        Type = questionnaire.Type.ToString(),
+        Created_at = questionnaire.Created_at,
+        Updated_at = questionnaire.Updated_at,
+        QuestionnaireType = questionnaire.QuestionnaireType,
+        PassingScore = questionnaire.PassingScore,
+        QuestionnaireConfig = questionnaire.QuestionnaireConfig,
+        QuestionnaireEntries = questionnaire.QuestionnaireEntries?.Select(qe => new
+        {
+            Id = qe.QuestionnaireEntryId,
+            Text = qe.Text,
+            Description = qe.Description
+        }) ?? Enumerable.Empty<object>()
+    };
+}
+
+private async Task<object?> GetImageDetails(int materialId)
+{
+    var image = await _materialService.GetImageMaterialAsync(materialId);
+    if (image == null) return null;
+
+    return new
+    {
+        Id = image.Id,
+        Name = image.Name,
+        Description = image.Description,
+        Type = image.Type.ToString(),
+        Created_at = image.Created_at,
+        Updated_at = image.Updated_at,
+        AssetId = image.AssetId,
+        ImagePath = image.ImagePath,
+        ImageWidth = image.ImageWidth,
+        ImageHeight = image.ImageHeight,
+        ImageFormat = image.ImageFormat
+    };
+}
+
+private async Task<object?> GetPDFDetails(int materialId)
+{
+    var pdf = await _materialService.GetPDFMaterialAsync(materialId);
+    if (pdf == null) return null;
+
+    return new
+    {
+        Id = pdf.Id,
+        Name = pdf.Name,
+        Description = pdf.Description,
+        Type = pdf.Type.ToString(),
+        Created_at = pdf.Created_at,
+        Updated_at = pdf.Updated_at,
+        AssetId = pdf.AssetId,
+        PdfPath = pdf.PdfPath,
+        PdfPageCount = pdf.PdfPageCount,
+        PdfFileSize = pdf.PdfFileSize
+    };
+}
+
+private async Task<object?> GetUnityDemoDetails(int materialId)
+{
+    var unity = await _materialService.GetUnityDemoMaterialAsync(materialId);
+    if (unity == null) return null;
+
+    return new
+    {
+        Id = unity.Id,
+        Name = unity.Name,
+        Description = unity.Description,
+        Type = unity.Type.ToString(),
+        Created_at = unity.Created_at,
+        Updated_at = unity.Updated_at,
+        AssetId = unity.AssetId,
+        UnityVersion = unity.UnityVersion,
+        UnityBuildTarget = unity.UnityBuildTarget,
+        UnitySceneName = unity.UnitySceneName
+    };
+}
+
+private async Task<object?> GetChatbotDetails(int materialId)
+{
+    var chatbot = await _materialService.GetChatbotMaterialAsync(materialId);
+    if (chatbot == null) return null;
+
+    return new
+    {
+        Id = chatbot.Id,
+        Name = chatbot.Name,
+        Description = chatbot.Description,
+        Type = chatbot.Type.ToString(),
+        Created_at = chatbot.Created_at,
+        Updated_at = chatbot.Updated_at,
+        ChatbotConfig = chatbot.ChatbotConfig,
+        ChatbotModel = chatbot.ChatbotModel,
+        ChatbotPrompt = chatbot.ChatbotPrompt
+    };
+}
+
+private async Task<object?> GetMQTTTemplateDetails(int materialId)
+{
+    var mqtt = await _materialService.GetMQTTTemplateMaterialAsync(materialId);
+    if (mqtt == null) return null;
+
+    return new
+    {
+        Id = mqtt.Id,
+        Name = mqtt.Name,
+        Description = mqtt.Description,
+        Type = mqtt.Type.ToString(),
+        Created_at = mqtt.Created_at,
+        Updated_at = mqtt.Updated_at,
+        MessageType = mqtt.message_type,
+        MessageText = mqtt.message_text
+    };
+}
+
+private async Task<object?> GetBasicMaterialDetails(int materialId)
+{
+    var material = await _materialService.GetMaterialAsync(materialId);
+    if (material == null) return null;
+
+    return new
+    {
+        Id = material.Id,
+        Name = material.Name,
+        Description = material.Description,
+        Type = material.Type.ToString(),
+        Created_at = material.Created_at,
+        Updated_at = material.Updated_at
+    };
+}
         [HttpGet("{id}/typed")]
         public async Task<ActionResult<Material>> GetCompleteMaterial(int id)
         {
@@ -237,48 +463,329 @@ namespace XR50TrainingAssetRepo.Controllers
             try
             {
                 // Parse the incoming JSON to determine material type
-                var material = ParseMaterialFromJson(materialData);
+                var materialType = GetMaterialTypeFromJson(materialData);
+                
+                _logger.LogInformation("🔍 Creating detailed material of type: {MaterialType} for tenant: {TenantName}", 
+                    materialType, tenantName);
 
-                if (material == null)
+                // Delegate to the appropriate specialized method based on material type
+                return materialType.ToLower() switch
                 {
-                    return BadRequest("Invalid material data or unsupported material type");
+                    "workflow" => await CreateWorkflowFromJson(tenantName, materialData),
+                    "video" => await CreateVideoFromJson(tenantName, materialData),
+                    "checklist" => await CreateChecklistFromJson(tenantName, materialData),
+                    "questionnaire" => await CreateQuestionnaireFromJson(tenantName, materialData),
+                    _ => await CreateBasicMaterialFromJson(tenantName, materialData)
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating detailed material for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error creating material: {ex.Message}");
+            }
+        }
+
+        private string GetMaterialTypeFromJson(JsonElement jsonElement)
+        {
+            // Try different variations of type property names
+            if (TryGetPropertyCaseInsensitive(jsonElement, "discriminator", out var discProp))
+            {
+                var discriminator = discProp.GetString();
+                return discriminator?.Replace("Material", "").ToLower() ?? "default";
+            }
+            
+            if (TryGetPropertyCaseInsensitive(jsonElement, "type", out var typeProp))
+            {
+                return typeProp.GetString()?.ToLower() ?? "default";
+            }
+            
+            return "default";
+        }
+
+        private async Task<ActionResult<Material>> CreateWorkflowFromJson(string tenantName, JsonElement jsonElement)
+        {
+            try
+            {
+                _logger.LogInformation("🔧 Creating workflow material from JSON");
+                
+                // Parse the workflow material properties
+                var workflow = new WorkflowMaterial();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "name", out var nameProp))
+                    workflow.Name = nameProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "description", out var descProp))
+                    workflow.Description = descProp.GetString();
+                
+                // Parse the steps
+                var steps = new List<WorkflowStep>();
+                if (TryGetPropertyCaseInsensitive(jsonElement, "steps", out var stepsElement) && 
+                    stepsElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var stepElement in stepsElement.EnumerateArray())
+                    {
+                        var step = new WorkflowStep();
+                        
+                        if (TryGetPropertyCaseInsensitive(stepElement, "title", out var titleProp))
+                            step.Title = titleProp.GetString() ?? "";
+                        
+                        if (TryGetPropertyCaseInsensitive(stepElement, "content", out var contentProp))
+                            step.Content = contentProp.GetString();
+                        
+                        steps.Add(step);
+                    }
                 }
-
-                _logger.LogInformation("Creating material {Name} (Type: {Type}) for tenant: {TenantName}",
-                    material.Name, material.GetType().Name, tenantName);
-
-                var createdMaterial = await _materialService.CreateMaterialAsyncComplete(material);
-
-                _logger.LogInformation("Created material {Name} with ID {Id} for tenant: {TenantName}",
-                    createdMaterial.Name, createdMaterial.Id, tenantName);
-
+                
+                _logger.LogInformation("📋 Parsed workflow: {Name} with {StepCount} steps", workflow.Name, steps.Count);
+                
+                // Use the service method directly instead of the controller method
+                var createdMaterial = await _materialService.CreateWorkflowWithStepsAsync(workflow, steps);
+                
+                _logger.LogInformation("✅ Created workflow material {Name} with ID {Id}", 
+                    createdMaterial.Name, createdMaterial.Id);
+                
                 return CreatedAtAction(nameof(GetMaterial),
                     new { tenantName, id = createdMaterial.Id },
                     createdMaterial);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating material for tenant: {TenantName}", tenantName);
-                return StatusCode(500, $"Error creating material: {ex.Message}");
+                _logger.LogError(ex, "❌ Error creating workflow from JSON");
+                throw;
+            }
+        }
+
+        private async Task<ActionResult<Material>> CreateVideoFromJson(string tenantName, JsonElement jsonElement)
+        {
+            try
+            {
+                _logger.LogInformation("🎥 Creating video material from JSON");
+                
+                // Parse the video material properties
+                var video = new VideoMaterial();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "name", out var nameProp))
+                    video.Name = nameProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "description", out var descProp))
+                    video.Description = descProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var assetIdProp))
+                    video.AssetId = assetIdProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "videoPath", out var pathProp))
+                    video.VideoPath = pathProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "videoDuration", out var durationProp))
+                    video.VideoDuration = durationProp.GetInt32();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "videoResolution", out var resolutionProp))
+                    video.VideoResolution = resolutionProp.GetString();
+                
+                // Parse the timestamps
+                var timestamps = new List<VideoTimestamp>();
+                if (TryGetPropertyCaseInsensitive(jsonElement, "timestamps", out var timestampsElement) && 
+                    timestampsElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var timestampElement in timestampsElement.EnumerateArray())
+                    {
+                        var timestamp = new VideoTimestamp();
+                        
+                        if (TryGetPropertyCaseInsensitive(timestampElement, "title", out var titleProp))
+                            timestamp.Title = titleProp.GetString() ?? "";
+                        
+                        if (TryGetPropertyCaseInsensitive(timestampElement, "time", out var timeProp))
+                            timestamp.Time = timeProp.GetString() ?? "";
+                        
+                        if (TryGetPropertyCaseInsensitive(timestampElement, "description", out var descriptionProp))
+                            timestamp.Description = descriptionProp.GetString();
+                        
+                        timestamps.Add(timestamp);
+                    }
+                }
+                
+                _logger.LogInformation("🎬 Parsed video: {Name} with {TimestampCount} timestamps", video.Name, timestamps.Count);
+                
+                // Use the service method directly instead of the controller method
+                var createdMaterial = await _materialService.CreateVideoWithTimestampsAsync(video, timestamps);
+                
+                _logger.LogInformation("✅ Created video material {Name} with ID {Id}", 
+                    createdMaterial.Name, createdMaterial.Id);
+                
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating video from JSON");
+                throw;
+            }
+        }
+
+        private async Task<ActionResult<Material>> CreateChecklistFromJson(string tenantName, JsonElement jsonElement)
+        {
+            try
+            {
+                _logger.LogInformation("📋 Creating checklist material from JSON");
+                
+                // Parse the checklist material properties
+                var checklist = new ChecklistMaterial();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "name", out var nameProp))
+                    checklist.Name = nameProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "description", out var descProp))
+                    checklist.Description = descProp.GetString();
+                
+                // Parse the entries
+                var entries = new List<ChecklistEntry>();
+                if (TryGetPropertyCaseInsensitive(jsonElement, "entries", out var entriesElement) && 
+                    entriesElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var entryElement in entriesElement.EnumerateArray())
+                    {
+                        var entry = new ChecklistEntry();
+                        
+                        if (TryGetPropertyCaseInsensitive(entryElement, "text", out var textProp))
+                            entry.Text = textProp.GetString() ?? "";
+                        
+                        if (TryGetPropertyCaseInsensitive(entryElement, "description", out var descriptionProp))
+                            entry.Description = descriptionProp.GetString();
+                        
+                        entries.Add(entry);
+                    }
+                }
+                
+                _logger.LogInformation("✅ Parsed checklist: {Name} with {EntryCount} entries", checklist.Name, entries.Count);
+                
+                // Use the service method directly instead of the controller method
+                var createdMaterial = await _materialService.CreateChecklistWithEntriesAsync(checklist, entries);
+                
+                _logger.LogInformation("✅ Created checklist material {Name} with ID {Id}", 
+                    createdMaterial.Name, createdMaterial.Id);
+                
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating checklist from JSON");
+                throw;
+            }
+        }
+
+        private async Task<ActionResult<Material>> CreateQuestionnaireFromJson(string tenantName, JsonElement jsonElement)
+        {
+            try
+            {
+                _logger.LogInformation("❓ Creating questionnaire material from JSON");
+                
+                // Parse the questionnaire material properties
+                var questionnaire = new QuestionnaireMaterial();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "name", out var nameProp))
+                    questionnaire.Name = nameProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "description", out var descProp))
+                    questionnaire.Description = descProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "questionnaireType", out var typeProp))
+                    questionnaire.QuestionnaireType = typeProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "passingScore", out var scoreProp))
+                    questionnaire.PassingScore = scoreProp.GetDecimal();
+                
+                if (TryGetPropertyCaseInsensitive(jsonElement, "questionnaireConfig", out var configProp))
+                    questionnaire.QuestionnaireConfig = configProp.GetString();
+                
+                // Parse the entries
+                var entries = new List<QuestionnaireEntry>();
+                if (TryGetPropertyCaseInsensitive(jsonElement, "entries", out var entriesElement) && 
+                    entriesElement.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var entryElement in entriesElement.EnumerateArray())
+                    {
+                        var entry = new QuestionnaireEntry();
+                        
+                        if (TryGetPropertyCaseInsensitive(entryElement, "text", out var textProp))
+                            entry.Text = textProp.GetString() ?? "";
+                        
+                        if (TryGetPropertyCaseInsensitive(entryElement, "description", out var descriptionProp))
+                            entry.Description = descriptionProp.GetString();
+                        
+                        entries.Add(entry);
+                    }
+                }
+                
+                _logger.LogInformation("🎯 Parsed questionnaire: {Name} with {EntryCount} entries", questionnaire.Name, entries.Count);
+                
+                // For questionnaires, we can use the existing service method directly
+                var createdMaterial = await _materialService.CreateQuestionnaireMaterialWithEntriesAsync(questionnaire, entries);
+                
+                _logger.LogInformation("✅ Created questionnaire material {Name} with ID {Id}", 
+                    createdMaterial.Name, createdMaterial.Id);
+                
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating questionnaire from JSON");
+                throw;
+            }
+        }
+
+        private async Task<ActionResult<Material>> CreateBasicMaterialFromJson(string tenantName, JsonElement jsonElement)
+        {
+            try
+            {
+                _logger.LogInformation("📄 Creating basic material from JSON");
+                
+                // Parse the basic material using the existing logic
+                var material = ParseMaterialFromJson(jsonElement);
+                
+                if (material == null)
+                {
+                    return BadRequest("Invalid material data or unsupported material type");
+                }
+                
+                // Use the basic creation method (not the complete one)
+                var createdMaterial = await _materialService.CreateMaterialAsync(material);
+                
+                _logger.LogInformation("✅ Created basic material {Name} with ID {Id}", 
+                    createdMaterial.Name, createdMaterial.Id);
+                
+                return CreatedAtAction(nameof(GetMaterial),
+                    new { tenantName, id = createdMaterial.Id },
+                    createdMaterial);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating basic material from JSON");
+                throw;
             }
         }
         private Material? ParseMaterialFromJson(JsonElement jsonElement)
         {
-            // Get the discriminator/type from the JSON
+            _logger.LogInformation("🔍 Parsing material JSON: {Json}", jsonElement.ToString());
+
+            // Get the discriminator/type from the JSON (case-insensitive)
             string? discriminator = null;
             string? typeValue = null;
 
-            if (jsonElement.TryGetProperty("discriminator", out var discProp))
+            // Try different variations of property names
+            if (TryGetPropertyCaseInsensitive(jsonElement, "discriminator", out var discProp))
             {
                 discriminator = discProp.GetString();
+                _logger.LogInformation("Found discriminator: {Discriminator}", discriminator);
             }
-            else if (jsonElement.TryGetProperty("type", out var typeProp))
+            else if (TryGetPropertyCaseInsensitive(jsonElement, "type", out var typeProp))
             {
                 typeValue = typeProp.GetString();
-            }
-            else if (jsonElement.TryGetProperty("Type", out var typeEnumProp))
-            {
-                typeValue = typeEnumProp.GetString();
+                _logger.LogInformation("Found type: {Type}", typeValue);
             }
 
             // Create the appropriate material type
@@ -297,12 +804,24 @@ namespace XR50TrainingAssetRepo.Controllers
                 _ => new DefaultMaterial() // Default fallback
             };
 
-            // Populate common properties
-            if (jsonElement.TryGetProperty("name", out var nameProp))
-                material.Name = nameProp.GetString();
+            _logger.LogInformation("Created material type: {MaterialType}", material.GetType().Name);
 
-            if (jsonElement.TryGetProperty("description", out var descProp))
+            // Populate common properties (case-insensitive)
+            if (TryGetPropertyCaseInsensitive(jsonElement, "name", out var nameProp))
+            {
+                material.Name = nameProp.GetString();
+                _logger.LogInformation("Set material name: {Name}", material.Name);
+            }
+            else
+            {
+                _logger.LogWarning("No 'name' property found in JSON");
+            }
+
+            if (TryGetPropertyCaseInsensitive(jsonElement, "description", out var descProp))
+            {
                 material.Description = descProp.GetString();
+                _logger.LogInformation("Set material description: {Description}", material.Description);
+            }
 
             // Populate type-specific properties
             PopulateTypeSpecificProperties(material, jsonElement);
@@ -310,88 +829,224 @@ namespace XR50TrainingAssetRepo.Controllers
             return material;
         }
 
+        // Helper method for case-insensitive property lookup
+        private bool TryGetPropertyCaseInsensitive(JsonElement jsonElement, string propertyName, out JsonElement property)
+        {
+            // Try exact match first
+            if (jsonElement.TryGetProperty(propertyName, out property))
+                return true;
+
+            // Try capitalized version
+            var capitalizedName = char.ToUpper(propertyName[0]) + propertyName.Substring(1);
+            if (jsonElement.TryGetProperty(capitalizedName, out property))
+                return true;
+
+            // Try lowercase version
+            var lowerName = propertyName.ToLower();
+            if (jsonElement.TryGetProperty(lowerName, out property))
+                return true;
+
+            // Try to find by iterating through all properties (last resort)
+            foreach (var prop in jsonElement.EnumerateObject())
+            {
+                if (prop.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
+                {
+                    property = prop.Value;
+                    return true;
+                }
+            }
+
+            property = default;
+            return false;
+        }
+
         private void PopulateTypeSpecificProperties(Material material, JsonElement jsonElement)
         {
+            _logger.LogInformation("🔧 Populating type-specific properties for {MaterialType}", material.GetType().Name);
+
             switch (material)
             {
+                case WorkflowMaterial workflow:
+                    _logger.LogInformation("Processing workflow material...");
+                    
+                    // Handle workflow steps (case-insensitive)
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "steps", out var stepsElement))
+                    {
+                        _logger.LogInformation("Found steps property, processing...");
+                        
+                        var steps = new List<WorkflowStep>();
+                        if (stepsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            _logger.LogInformation("Steps is an array with {Count} elements", stepsElement.GetArrayLength());
+                            
+                            foreach (var stepElement in stepsElement.EnumerateArray())
+                            {
+                                var step = new WorkflowStep();
+                                
+                                if (TryGetPropertyCaseInsensitive(stepElement, "title", out var titleProp))
+                                {
+                                    step.Title = titleProp.GetString() ?? "";
+                                    _logger.LogInformation("Step title: {Title}", step.Title);
+                                }
+                                
+                                if (TryGetPropertyCaseInsensitive(stepElement, "content", out var contentProp))
+                                {
+                                    step.Content = contentProp.GetString();
+                                    _logger.LogInformation("Step content: {Content}", step.Content);
+                                }
+                                
+                                steps.Add(step);
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Steps property is not an array, it's: {ValueKind}", stepsElement.ValueKind);
+                        }
+                        
+                        workflow.WorkflowSteps = steps;
+                        _logger.LogInformation("✅ Added {Count} workflow steps", steps.Count);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("No 'steps' property found in workflow JSON");
+                        // Log all available properties for debugging
+                        foreach (var prop in jsonElement.EnumerateObject())
+                        {
+                            _logger.LogInformation("Available property: {Name} = {Value}", prop.Name, prop.Value);
+                        }
+                    }
+                    break;
+
+                case ChecklistMaterial checklist:
+                    // Handle checklist entries (case-insensitive)
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "entries", out var entriesElement))
+                    {
+                        var entries = new List<ChecklistEntry>();
+                        if (entriesElement.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var entryElement in entriesElement.EnumerateArray())
+                            {
+                                var entry = new ChecklistEntry();
+                                
+                                if (TryGetPropertyCaseInsensitive(entryElement, "text", out var textProp))
+                                    entry.Text = textProp.GetString() ?? "";
+                                
+                                if (TryGetPropertyCaseInsensitive(entryElement, "description", out var descProp))
+                                    entry.Description = descProp.GetString();
+                                
+                                entries.Add(entry);
+                            }
+                        }
+                        checklist.ChecklistEntries = entries;
+                        _logger.LogInformation("✅ Added {Count} checklist entries", entries.Count);
+                    }
+                    break;
+
+                case VideoMaterial video:
+                    // Handle video timestamps and properties
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "timestamps", out var timestampsElement))
+                    {
+                        var timestamps = new List<VideoTimestamp>();
+                        if (timestampsElement.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var timestampElement in timestampsElement.EnumerateArray())
+                            {
+                                var timestamp = new VideoTimestamp();
+                                
+                                if (TryGetPropertyCaseInsensitive(timestampElement, "title", out var titleProp))
+                                    timestamp.Title = titleProp.GetString() ?? "";
+                                
+                                if (TryGetPropertyCaseInsensitive(timestampElement, "time", out var timeProp))
+                                    timestamp.Time = timeProp.GetString() ?? "";
+                                
+                                if (TryGetPropertyCaseInsensitive(timestampElement, "description", out var descProp))
+                                    timestamp.Description = descProp.GetString();
+                                
+                                timestamps.Add(timestamp);
+                            }
+                        }
+                        video.VideoTimestamps = timestamps;
+                        _logger.LogInformation("✅ Added {Count} video timestamps", timestamps.Count);
+                    }
+                    
+                    // Video-specific properties
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var videoAssetId))
+                        video.AssetId = videoAssetId.GetString();
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "videoPath", out var videoPath))
+                        video.VideoPath = videoPath.GetString();
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "videoDuration", out var duration))
+                        video.VideoDuration = duration.GetInt32();
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "videoResolution", out var resolution))
+                        video.VideoResolution = resolution.GetString();
+                    break;
+
                 case MQTT_TemplateMaterial mqtt:
-                    if (jsonElement.TryGetProperty("message_type", out var msgType))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "message_type", out var msgType))
                         mqtt.message_type = msgType.GetString();
-                    if (jsonElement.TryGetProperty("message_text", out var msgText))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "message_text", out var msgText))
                         mqtt.message_text = msgText.GetString();
                     break;
 
                 case UnityDemoMaterial unity:
-                    if (jsonElement.TryGetProperty("assetId", out var unityAssetId))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var unityAssetId))
                         unity.AssetId = unityAssetId.GetString();
-                    if (jsonElement.TryGetProperty("unityVersion", out var version))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "unityVersion", out var version))
                         unity.UnityVersion = version.GetString();
-                    if (jsonElement.TryGetProperty("unityBuildTarget", out var buildTarget))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "unityBuildTarget", out var buildTarget))
                         unity.UnityBuildTarget = buildTarget.GetString();
-                    if (jsonElement.TryGetProperty("unitySceneName", out var sceneName))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "unitySceneName", out var sceneName))
                         unity.UnitySceneName = sceneName.GetString();
                     break;
 
                 case DefaultMaterial defaultMat:
-                    if (jsonElement.TryGetProperty("assetId", out var defaultAssetId))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var defaultAssetId))
                         defaultMat.AssetId = defaultAssetId.GetString();
                     break;
 
-                case VideoMaterial video:
-                    if (jsonElement.TryGetProperty("assetId", out var videoAssetId))
-                        video.AssetId = videoAssetId.GetString();
-                    if (jsonElement.TryGetProperty("videoPath", out var videoPath))
-                        video.VideoPath = videoPath.GetString();
-                    if (jsonElement.TryGetProperty("videoDuration", out var duration))
-                        video.VideoDuration = duration.GetInt32();
-                    if (jsonElement.TryGetProperty("videoResolution", out var resolution))
-                        video.VideoResolution = resolution.GetString();
-                    break;
-
                 case ImageMaterial image:
-                    if (jsonElement.TryGetProperty("assetId", out var imageAssetId))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var imageAssetId))
                         image.AssetId = imageAssetId.GetString();
-                    if (jsonElement.TryGetProperty("imagePath", out var imagePath))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "imagePath", out var imagePath))
                         image.ImagePath = imagePath.GetString();
-                    if (jsonElement.TryGetProperty("imageWidth", out var width))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "imageWidth", out var width))
                         image.ImageWidth = width.GetInt32();
-                    if (jsonElement.TryGetProperty("imageHeight", out var height))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "imageHeight", out var height))
                         image.ImageHeight = height.GetInt32();
-                    if (jsonElement.TryGetProperty("imageFormat", out var format))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "imageFormat", out var format))
                         image.ImageFormat = format.GetString();
                     break;
 
                 case PDFMaterial pdf:
-                    if (jsonElement.TryGetProperty("assetId", out var pdfAssetId))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var pdfAssetId))
                         pdf.AssetId = pdfAssetId.GetString();
-                    if (jsonElement.TryGetProperty("pdfPath", out var pdfPath))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "pdfPath", out var pdfPath))
                         pdf.PdfPath = pdfPath.GetString();
-                    if (jsonElement.TryGetProperty("pdfPageCount", out var pageCount))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "pdfPageCount", out var pageCount))
                         pdf.PdfPageCount = pageCount.GetInt32();
-                    if (jsonElement.TryGetProperty("pdfFileSize", out var fileSize))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "pdfFileSize", out var fileSize))
                         pdf.PdfFileSize = fileSize.GetInt64();
                     break;
 
                 case ChatbotMaterial chatbot:
-                    if (jsonElement.TryGetProperty("chatbotConfig", out var config))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "chatbotConfig", out var config))
                         chatbot.ChatbotConfig = config.GetString();
-                    if (jsonElement.TryGetProperty("chatbotModel", out var model))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "chatbotModel", out var model))
                         chatbot.ChatbotModel = model.GetString();
-                    if (jsonElement.TryGetProperty("chatbotPrompt", out var prompt))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "chatbotPrompt", out var prompt))
                         chatbot.ChatbotPrompt = prompt.GetString();
                     break;
 
                 case QuestionnaireMaterial questionnaire:
-                    if (jsonElement.TryGetProperty("questionnaireConfig", out var qConfig))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "questionnaireConfig", out var qConfig))
                         questionnaire.QuestionnaireConfig = qConfig.GetString();
-                    if (jsonElement.TryGetProperty("questionnaireType", out var qType))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "questionnaireType", out var qType))
                         questionnaire.QuestionnaireType = qType.GetString();
-                    if (jsonElement.TryGetProperty("passingScore", out var score))
+                    if (TryGetPropertyCaseInsensitive(jsonElement, "passingScore", out var score))
                         questionnaire.PassingScore = score.GetDecimal();
                     break;
             }
         }
-
+        
         // PUT: api/{tenantName}/materials/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutMaterial(string tenantName, int id, Material material)

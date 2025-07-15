@@ -247,6 +247,7 @@ namespace XR50TrainingAssetRepo.Services
                 @"CREATE TABLE IF NOT EXISTS `Assets` (
                     `Id` int NOT NULL AUTO_INCREMENT,
                     `Description` varchar(1000) DEFAULT NULL,
+                    `Url` varchar(2000) DEFAULT NULL,
                     `Src` varchar(500) DEFAULT NULL,
                     `Filetype` varchar(100) DEFAULT NULL,
                     `Filename` varchar(255) NOT NULL,
@@ -478,10 +479,12 @@ CREATE TABLE IF NOT EXISTS `Materials` (
 )
 
 CREATE TABLE IF NOT EXISTS `Assets` (
-    `AssetId` varchar(50) NOT NULL,
-    `AssetName` varchar(255) NOT NULL,
-    `AssetType` varchar(50) DEFAULT NULL,
-    `FilePath` varchar(500) DEFAULT NULL,
+    `Id` int NOT NULL AUTO_INCREMENT,
+    `Description` varchar(1000) DEFAULT NULL,
+    `Url` varchar(2000) DEFAULT NULL,
+    `Src` varchar(500) DEFAULT NULL,
+    `Filetype` varchar(100) DEFAULT NULL,
+    `Filename` varchar(255) NOT NULL,
     PRIMARY KEY (`AssetId`)
 )
 

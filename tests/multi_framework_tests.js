@@ -500,9 +500,9 @@ echo "Retrieved materials from training program"
 # Cleanup
 echo "🧹 Cleaning up test data..."
 curl -f -X DELETE "$BASE_URL/api/$TENANT/materials/$MATERIAL_ID" || \
-  echo "⚠️ Failed to delete material (may not exist)"
+  echo "Failed to delete material (may not exist)"
 curl -f -X DELETE "$BASE_URL/api/$TENANT/trainingprograms/$PROGRAM_ID" || \
-  echo "⚠️ Failed to delete program (may not exist)"
+  echo "Failed to delete program (may not exist)"
 
 echo "All smoke tests passed!"
 echo ""

@@ -226,7 +226,7 @@ namespace XR50TrainingAssetRepo.Services
                 context.TrainingPrograms.Add(program);
                 await context.SaveChangesAsync(); // Save to get the ID
 
-                _logger.LogInformation("✅ Created training program: {Name} with ID: {Id}", program.Name, program.Id);
+                _logger.LogInformation("Created training program: {Name} with ID: {Id}", program.Name, program.Id);
 
                 // 2. Create new materials if specified
                 var createdMaterialIds = new List<int>();
@@ -239,7 +239,7 @@ namespace XR50TrainingAssetRepo.Services
                         await context.SaveChangesAsync(); // Save to get ID
                         
                         createdMaterialIds.Add(material.Id);
-                        _logger.LogInformation("✅ Created material: {Name} with ID: {Id}", material.Name, material.Id);
+                        _logger.LogInformation("Created material: {Name} with ID: {Id}", material.Name, material.Id);
                     }
                 }
 
@@ -256,7 +256,7 @@ namespace XR50TrainingAssetRepo.Services
                     }).ToList();
 
                     context.ProgramMaterials.AddRange(assignments);
-                    _logger.LogInformation("✅ Assigning {Count} materials to program {ProgramId}", 
+                    _logger.LogInformation("Assigning {Count} materials to program {ProgramId}", 
                         allMaterialIds.Count, program.Id);
                 }
 
@@ -270,7 +270,7 @@ namespace XR50TrainingAssetRepo.Services
                     }).ToList();
 
                     context.ProgramLearningPaths.AddRange(pathAssignments);
-                    _logger.LogInformation("✅ Assigning {Count} learning paths to program {ProgramId}", 
+                    _logger.LogInformation("Assigning {Count} learning paths to program {ProgramId}", 
                         request.LearningPathIds.Count, program.Id);
                 }
 

@@ -19,7 +19,10 @@ namespace XR50TrainingAssetRepo.Services
         Task<bool> DeleteFileAsync(string tenantName, string fileName);
         Task<bool> FileExistsAsync(string tenantName, string fileName);
         Task<long> GetFileSizeAsync(string tenantName, string fileName);
-
+        //Shares
+        Task<string> CreateShareAsync(string tenantName, XR50Tenant tenant, Asset asset);
+        Task<bool> DeleteShareAsync(string tenantName, string shareId);
+        bool SupportsSharing();
         // Storage Info
         Task<StorageStatistics> GetStorageStatisticsAsync(string tenantName);
         string GetStorageType(); // Returns "S3" or "OwnCloud"

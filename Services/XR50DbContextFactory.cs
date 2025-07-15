@@ -61,7 +61,7 @@ namespace XR50TrainingAssetRepo.Services
             {
                 var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
 
-                _logger.LogInformation("🔧 DbContext Factory - Creating ADMIN context for magical_library");
+                _logger.LogInformation(" DbContext Factory - Creating ADMIN context for magical_library");
                 _logger.LogInformation("Using admin connection: {ConnectionString}", baseConnectionString.Replace("Password=", "Password=***"));
 
                 var optionsBuilder = new DbContextOptionsBuilder<XR50TrainingContext>();

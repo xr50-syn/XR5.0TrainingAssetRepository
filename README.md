@@ -6,7 +6,7 @@ Prototype storage/sharing module for the XR5.0 TrainingProgram platform. Tenant 
 
 ## Installation
 This is a dockerized version and requires docker to be already installed
-- Clone this repository: `git clone https://github.com/xr50-syn/XR5.0-training-repository.git .`
+- Clone this repository: `git clone https://github.com/xr50-syn/XR5.0-training-asset-repository.git .`
 
 - Edit the `.env` file to change the `XR50_OWNCLOUD_TRUSTED_DOMAINS` variable. This variable should contain all possible hostnames/IP addresses of the Tenant installation. For example, this line on our test server looks like this:
  `XR50_OWNCLOUD_TRUSTED_DOMAINS=localhost,tenant,amethyst,192.168.190.33,amy.library.lab.synelixis.com`
@@ -14,10 +14,12 @@ This is a dockerized version and requires docker to be already installed
 In this file, you can also modify the admin username/password for the Tenant admin user, the Tenant Database user name&password and the XR5.0 DB username&password 
 
 - Build the containers by using 
-`docker-compose up --build`
+`docker-compose --profile lab up --build`
 
 - Verify that the components have started properly by  opening a browser and connecting to `localhost:8080` (tenant installation) and `localhost:5286/swagger`(Repo swagger interface)
 
+- To stop the containers use 
+`docker-compose --profile lab down`
 ## Usage
 
 ## Support

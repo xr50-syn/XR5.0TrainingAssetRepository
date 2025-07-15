@@ -91,7 +91,7 @@ namespace XR50TrainingAssetRepo.Services
                 };
 
                 var response = await _s3Client.DeleteBucketAsync(deleteRequest);
-                
+
                 _logger.LogInformation("Deleted S3 bucket: {BucketName}", bucketName);
                 return response.HttpStatusCode == System.Net.HttpStatusCode.NoContent;
             }
@@ -359,5 +359,18 @@ namespace XR50TrainingAssetRepo.Services
         }
 
         #endregion
+        
+        public bool SupportsSharing() => false;
+
+        public async Task<string> CreateShareAsync(string tenantName, XR50Tenant tenant, Asset asset)
+        {
+            throw new NotSupportedException("S3 storage does not support OwnCloud-style sharing");
+        }
+
+        public async Task<bool> DeleteShareAsync(string tenantName, string shareId)
+        {
+            throw new NotSupportedException("S3 storage does not support OwnCloud-style sharing");
+        }
     }
+
 }

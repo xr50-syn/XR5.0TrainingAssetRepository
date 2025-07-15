@@ -1,23 +1,23 @@
 {
-  "description": "Basic Connectivity ",
-  "Name": "Assembly",
-  "materialType": 7,
+  "name": "Assembly",
+  "description": "Basic Connectivity",
+  "type": "workflow",
   "steps": [
-      {
-          "title": "Connect External sensors",
-          "content": "Instructions"
-      },
-      {
-          "title": "Test Dip Switch",
-          "content": "Instruction"
-      },
-      {
-        "title": "Power on",
-        "content": "LED configuratio"
-      },
-      {
-          "title": "Open door",
-          "content": "Instructions"
-      }
+    {
+      "title": "Connect External sensors",
+      "content": "Instructions"
+    },
+    {
+      "title": "Test Dip Switch",
+      "content": "Instruction"
+    },
+    {
+      "title": "Power on",
+      "content": "LED configuration"
+    },
+    {
+      "title": "Open door",
+      "content": "Instructions"
+    }
   ]
 }

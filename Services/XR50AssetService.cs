@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
+using XR50TrainingAssetRepo.Data;
 using XR50TrainingAssetRepo.Services;
 using System.Diagnostics;
 
@@ -30,7 +31,12 @@ namespace XR50TrainingAssetRepo.Services
         Task<bool> DeleteAssetFileAsync(int assetId);
         Task<long> GetAssetFileSizeAsync(int assetId);
         Task<bool> AssetFileExistsAsync(int assetId);
-        
+        // Share Management
+        Task<Share> CreateShareAsync(string tenantName, string assetId);
+        Task<bool> DeleteShareAsync(string tenantName, string shareId);
+        Task<IEnumerable<Share>> GetAssetSharesAsync(string tenantName, string assetId);
+        Task<IEnumerable<Share>> GetTenantSharesAsync(string tenantName);
+        Task<string> GetAssetShareUrlAsync(string tenantName, string assetId);
         // Asset Statistics
         Task<AssetStatistics> GetAssetStatisticsAsync();
     }
@@ -93,6 +99,34 @@ namespace XR50TrainingAssetRepo.Services
                 
                 _logger.LogInformation("Created asset {AssetId} ({Filename}) in {StorageType} storage", 
                     asset.Id, asset.Filename, _storageService.GetStorageType());
+
+                // Auto-share if storage supports it
+                if (_storageService.SupportsSharing())
+                {
+                    try
+                    {
+                        var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
+                        if (tenant != null)
+                        {
+                            var shareUrl = await _storageService.CreateShareAsync(tenantName, tenant, asset);
+                            
+                            if (!string.IsNullOrEmpty(shareUrl))
+                            {
+                                // Update asset URL with share URL and create share record
+                                asset.URL = shareUrl;
+                                await CreateShareRecord(context, asset.Id.ToString(), tenant.TenantGroup ?? "");
+                                await context.SaveChangesAsync();
+                                
+                                _logger.LogInformation("Automatically shared asset {AssetId} with tenant group", asset.Id);
+                            }
+                        }
+                    }
+                    catch (Exception shareEx)
+                    {
+                        // Don't fail asset creation if sharing fails
+                        _logger.LogWarning(shareEx, "Failed to auto-share asset {AssetId}, but asset creation succeeded", asset.Id);
+                    }
+                }
                 
                 return asset;
             }
@@ -103,23 +137,22 @@ namespace XR50TrainingAssetRepo.Services
                 throw;
             }
         }
-
         public async Task<Asset> UpdateAssetAsync(Asset asset)
         {
             using var context = _dbContextFactory.CreateDbContext();
-            
+
             context.Assets.Update(asset);
             await context.SaveChangesAsync();
-            
+
             _logger.LogInformation("Updated asset {AssetId} ({Filename})", asset.Id, asset.Filename);
-            
+
             return asset;
         }
 
         public async Task<bool> DeleteAssetAsync(string tenantName, int id)
         {
             using var context = _dbContextFactory.CreateDbContext();
-            
+
             var asset = await context.Assets.FindAsync(id);
             if (asset == null)
             {
@@ -132,17 +165,17 @@ namespace XR50TrainingAssetRepo.Services
                 var storageDeleted = await _storageService.DeleteFileAsync(tenantName, asset.Filename);
                 if (!storageDeleted)
                 {
-                    _logger.LogWarning("Failed to delete file {Filename} from storage, but continuing with database deletion", 
+                    _logger.LogWarning("Failed to delete file {Filename} from storage, but continuing with database deletion",
                         asset.Filename);
                 }
 
                 // Delete from database
                 context.Assets.Remove(asset);
                 await context.SaveChangesAsync();
-                
-                _logger.LogInformation("Deleted asset {AssetId} ({Filename}) from {StorageType} storage", 
+
+                _logger.LogInformation("Deleted asset {AssetId} ({Filename}) from {StorageType} storage",
                     id, asset.Filename, _storageService.GetStorageType());
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -246,11 +279,11 @@ namespace XR50TrainingAssetRepo.Services
             try
             {
                 _logger.LogInformation("Uploading asset {Filename} to {StorageType} storage", filename, _storageService.GetStorageType());
-                
+
                 // Upload file to storage
                 using var stream = file.OpenReadStream();
                 var uploadResult = await _storageService.UploadFileAsync(tenantName, filename, stream, file.ContentType);
-                
+
                 // Create asset record
                 var asset = new Asset
                 {
@@ -281,10 +314,10 @@ namespace XR50TrainingAssetRepo.Services
             {
                 var tenantName = ExtractTenantNameFromContext();
                 var deleted = await _storageService.DeleteFileAsync(tenantName, asset.Filename);
-                
-                _logger.LogInformation("Deleted file for asset {AssetId} ({Filename}) from {StorageType} storage", 
+
+                _logger.LogInformation("Deleted file for asset {AssetId} ({Filename}) from {StorageType} storage",
                     assetId, asset.Filename, _storageService.GetStorageType());
-                
+
                 return deleted;
             }
             catch (Exception ex)
@@ -306,10 +339,10 @@ namespace XR50TrainingAssetRepo.Services
             {
                 var tenantName = ExtractTenantNameFromContext();
                 var size = await _storageService.GetFileSizeAsync(tenantName, asset.Filename);
-                
-                _logger.LogInformation("Retrieved file size for asset {AssetId} ({Filename}): {Size} bytes", 
+
+                _logger.LogInformation("Retrieved file size for asset {AssetId} ({Filename}): {Size} bytes",
                     assetId, asset.Filename, size);
-                
+
                 return size;
             }
             catch (Exception ex)
@@ -331,10 +364,10 @@ namespace XR50TrainingAssetRepo.Services
             {
                 var tenantName = ExtractTenantNameFromContext();
                 var exists = await _storageService.FileExistsAsync(tenantName, asset.Filename);
-                
-                _logger.LogInformation("File existence check for asset {AssetId} ({Filename}): {Exists}", 
+
+                _logger.LogInformation("File existence check for asset {AssetId} ({Filename}): {Exists}",
                     assetId, asset.Filename, exists);
-                
+
                 return exists;
             }
             catch (Exception ex)
@@ -351,7 +384,7 @@ namespace XR50TrainingAssetRepo.Services
         public async Task<AssetStatistics> GetAssetStatisticsAsync()
         {
             using var context = _dbContextFactory.CreateDbContext();
-            
+
             var totalAssets = await context.Assets.CountAsync();
             var filetypeGroups = await context.Assets
                 .GroupBy(a => a.Filetype)
@@ -383,8 +416,150 @@ namespace XR50TrainingAssetRepo.Services
         }
 
         #endregion
+        #region Share Management (Database Operations)
+
+        /// <summary>
+        /// Create a share record in the database and delegate to storage service
+        /// </summary>
+        public async Task<Share> CreateShareAsync(string tenantName, string assetId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            try
+            {
+                if (!_storageService.SupportsSharing())
+                {
+                    throw new NotSupportedException($"{_storageService.GetStorageType()} storage does not support sharing");
+                }
+
+                var asset = await context.Assets.FindAsync(int.Parse(assetId));
+                if (asset == null)
+                {
+                    throw new ArgumentException($"Asset with ID {assetId} not found");
+                }
+
+                var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
+                if (tenant == null)
+                {
+                    throw new ArgumentException($"Tenant {tenantName} not found");
+                }
+
+                // Create share via storage service
+                var shareUrl = await _storageService.CreateShareAsync(tenantName, tenant, asset);
+                
+                if (string.IsNullOrEmpty(shareUrl))
+                {
+                    throw new InvalidOperationException("Failed to create share in storage service");
+                }
+
+                // Create share record in database
+                var share = await CreateShareRecord(context, assetId, tenant.TenantGroup ?? "");
+                
+                // Update asset URL
+                asset.URL = shareUrl;
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation("Created share {ShareId} for asset {AssetId}", share.ShareId, assetId);
+                return share;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create share for asset {AssetId}", assetId);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Delete a share from both database and storage
+        /// </summary>
+        public async Task<bool> DeleteShareAsync(string tenantName, string shareId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            try
+            {
+                var share = await context.Shares.FindAsync(shareId);
+                if (share == null)
+                {
+                    return false;
+                }
+
+                // Delete from storage service if supported
+                if (_storageService.SupportsSharing())
+                {
+                    await _storageService.DeleteShareAsync(tenantName, shareId);
+                }
+
+                // Delete from database
+                context.Shares.Remove(share);
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation("Deleted share {ShareId}", shareId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to delete share {ShareId}", shareId);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Get shares for an asset
+        /// </summary>
+        public async Task<IEnumerable<Share>> GetAssetSharesAsync(string tenantName, string assetId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            return await context.Shares
+                .Where(s => s.FileId == assetId)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Get all shares for a tenant
+        /// </summary>
+        public async Task<IEnumerable<Share>> GetTenantSharesAsync(string tenantName)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            return await context.Shares.ToListAsync();
+        }
+
+        /// <summary>
+        /// Get the share URL for an asset
+        /// </summary>
+        public async Task<string> GetAssetShareUrlAsync(string tenantName, string assetId)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var asset = await context.Assets.FindAsync(int.Parse(assetId));
+            return asset?.URL ?? string.Empty;
+        }
+
+        #endregion
 
         #region Helper Methods
+
+        /// <summary>
+        /// Create a share record in the database
+        /// </summary>
+        private async Task<Share> CreateShareRecord(XR50TrainingContext context, string assetId, string target)
+        {
+            var share = new Share
+            {
+                FileId = assetId,
+                Type = ShareType.Group,
+                Target = target
+            };
+
+            context.Shares.Add(share);
+            await context.SaveChangesAsync();
+            
+            return share;
+        }
+
+        #endregion
 
         private string GetFiletypeFromFilename(string filename)
         {
@@ -392,7 +567,7 @@ namespace XR50TrainingAssetRepo.Services
                 return "unknown";
 
             var extension = Path.GetExtension(filename).ToLowerInvariant();
-            
+
             return extension switch
             {
                 ".mp4" or ".avi" or ".mov" or ".wmv" or ".webm" => "video",
@@ -418,13 +593,11 @@ namespace XR50TrainingAssetRepo.Services
             // - HTTP context (URL path, headers, claims)
             // - Database lookup
             // - Configuration
-            
+
             // For now, return a default tenant name
             // TODO: Implement proper tenant resolution
             return "default-tenant";
-        }
-
-        #endregion
+        }    
     }
 
     #region Asset DTOs and Models
@@ -451,6 +624,6 @@ namespace XR50TrainingAssetRepo.Services
         public int? Skip { get; set; }
         public int? Take { get; set; }
     }
-
+    
     #endregion
 }
