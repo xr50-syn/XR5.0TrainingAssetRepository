@@ -257,6 +257,9 @@ namespace XR50TrainingAssetRepo.Services
                 @"CREATE TABLE IF NOT EXISTS `TrainingPrograms` (
                     `Id` int NOT NULL AUTO_INCREMENT,
                     `Name` varchar(255) NOT NULL,
+                    `Description` varchar(1000) DEFAULT NULL,
+                    `Requirements` varchar(1000) DEFAULT NULL,
+                    `Objectives` varchar(1000) DEFAULT NULL,
                     `Created_at` varchar(255) DEFAULT NULL,
                     PRIMARY KEY (`Id`)
                 )",
@@ -359,7 +362,9 @@ namespace XR50TrainingAssetRepo.Services
                     `QuestionnaireEntryId` int NOT NULL AUTO_INCREMENT,
                     `Text` varchar(1000) NOT NULL,
                     `Description` varchar(1000) DEFAULT NULL,
-                    PRIMARY KEY (`QuestionnaireEntryId`)
+                    `QuestionnaireMaterialId` int DEFAULT NULL,
+                    PRIMARY KEY (`QuestionnaireEntryId`),
+                    INDEX `idx_questionnaire_material` (`QuestionnaireMaterialId`)
                 )",
 
                 @"CREATE TABLE IF NOT EXISTS `Shares` (
@@ -454,9 +459,11 @@ CREATE TABLE IF NOT EXISTS `Users` (
 )
 
 CREATE TABLE IF NOT EXISTS `TrainingPrograms` (
-    `TrainingProgramId` varchar(50) NOT NULL,
-    `ProgramName` varchar(255) NOT NULL,
+    `Id` int NOT NULL AUTOICREMENT,
+    `Name` varchar(255) NOT NULL,
     `Description` varchar(1000) DEFAULT NULL,
+    `Requirements` varchar(1000) DEFAULT NULL,
+    `Objectives` varchar(1000) DEFAULT NULL,
     PRIMARY KEY (`TrainingProgramId`)
 )
 

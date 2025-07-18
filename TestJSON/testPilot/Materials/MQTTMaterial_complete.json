@@ -1,0 +1,7 @@
+{
+  "name": "MDUINO Data Transmission Template",
+  "description": "Standard MQTT message format for transmitting sensor data from MDUINO devices",
+  "type": "MQTT_Template",
+  "message_type": "sensor_data",
+  "message_text": "{\"device_id\": \"${device_id}\", \"timestamp\": \"${timestamp}\", \"sensors\": {\"temperature\": ${temp_celsius}, \"humidity\": ${humidity_percent}, \"pressure\": ${pressure_hpa}}, \"battery_level\": ${battery_percent}, \"signal_strength\": ${rssi_dbm}}"
+}

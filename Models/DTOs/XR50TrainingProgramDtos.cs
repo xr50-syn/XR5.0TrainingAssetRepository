@@ -2,16 +2,73 @@ using System.ComponentModel.DataAnnotations;
 
 namespace XR50TrainingAssetRepo.Models.DTOs
 {
+     public class CreateTrainingProgramWithMaterialsRequest
+    {
+        [Required]
+        [StringLength(255)]
+        public string Name { get; set; } = "";
+        
+        [StringLength(1000)]
+        public string? Description { get; set; }
+        public string? Objectives { get; set; }
+        public string? Requirements { get; set; }
+        [Required]
+        public List<int> Materials { get; set; } = new();
+        
+        // Optional: Learning path IDs to assign as well
+        public List<int>? LearningPaths { get; set; }
+    }
+    
+    public class CreateTrainingProgramWithMaterialsResponse
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string? Description { get; set; }
+        public string? Objectives { get; set; }
+        public string? Requirements { get; set; }
+        public string? CreatedAt { get; set; }
+        public int MaterialCount { get; set; }
+        public int LearningPathCount { get; set; }
+        public List<AssignedMaterial> AssignedMaterials { get; set; } = new();
+        public List<AssignedLearningPath> AssignedLearningPaths { get; set; } = new();
+    }
+    
+    public class AssignedMaterial
+    {
+        public int MaterialId { get; set; }
+        public string? MaterialName { get; set; }
+        public string? MaterialType { get; set; }
+        public bool AssignmentSuccessful { get; set; }
+        public string? AssignmentNote { get; set; }
+    }
+    
+    public class AssignedLearningPath
+    {
+        public int LearningPathId { get; set; }
+        public string? LearningPathName { get; set; }
+        public bool AssignmentSuccessful { get; set; }
+        public string? AssignmentNote { get; set; }
+    }
+
+    public class MaterialInfo
+{
+    public int Id { get; set; }
+    public string? Name { get; set; }
+    public int Type { get; set; }
+}
+
     public class CompleteTrainingProgramRequest
     {
         public string Name { get; set; } = "";
+        [StringLength(1000)]
         public string? Description { get; set; }
-
+        public string? Objectives { get; set; }
+        public string? Requirements { get; set; }
         // Materials to assign during creation
-        public List<int> MaterialIds { get; set; } = new();
+        public List<int> Materials { get; set; } = new();
 
         // Learning paths to assign during creation (if needed)
-        public List<int> LearningPathIds { get; set; } = new();
+        public List<int> LearningPaths { get; set; } = new();
 
         // Optional: Materials with full data (for creation + assignment in one go)
         public List<MaterialCreationRequest>? MaterialsToCreate { get; set; }
@@ -38,6 +95,9 @@ namespace XR50TrainingAssetRepo.Models.DTOs
     {
         public int Id { get; set; }
         public string Name { get; set; } = "";
+        public string? Description { get; set; }
+        public string? Objectives { get; set; }
+        public string? Requirements { get; set; }
         public string? Created_at { get; set; }
 
         // Complete material information

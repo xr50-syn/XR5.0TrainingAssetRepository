@@ -1,0 +1,26 @@
+{
+  "name": "MDUINO Competency Assessment",
+  "description": "Knowledge assessment to verify understanding of MDUINO setup and operation",
+  "type": "Questionnaire",
+  "questionnaireType": "multiple_choice",
+  "passingScore": 80.0,
+  "questionnaireConfig": "{\"timeLimit\": 1800, \"randomizeQuestions\": true, \"allowRetake\": true}",
+  "entries": [
+    {
+      "text": "What is the minimum operating voltage for MDUINO devices?",
+      "description": "Select the correct voltage range from the technical specifications"
+    },
+    {
+      "text": "Which sensor protocol is used for temperature readings?",
+      "description": "Identify the communication protocol used by the temperature sensor"
+    },
+    {
+      "text": "How often should sensor calibration be performed?",
+      "description": "Select the recommended calibration frequency"
+    },
+    {
+      "text": "What is the maximum transmission range in open field conditions?",
+      "description": "Choose the correct WiFi transmission range specification"
+    }
+  ]
+}

@@ -219,6 +219,11 @@ namespace XR50TrainingAssetRepo.Data
                 .HasColumnName("AssetId");
 
             // Configure relationships for child entities (separate tables)
+            modelBuilder.Entity<QuestionnaireMaterial>()
+                .HasMany(q => q.QuestionnaireEntries)
+                .WithOne()
+                .HasForeignKey("QuestionnaireMaterialId")
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<VideoMaterial>()
                 .HasMany(v => v.VideoTimestamps)
                 .WithOne()

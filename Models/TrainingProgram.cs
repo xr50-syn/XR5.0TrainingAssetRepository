@@ -2,6 +2,7 @@
 using Mono.TextTemplating;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Permissions;
 using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Models
@@ -14,8 +15,11 @@ namespace XR50TrainingAssetRepo.Models
         [Key]
         public int Id { get; set; }
         public string Name { get; set; }
-        public virtual ICollection<ProgramMaterial> ProgramMaterials { get; set; } = new List<ProgramMaterial>();
-    public virtual ICollection<ProgramLearningPath> ProgramLearningPaths { get; set; } = new List<ProgramLearningPath>();
+        public string? Description { get; set; }
+        public string? Objectives { get; set; }
+        public string? Requirements { get; set; }
+        public virtual ICollection<ProgramMaterial> Materials { get; set; } = new List<ProgramMaterial>();
+    public virtual ICollection<ProgramLearningPath> LearningPaths { get; set; } = new List<ProgramLearningPath>();
         public TrainingProgram()
         {
 

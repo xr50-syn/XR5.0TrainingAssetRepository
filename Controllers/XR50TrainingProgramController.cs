@@ -31,18 +31,42 @@ namespace XR50TrainingAssetRepo.Controllers
 
         // POST: api/{tenantName}/trainingprograms
         [HttpPost]
-        public async Task<ActionResult<TrainingProgram>> PostTrainingProgram(string tenantName, TrainingProgram program)
+        public async Task<ActionResult<CreateTrainingProgramWithMaterialsResponse>> PostTrainingProgram(
+            string tenantName, 
+            [FromBody] CreateTrainingProgramWithMaterialsRequest request)
         {
-            _logger.LogInformation("Creating training program {Name} for tenant: {TenantName}", program.Name, tenantName);
-            
-            var createdProgram = await _trainingProgramService.CreateTrainingProgramAsync(program);
+            _logger.LogInformation("Creating training program '{Name}' with {MaterialCount} materials for tenant: {TenantName}", 
+                request.Name, request.Materials.Count, tenantName);
 
-            _logger.LogInformation("Created training program {Name} with ID {Id} for tenant: {TenantName}", 
-                createdProgram.Name, createdProgram.Id, tenantName);
+            try
+            {
+                // Validate request
+                if (string.IsNullOrWhiteSpace(request.Name))
+                {
+                    return BadRequest("Training program name is required");
+                }
 
-            return CreatedAtAction(nameof(GetTrainingProgram), 
-                new { tenantName, id = createdProgram.Id }, 
-                createdProgram);
+                // Create the training program with materials (empty list is fine)
+                var result = await _trainingProgramService.CreateTrainingProgramWithMaterialsAsync(request);
+
+                _logger.LogInformation("Successfully created training program {Id} with {MaterialCount} materials for tenant: {TenantName}", 
+                    result.Id, result.MaterialCount, tenantName);
+
+                return CreatedAtAction(
+                    nameof(GetTrainingProgram), 
+                    new { tenantName, id = result.Id }, 
+                    result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Invalid request for tenant {TenantName}: {Message}", tenantName, ex.Message);
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating training program with materials for tenant: {TenantName}", tenantName);
+                return StatusCode(500, "An error occurred while creating the training program");
+            }
         }
 
         // PUT: api/{tenantName}/trainingprograms/5
@@ -196,7 +220,7 @@ namespace XR50TrainingAssetRepo.Controllers
             [FromBody] CompleteTrainingProgramRequest request)
         {
             _logger.LogInformation("Creating complete training program: {Name} with {MaterialCount} materials for tenant: {TenantName}",
-                request.Name, request.MaterialIds.Count + (request.MaterialsToCreate?.Count ?? 0), tenantName);
+                request.Name, request.Materials.Count + (request.MaterialsToCreate?.Count ?? 0), tenantName);
 
             try
             {

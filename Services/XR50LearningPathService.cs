@@ -17,7 +17,7 @@ namespace XR50TrainingAssetRepo.Services
         // Junction table operations for Training Program associations
         Task<IEnumerable<LearningPath>> GetLearningPathsByTrainingProgramAsync(int trainingProgramId);
         Task<bool> AssignLearningPathToTrainingProgramAsync(int trainingProgramId, int learningPathId);
-        Task<int> AssignMultipleLearningPathsToTrainingProgramAsync(int trainingProgramId, IEnumerable<int> learningPathIds);
+        Task<int> AssignMultipleLearningPathsToTrainingProgramAsync(int trainingProgramId, IEnumerable<int> LearningPaths);
         Task<bool> RemoveLearningPathFromTrainingProgramAsync(int trainingProgramId, int learningPathId);
     }
 
@@ -83,13 +83,13 @@ namespace XR50TrainingAssetRepo.Services
             return true;
         }
 
-        public async Task<int> AssignMultipleLearningPathsToTrainingProgramAsync(int trainingProgramId, IEnumerable<int> learningPathIds)
+        public async Task<int> AssignMultipleLearningPathsToTrainingProgramAsync(int trainingProgramId, IEnumerable<int> LearningPaths)
         {
             using var context = _dbContextFactory.CreateDbContext();
             
             var associationsToAdd = new List<ProgramLearningPath>();
             
-            foreach (var learningPathId in learningPathIds)
+            foreach (var learningPathId in LearningPaths)
             {
                 // Check if association already exists
                 var existingAssociation = await context.ProgramLearningPaths

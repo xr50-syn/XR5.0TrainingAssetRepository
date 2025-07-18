@@ -1,0 +1,35 @@
+{
+  "name": "MDUINO Setup Tutorial",
+  "description": "Complete video guide for MDUINO device setup and configuration",
+  "type": "Video",
+  "videoPath": "/videos/mduino_setup.mp4",
+  "videoDuration": 1200,
+  "videoResolution": "1920x1080",
+  "timestamps": [
+    {
+      "title": "Introduction",
+      "time": "00:00:00",
+      "description": "Overview of MDUINO device and components"
+    },
+    {
+      "title": "Unboxing",
+      "time": "00:02:30",
+      "description": "What comes in the MDUINO kit"
+    },
+    {
+      "title": "Hardware Assembly",
+      "time": "00:05:15",
+      "description": "Connecting sensors and components"
+    },
+    {
+      "title": "Software Configuration",
+      "time": "00:12:45",
+      "description": "Programming and WiFi setup"
+    },
+    {
+      "title": "Testing & Validation",
+      "time": "00:18:20",
+      "description": "Verifying device functionality"
+    }
+  ]
+}

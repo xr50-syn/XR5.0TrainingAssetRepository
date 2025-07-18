@@ -1708,10 +1708,10 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             var relationships = await _materialService.GetRelationshipsByTypeAsync(materialId, "LearningPath");
 
             // Extract learning path IDs and fetch the actual learning paths
-            var learningPathIds = relationships.Select(r => int.Parse(r.RelatedEntityId)).ToList();
+            var LearningPaths = relationships.Select(r => int.Parse(r.RelatedEntityId)).ToList();
 
             var learningPaths = new List<LearningPath>();
-            foreach (var id in learningPathIds)
+            foreach (var id in LearningPaths)
             {
                 var path = await _learningPathService.GetLearningPathAsync(id);
                 if (path != null)

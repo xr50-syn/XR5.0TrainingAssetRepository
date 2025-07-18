@@ -1,0 +1,31 @@
+{
+  "name": "Pre-Deployment Checklist",
+  "description": "Essential checks before deploying MDUINO devices in the field",
+  "type": "Checklist",
+  "entries": [
+    {
+      "text": "Verify sensor calibration",
+      "description": "Ensure all sensors provide accurate readings within ±2% tolerance"
+    },
+    {
+      "text": "Test wireless connectivity",
+      "description": "Confirm device can connect to target WiFi network and transmit data"
+    },
+    {
+      "text": "Check power consumption",
+      "description": "Verify battery life meets minimum 30-day requirement"
+    },
+    {
+      "text": "Validate data logging",
+      "description": "Confirm data is properly stored locally and transmitted to cloud"
+    },
+    {
+      "text": "Test environmental resistance",
+      "description": "Verify IP65 rating compliance for outdoor deployment"
+    },
+    {
+      "text": "Update firmware",
+      "description": "Ensure device runs latest stable firmware version"
+    }
+  ]
+}
