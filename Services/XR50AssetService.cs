@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
+using XR50TrainingAssetRepo.Models.DTOs;
 using XR50TrainingAssetRepo.Data;
 using XR50TrainingAssetRepo.Services;
 using System.Diagnostics;
@@ -11,6 +12,7 @@ namespace XR50TrainingAssetRepo.Services
         // Basic Asset Operations
         Task<IEnumerable<Asset>> GetAllAssetsAsync();
         Task<Asset?> GetAssetAsync(int id);
+        Task<Asset> CreateAssetReference(string tenantName, AssetReferenceData assetRefData);
         Task<Asset> CreateAssetAsync(Asset asset, string tenantName, IFormFile file);
         Task<Asset> UpdateAssetAsync(Asset asset);
         Task<bool> DeleteAssetAsync(string tenantName, int id);
@@ -78,6 +80,40 @@ namespace XR50TrainingAssetRepo.Services
         {
             using var context = _dbContextFactory.CreateDbContext();
             return await context.Assets.FindAsync(id);
+        }
+        public async Task<Asset> CreateAssetReference(string tenantName, AssetReferenceData assetRefData)
+        {
+            using var context = _dbContextFactory.CreateDbContext();
+            
+            var asset = new Asset
+            {
+                Filename = assetRefData.Filename ?? GenerateFilenameFromUrl(assetRefData.Src ?? assetRefData.URL),
+                Description = assetRefData.Description,
+                Filetype = assetRefData.Filetype ?? GetFiletypeFromFilename(assetRefData.Filename ?? assetRefData.Src ?? assetRefData.URL),
+                Src = assetRefData.Src ?? assetRefData.URL,
+                URL = assetRefData.URL ?? assetRefData.Src
+            };
+
+            context.Assets.Add(asset);
+            await context.SaveChangesAsync();
+            
+            _logger.LogInformation("Created asset reference {AssetId} pointing to {Src}", asset.Id, asset.Src);
+            return asset;
+        }
+        // NEW: Helper to generate filename from URL
+        private string GenerateFilenameFromUrl(string? url)
+        {
+            if (string.IsNullOrEmpty(url))
+                return Guid.NewGuid().ToString();
+            
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                var filename = Path.GetFileName(uri.LocalPath);
+                if (!string.IsNullOrEmpty(filename))
+                    return filename;
+            }
+            
+            return Guid.NewGuid().ToString();
         }
 
         public async Task<Asset> CreateAssetAsync(Asset asset, string tenantName, IFormFile file)

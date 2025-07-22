@@ -226,7 +226,7 @@ namespace XR50TrainingAssetRepo.Services
             command.Parameters.AddWithValue("@tenantGroup", tenant.TenantGroup ?? "");
             command.Parameters.AddWithValue("@description", tenant.Description ?? "");
             command.Parameters.AddWithValue("@tenantDirectory", tenant.TenantDirectory ?? "");
-            command.Parameters.AddWithValue("@ownerName", tenant.OwnerName ?? "");
+            command.Parameters.AddWithValue("@ownerName", tenant.Owner.UserName ?? "");
 
             await command.ExecuteNonQueryAsync();
 

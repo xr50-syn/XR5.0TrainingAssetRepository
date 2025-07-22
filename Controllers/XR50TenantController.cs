@@ -223,7 +223,7 @@ namespace XR50TrainingAssetRepo.Controllers
         {
             try
             {
-                _logger.LogInformation("🔍 Validating storage for tenant: {TenantName}", tenantName);
+                _logger.LogInformation("Validating storage for tenant: {TenantName}", tenantName);
                 
                 var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
                 if (tenant == null)

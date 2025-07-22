@@ -7,15 +7,18 @@ namespace XR50TrainingAssetRepo.Services
 {
     public class OwnCloudStorageServiceImplementation : IStorageService
     {
+        private readonly IXR50TenantManagementService _tenantService;
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly ILogger<OwnCloudStorageServiceImplementation> _logger;
 
         public OwnCloudStorageServiceImplementation(
+            IXR50TenantManagementService tenantService,
             IConfiguration configuration,
             HttpClient httpClient,
             ILogger<OwnCloudStorageServiceImplementation> logger)
         {
+            _tenantService = tenantService;
             _configuration = configuration;
             _httpClient = httpClient;
             _logger = logger;
@@ -77,7 +80,8 @@ namespace XR50TrainingAssetRepo.Services
 
                 // Delete directory (using curl command for simplicity)
                 var tenantDirectory = tenantName; // Simplified
-                var deleteDirectoryResult = await ExecuteWebDAVCommand("DELETE", tenantDirectory, null);
+                var tenant = GetTenantWithOwner(tenantName);
+                var success = await ExecuteWebDAVAsAdmin("DELETE", $"{tenantName}");
 
                 _logger.LogInformation("Deleted OwnCloud storage for tenant: {TenantName}", tenantName);
                 return true;
@@ -94,7 +98,7 @@ namespace XR50TrainingAssetRepo.Services
             try
             {
                 // Check if tenant directory exists by trying to access it
-                var result = await ExecuteWebDAVCommand("HEAD", tenantName, null);
+                var result = await ExecuteWebDAVAsAdmin("HEAD", tenantName);
                 return result;
             }
             catch (Exception ex)
@@ -110,6 +114,9 @@ namespace XR50TrainingAssetRepo.Services
             {
                 _logger.LogInformation("Uploading file to OwnCloud: {TenantName}/{FileName}", tenantName, fileName);
 
+                // Fetch tenant information to get owner credentials
+                var tenant = await GetTenantWithOwner(tenantName);
+                var ownerUser = tenant.Owner;
                 // Create temp file for upload
                 string tempFileName = Path.GetTempFileName();
 
@@ -120,7 +127,9 @@ namespace XR50TrainingAssetRepo.Services
                         await fileStream.CopyToAsync(fileWriteStream);
                     }
 
-                    var success = await ExecuteWebDAVCommand("PUT", $"{tenantName}/{fileName}", tempFileName);
+                    // FIXED: Pass tenant owner credentials
+                    string dirl = System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory); // Only encode directory
+                    var success = await ExecuteWebDAVAsUser("PUT", $"{dirl}/{fileName}", tempFileName, ownerUser);
 
                     if (success)
                     {
@@ -198,7 +207,12 @@ namespace XR50TrainingAssetRepo.Services
             {
                 _logger.LogInformation("Deleting file from OwnCloud: {TenantName}/{FileName}", tenantName, fileName);
 
-                var success = await ExecuteWebDAVCommand("DELETE", $"{tenantName}/{fileName}", null);
+                // Get tenant information for owner credentials
+                var tenant = await GetTenantWithOwner(tenantName);
+
+                // FIXED: Pass tenant owner credentials
+                string dirl = System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory); // Only encode directory
+                var success = await ExecuteWebDAVAsUser("DELETE", $"{dirl}/{fileName}", null, tenant?.Owner);
 
                 if (success)
                 {
@@ -213,13 +227,14 @@ namespace XR50TrainingAssetRepo.Services
                 return false;
             }
         }
-
         public async Task<bool> FileExistsAsync(string tenantName, string fileName)
         {
             try
             {
+                var tenant = await GetTenantWithOwner(tenantName);
                 // Check if file exists using HEAD request
-                return await ExecuteWebDAVCommand("HEAD", $"{tenantName}/{fileName}", null);
+                string dirl = System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory); // Only encode directory
+                return await ExecuteWebDAVAsUser("HEAD", $"{dirl}/{fileName}", null, tenant.Owner);
             }
             catch (Exception ex)
             {
@@ -296,7 +311,7 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        private async Task<bool> CreateUserAsync(User user, string groupName)
+        public async Task<bool> CreateUserAsync(User user, string groupName)
         {
             try
             {
@@ -310,15 +325,16 @@ namespace XR50TrainingAssetRepo.Services
                 };
 
                 var messageContent = new FormUrlEncodedContent(values);
+                var uri_base = _configuration.GetValue<string>("TenantSettings:BaseAPI");
                 var uri_path = _configuration.GetValue<string>("TenantSettings:UsersPath");
-
+                
                 var request = new HttpRequestMessage(HttpMethod.Post, uri_path)
                 {
                     Content = messageContent
                 };
 
                 AddBasicAuthHeader(request);
-
+                _httpClient.BaseAddress = new Uri(uri_base);
                 var result = await _httpClient.SendAsync(request);
                 return result.IsSuccessStatusCode;
             }
@@ -333,7 +349,7 @@ namespace XR50TrainingAssetRepo.Services
         {
             try
             {
-                return await ExecuteWebDAVCommand("MKCOL", directoryPath, null, user);
+                return await ExecuteWebDAVAsUser("MKCOL", directoryPath, null, user);
             }
             catch (Exception ex)
             {
@@ -342,64 +358,154 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        private async Task<bool> ExecuteWebDAVCommand(string method, string path, string filePath, User user = null)
+        #region WebDAV Command Execution - Explicit User vs Admin
+
+        private async Task<bool> ExecuteWebDAVAsUser(string method, string path, string filePath, User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentException("User credentials are required for user WebDAV operations");
+            }
+
+            if (string.IsNullOrEmpty(user.UserName) || string.IsNullOrEmpty(user.Password))
+            {
+                throw new ArgumentException("User must have valid username and password for WebDAV operations");
+            }
+
+            try
+            {
+                var webdavBase = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
+                var username = user.UserName;
+                var password = user.Password;
+
+                //var encodedPath = System.Web.HttpUtility.UrlEncode(path);
+                var args = method switch
+                {
+                    "PUT" when !string.IsNullOrEmpty(filePath) =>
+                        $"-X PUT -u {username}:{password} --data-binary @\"{filePath}\" \"{webdavBase}/{path}\"",
+                    "DELETE" =>
+                        $"-X DELETE -u {username}:{password} \"{webdavBase}/{path}\"",
+                    "HEAD" =>
+                        $"-X HEAD -u {username}:{password} \"{webdavBase}/{path}\"",
+                    "GET" =>
+                        $"-X GET -u {username}:{password} \"{webdavBase}/{path}\"",
+                    _ => throw new ArgumentException($"Unsupported user WebDAV method: {method}")
+                };
+
+                _logger.LogDebug("Executing WebDAV command as USER {UserName}: {Method} {Path}", 
+                    username, method, path);
+
+                return await ExecuteCurlCommand(args, password);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to execute user WebDAV command: {Method} {Path} as user {UserName}", 
+                    method, path, user.UserName);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Execute WebDAV command using admin credentials
+        /// Used for: Directory creation, user setup, administrative operations
+        /// </summary>
+        private async Task<bool> ExecuteWebDAVAsAdmin(string method, string path, string filePath = null)
         {
             try
             {
                 var webdavBase = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
-                var username = user?.UserName ?? _configuration.GetValue<string>("TenantSettings:Admin");
-                var password = user?.Password ?? _configuration.GetValue<string>("TenantSettings:Password");
+                var username = _configuration.GetValue<string>("TenantSettings:Admin");
+                var password = _configuration.GetValue<string>("TenantSettings:Password");
 
-                var encodedPath = System.Web.HttpUtility.UrlEncode(path);
+                if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                {
+                    throw new InvalidOperationException("Admin credentials not configured");
+                }
+
+                
                 var args = method switch
                 {
-                    "PUT" when !string.IsNullOrEmpty(filePath) =>
-                        $"-X PUT -u {username}:{password} --data-binary @\"{filePath}\" \"{webdavBase}/{encodedPath}\"",
-                    "DELETE" =>
-                        $"-X DELETE -u {username}:{password} \"{webdavBase}/{encodedPath}\"",
                     "MKCOL" =>
-                        $"-X MKCOL -u {username}:{password} \"{webdavBase}/{encodedPath}/\"",
-                    "HEAD" =>
-                        $"-X HEAD -u {username}:{password} \"{webdavBase}/{encodedPath}\"",
-                    _ => throw new ArgumentException($"Unsupported WebDAV method: {method}")
+                        $"-X MKCOL -u {username}:{password} \"{webdavBase}/{path}/\"",
+                    "PUT" when !string.IsNullOrEmpty(filePath) =>
+                        $"-X PUT -u {username}:{password} --data-binary @\"{filePath}\" \"{webdavBase}/{path}\"",
+                    "DELETE" =>
+                        $"-X DELETE -u {username}:{password} \"{webdavBase}/{path}\"",
+                    _ => throw new ArgumentException($"Unsupported admin WebDAV method: {method}")
                 };
 
-                _logger.LogDebug("Executing WebDAV command: curl {Args}", args.Replace(password, "***"));
+                _logger.LogDebug("Executing WebDAV command as ADMIN: {Method} {Path}", method, path);
 
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = "curl",
-                    Arguments = args,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true
-                };
-
-                using var process = Process.Start(startInfo);
-                if (process == null)
-                {
-                    throw new InvalidOperationException("Failed to start curl process");
-                }
-
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                _logger.LogDebug("WebDAV command completed. Exit code: {ExitCode}", process.ExitCode);
-
-                if (!string.IsNullOrEmpty(error) && process.ExitCode != 0)
-                {
-                    _logger.LogWarning("WebDAV command stderr: {Error}", error);
-                }
-
-                return process.ExitCode == 0;
+                return await ExecuteCurlCommand(args, password);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to execute WebDAV command: {Method} {Path}", method, path);
+                _logger.LogError(ex, "Failed to execute admin WebDAV command: {Method} {Path}", method, path);
                 return false;
             }
         }
+
+        private async Task<XR50Tenant> GetTenantWithOwner(string tenantName)
+        {
+            var tenant = await _tenantService.GetTenantAsync(tenantName);
+            
+            // Try to fetch owner explicitly if not populated
+            if (tenant?.Owner == null && !string.IsNullOrEmpty(tenant?.OwnerName) && !string.IsNullOrEmpty(tenant?.TenantSchema))
+            {
+                _logger.LogWarning("Tenant owner not populated, fetching explicitly for tenant: {TenantName}", tenantName);
+                tenant.Owner = await _tenantService.GetOwnerUserAsync(tenant.OwnerName, tenant.TenantSchema);
+            }
+
+            if (tenant?.Owner == null)
+            {
+                throw new InvalidOperationException($"Tenant owner credentials not available for tenant '{tenantName}'. Cannot perform file operations that require proper ownership.");
+            }
+
+            if (string.IsNullOrEmpty(tenant.Owner.UserName) || string.IsNullOrEmpty(tenant.Owner.Password))
+            {
+                throw new InvalidOperationException($"Tenant owner credentials incomplete for tenant '{tenantName}' (missing username or password).");
+            }
+
+            return tenant;
+        }
+        private async Task<bool> ExecuteCurlCommand(string args, string password)
+        {
+           
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "curl",
+                Arguments = args,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            var maskedArgs = args.Replace(password, "***PASSWORD***");
+            _logger.LogInformation(" EXECUTING CURL COMMAND: curl {Args}", maskedArgs);
+    
+            // Also log it in a format you can copy-paste and test manually
+            _logger.LogInformation("COPY-PASTE COMMAND: curl {Args}", maskedArgs);
+            using var process = Process.Start(startInfo);
+            if (process == null)
+            {
+                throw new InvalidOperationException("Failed to start curl process");
+            }
+
+            string output = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            _logger.LogDebug("WebDAV command completed. Exit code: {ExitCode}", process.ExitCode);
+
+            if (!string.IsNullOrEmpty(error) && process.ExitCode != 0)
+            {
+                _logger.LogWarning("WebDAV command stderr: {Error}", error);
+            }
+
+            return process.ExitCode == 0;
+        }
+
+        #endregion
+
 
         private void AddBasicAuthHeader(HttpRequestMessage request)
         {
@@ -441,7 +547,7 @@ namespace XR50TrainingAssetRepo.Services
                     Content = messageContent
                 };
 
-                AddBasicAuthHeader(request, tenant.Owner);
+                AddBasicAuthHeader(request, tenant.Owner.UserName, tenant.Owner.Password);
 
                 _httpClient.BaseAddress = new Uri(uri_base);
                 var result = await _httpClient.SendAsync(request);
@@ -449,11 +555,8 @@ namespace XR50TrainingAssetRepo.Services
                 if (result.IsSuccessStatusCode)
                 {
                     var content = await result.Content.ReadAsStringAsync();
-                    var shareUrl = ParseShareUrlFromResponse(content);
-
-                    _logger.LogInformation("OwnCloud share created successfully for asset {AssetId}: {ShareUrl}",
-                        asset.Id, shareUrl);
-
+                    var baseUrl = _configuration.GetValue<string>("TenantSettings:BaseAPI") ?? "http://owncloud:8080";
+                    var shareUrl = $"{baseUrl}/remote.php/webdav/{asset.Filename}";
                     return shareUrl;
                 }
                 else
@@ -524,14 +627,41 @@ namespace XR50TrainingAssetRepo.Services
         {
             try
             {
-                // Simple XML parsing for share URL
+                _logger.LogInformation("DEBUG: Parsing XML response: {XmlResponse}", xmlResponse);
+                
                 var doc = System.Xml.Linq.XDocument.Parse(xmlResponse);
+                
+                _logger.LogInformation("DEBUG: XML root element: {RootName}", doc.Root?.Name);
+                _logger.LogInformation("DEBUG: Looking for data element...");
+                
+                var dataElement = doc.Root?.Element("data");
+                if (dataElement == null)
+                {
+                    _logger.LogWarning("DEBUG: No 'data' element found in response");
+                    // Try different possible structures
+                    _logger.LogInformation("DEBUG: Available root child elements: {Elements}", 
+                        string.Join(", ", doc.Root?.Elements().Select(e => e.Name.LocalName) ?? new string[0]));
+                }
+                else
+                {
+                    _logger.LogInformation("DEBUG: Found data element, looking for url...");
+                    var urlElement = dataElement.Element("url");
+                    if (urlElement == null)
+                    {
+                        _logger.LogWarning("DEBUG: No 'url' element found in data");
+                        _logger.LogInformation("DEBUG: Available data child elements: {Elements}", 
+                            string.Join(", ", dataElement.Elements().Select(e => e.Name.LocalName)));
+                    }
+                }
+                
                 var url = doc.Root?.Element("data")?.Element("url")?.Value;
+                _logger.LogInformation("DEBUG: Extracted URL: '{Url}'", url ?? "NULL");
+                
                 return url ?? string.Empty;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error parsing share URL from OwnCloud response");
+                _logger.LogError(ex, "Error parsing share URL from OwnCloud response: {Response}", xmlResponse);
                 return string.Empty;
             }
         }

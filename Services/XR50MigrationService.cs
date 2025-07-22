@@ -172,7 +172,7 @@ namespace XR50TrainingAssetRepo.Services
             insertCommand.Parameters.AddWithValue("@tenantGroup", tenant.TenantGroup ?? "");
             insertCommand.Parameters.AddWithValue("@description", tenant.Description ?? "");
             insertCommand.Parameters.AddWithValue("@tenantDirectory", tenant.TenantDirectory ?? "");
-            insertCommand.Parameters.AddWithValue("@ownerName", tenant.OwnerName ?? "");
+            insertCommand.Parameters.AddWithValue("@ownerName", tenant.Owner.UserName ?? "");
             insertCommand.Parameters.AddWithValue("@databaseName", tenantDbName);
             insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
 

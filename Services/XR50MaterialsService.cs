@@ -176,7 +176,7 @@ namespace XR50TrainingAssetRepo.Services
                 switch (material)
                 {
                     case WorkflowMaterial workflow:
-                        _logger.LogInformation("🔧 Processing workflow material with {Count} steps", workflow.WorkflowSteps?.Count ?? 0);
+                        _logger.LogInformation(" Processing workflow material with {Count} steps", workflow.WorkflowSteps?.Count ?? 0);
                         
                         if (workflow.WorkflowSteps?.Any() == true)
                         {
@@ -213,7 +213,7 @@ namespace XR50TrainingAssetRepo.Services
                         break;
 
                     case ChecklistMaterial checklist:
-                        _logger.LogInformation("📋 Processing checklist material with {Count} entries", checklist.ChecklistEntries?.Count ?? 0);
+                        _logger.LogInformation("Processing checklist material with {Count} entries", checklist.ChecklistEntries?.Count ?? 0);
                         
                         if (checklist.ChecklistEntries?.Any() == true)
                         {

@@ -6,26 +6,36 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
+using XR50TrainingAssetRepo.Models.DTOs;
 using XR50TrainingAssetRepo.Data;
 using XR50TrainingAssetRepo.Services;
 using MaterialType = XR50TrainingAssetRepo.Models.Type;
 
 namespace XR50TrainingAssetRepo.Controllers
 {
+     public class FileUploadFormDataWithMaterial
+        {
+            public string materialData { get; set; }
+            public string? assetData { get; set; }
+            public IFormFile? File { get; set; }
+        }
     [Route("api/{tenantName}/[controller]")]
     [ApiController]
     public class MaterialsController : ControllerBase
     {
         private readonly IMaterialService _materialService;
+        private readonly IAssetService _assetService;
         private readonly ILearningPathService _learningPathService;
         private readonly ILogger<MaterialsController> _logger;
 
         public MaterialsController(
             IMaterialService materialService,
+            IAssetService assetService,
             ILearningPathService learningPathService,
             ILogger<MaterialsController> logger)
         {
             _materialService = materialService;
+            _assetService = assetService;
             _learningPathService = learningPathService;
             _logger = logger;
         }
@@ -457,15 +467,386 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 return StatusCode(500, $"Error creating material: {ex.Message}");
             }
         }
+        // NEW Enhanced endpoint in XR50MaterialsController.cs
+        // This accepts both JSON data AND file uploads for complete asset creation during material creation
+        // Keeps the existing PostMaterialDetailed intact for backward compatibility
+
+        [HttpPost("detail-with-asset")]
+        public async Task<ActionResult<Material>> PostMaterialDetailedWithAsset(
+            string tenantName, [FromForm] FileUploadFormDataWithMaterial materialaAssetData)  // Optional file upload
+        {
+            try
+            {
+                // Parse the JSON material data
+                JsonElement jsonMaterialData;
+                try
+                {
+                    jsonMaterialData = JsonSerializer.Deserialize<JsonElement>(materialaAssetData.materialData);
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError(ex, "Invalid JSON in materialData parameter");
+                    return BadRequest("Invalid JSON format in materialData");
+                }
+
+                // Parse asset data if provided
+                JsonElement? jsonAssetData = null;
+                if (!string.IsNullOrEmpty(materialaAssetData.assetData))
+                {
+                    try
+                    {
+                        jsonAssetData = JsonSerializer.Deserialize<JsonElement>(materialaAssetData.assetData);
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError(ex, "Invalid JSON in assetData parameter");
+                        return BadRequest("Invalid JSON format in assetData");
+                    }
+                }
+
+                // Parse the incoming JSON to determine material type
+                var materialType = GetMaterialTypeFromJson(jsonMaterialData);
+                
+                _logger.LogInformation("Creating detailed material with asset support of type: {MaterialType} for tenant: {TenantName}", 
+                    materialType, tenantName);
+
+                // Check if we should create an asset
+                bool shouldCreateAsset = ShouldCreateAsset(jsonMaterialData, materialType, materialaAssetData.File, jsonAssetData);
+                
+                if (shouldCreateAsset)
+                {
+                    _logger.LogInformation("📁 Asset creation detected (file: {HasFile}, assetData: {HasAssetData})", 
+                        materialaAssetData.File != null, jsonAssetData.HasValue);
+                    return await CreateMaterialWithAsset(tenantName, jsonMaterialData, materialType, materialaAssetData.File, jsonAssetData);
+                }
+
+                // Fall back to creating material without asset (same as existing endpoint)
+                return materialType.ToLower() switch
+                {
+                    "workflow" => await CreateWorkflowFromJson(tenantName, jsonMaterialData),
+                    "video" => await CreateVideoFromJson(tenantName, jsonMaterialData),
+                    "checklist" => await CreateChecklistFromJson(tenantName, jsonMaterialData),
+                    "questionnaire" => await CreateQuestionnaireFromJson(tenantName, jsonMaterialData),
+                    _ => await CreateBasicMaterialFromJson(tenantName, jsonMaterialData)
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error creating detailed material with asset for tenant: {TenantName}", tenantName);
+                return StatusCode(500, $"Error creating material: {ex.Message}");
+            }
+        }
+
+        // NEW: Determine if we should create an asset
+        private bool ShouldCreateAsset(JsonElement materialData, string materialType, IFormFile? assetFile, JsonElement? assetData)
+        {
+            // Only create assets for material types that support them
+            var assetSupportingTypes = new[] { "video", "image", "pdf", "unitydemo", "default" };
+            
+            if (!assetSupportingTypes.Contains(materialType.ToLower()))
+            {
+                return false;
+            }
+
+            // Create asset if we have:
+            // 1. A file upload, OR
+            // 2. Explicit asset data, OR  
+            // 3. Legacy asset reference in material data
+            return assetFile != null || 
+                assetData.HasValue || 
+                CheckForAssetReference(materialData, materialType);
+        }
+
+        // NEW: Check if the material request includes asset reference data
+        private bool CheckForAssetReference(JsonElement materialData, string materialType)
+        {
+            // Check for asset reference properties in the JSON
+            return TryGetPropertyCaseInsensitive(materialData, "createAssetReference", out var _) ||
+                (TryGetPropertyCaseInsensitive(materialData, "assetReference", out var assetElement) && 
+                    assetElement.ValueKind == JsonValueKind.Object);
+        }
+
+        // NEW: Create material with associated asset (file upload or reference)
+        private async Task<ActionResult<Material>> CreateMaterialWithAsset(
+            string tenantName, 
+            JsonElement materialData, 
+            string materialType, 
+            IFormFile? assetFile,
+            JsonElement? assetData)
+        {
+            try
+            {
+                _logger.LogInformation(" Creating material with asset for type: {MaterialType}", materialType);
+
+                // Create the asset first
+                Asset createdAsset;
+                try
+                {
+                    if (assetFile != null)
+                    {
+                        // File upload scenario - use assetData for metadata if provided
+                        createdAsset = await CreateAssetFromFile(tenantName, assetFile, assetData);
+                        _logger.LogInformation("✅ Created asset from file upload {AssetId} ({Filename})", 
+                            createdAsset.Id, createdAsset.Filename);
+                    }
+                    else if (assetData.HasValue)
+                    {
+                        // Asset reference scenario using dedicated assetData
+                        var assetRefData = ExtractAssetReferenceFromAssetData(assetData.Value);
+                        if (assetRefData == null)
+                        {
+                            return BadRequest("Asset data is invalid or missing required fields");
+                        }
+                        
+                        createdAsset = await _assetService.CreateAssetReference(tenantName, assetRefData);
+                        _logger.LogInformation("✅ Created asset reference from assetData {AssetId} ({Filename})", 
+                            createdAsset.Id, createdAsset.Filename);
+                    }
+                    else
+                    {
+                        // Fallback to legacy material data extraction
+                        var assetRefData = ExtractAssetReferenceData(materialData);
+                        if (assetRefData == null)
+                        {
+                            return BadRequest("Asset reference data is invalid or missing required fields");
+                        }
+                        
+                        createdAsset = await _assetService.CreateAssetReference(tenantName, assetRefData);
+                        _logger.LogInformation("✅ Created asset reference from materialData {AssetId} ({Filename})", 
+                            createdAsset.Id, createdAsset.Filename);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create asset during material creation");
+                    return StatusCode(500, $"Failed to create asset: {ex.Message}");
+                }
+
+                // Create the material with the asset ID
+                Material material;
+                try
+                {
+                    material = CreateMaterialWithAssetId(materialData, materialType, createdAsset.Id.ToString());
+                    var createdMaterial = await _materialService.CreateMaterialAsync(material);
+                    
+                    _logger.LogInformation("✅ Created material {MaterialId} ({Name}) with asset {AssetId}", 
+                        createdMaterial.Id, createdMaterial.Name, createdAsset.Id);
+
+                    return CreatedAtAction(nameof(GetMaterial),
+                        new { tenantName, id = createdMaterial.Id },
+                        createdMaterial);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create material, will attempt to clean up asset {AssetId}", createdAsset.Id);
+                    
+                    // Attempt cleanup of created asset
+                    try
+                    {
+                        await _assetService.DeleteAssetAsync(tenantName, createdAsset.Id);
+                        _logger.LogInformation("Cleaned up asset {AssetId} after material creation failure", createdAsset.Id);
+                    }
+                    catch (Exception cleanupEx)
+                    {
+                        _logger.LogWarning(cleanupEx, "Failed to clean up asset {AssetId} after material creation failure", createdAsset.Id);
+                    }
+                    
+                    return StatusCode(500, $"Failed to create material: {ex.Message}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error in CreateMaterialWithAsset");
+                return StatusCode(500, $"Error creating material with asset: {ex.Message}");
+            }
+        }
+
+        // NEW: Create asset from uploaded file with metadata from assetData
+        private async Task<Asset> CreateAssetFromFile(string tenantName, IFormFile assetFile, JsonElement? assetData)
+        {
+            // Extract asset metadata from assetData JSON (preferred) or fallback defaults
+            string? description = null;
+            string? customFilename = null;
+            string? filetype = null;
+            
+            if (assetData.HasValue)
+            {
+                if (TryGetPropertyCaseInsensitive(assetData.Value, "description", out var descProp))
+                    description = descProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(assetData.Value, "filename", out var filenameProp))
+                    customFilename = filenameProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(assetData.Value, "filetype", out var filetypeProp))
+                    filetype = filetypeProp.GetString();
+            }
+
+            // Use custom filename or generate one
+            var filename = customFilename ?? assetFile.FileName ?? Guid.NewGuid().ToString();
+            
+            // Create asset using the existing asset service
+            return await _assetService.UploadAssetAsync(assetFile, tenantName, filename, description);
+        }
+
+        // NEW: Extract asset reference data from dedicated assetData JSON
+        private AssetReferenceData? ExtractAssetReferenceFromAssetData(JsonElement assetData)
+        {
+            var assetRefData = new AssetReferenceData();
+            
+            if (TryGetPropertyCaseInsensitive(assetData, "filename", out var filenameProp))
+                assetRefData.Filename = filenameProp.GetString();
+            
+            if (TryGetPropertyCaseInsensitive(assetData, "description", out var descProp))
+                assetRefData.Description = descProp.GetString();
+            
+            if (TryGetPropertyCaseInsensitive(assetData, "filetype", out var typeProp))
+                assetRefData.Filetype = typeProp.GetString();
+            
+            if (TryGetPropertyCaseInsensitive(assetData, "src", out var srcProp))
+                assetRefData.Src = srcProp.GetString();
+            
+            if (TryGetPropertyCaseInsensitive(assetData, "url", out var urlProp))
+                assetRefData.URL = urlProp.GetString();
+
+            // Validate required fields - need either filename or src/url
+            if (string.IsNullOrEmpty(assetRefData.Filename) && 
+                string.IsNullOrEmpty(assetRefData.Src) && 
+                string.IsNullOrEmpty(assetRefData.URL))
+            {
+                _logger.LogWarning("AssetData missing required filename, src, or url");
+                return null;
+            }
+
+            return assetRefData;
+        }
+
+        // NEW: Extract asset reference data from the material JSON
+        private AssetReferenceData? ExtractAssetReferenceData(JsonElement materialData)
+        {
+            AssetReferenceData? assetRefData = null;
+
+            // Check for inline asset reference object
+            if (TryGetPropertyCaseInsensitive(materialData, "assetReference", out var assetElement) && 
+                assetElement.ValueKind == JsonValueKind.Object)
+            {
+                assetRefData = new AssetReferenceData();
+                
+                if (TryGetPropertyCaseInsensitive(assetElement, "filename", out var filenameProp))
+                    assetRefData.Filename = filenameProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(assetElement, "description", out var descProp))
+                    assetRefData.Description = descProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(assetElement, "filetype", out var typeProp))
+                    assetRefData.Filetype = typeProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(assetElement, "src", out var srcProp))
+                    assetRefData.Src = srcProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(assetElement, "url", out var urlProp))
+                    assetRefData.URL = urlProp.GetString();
+            }
+            
+            // Check for direct asset reference properties at material level
+            else if (TryGetPropertyCaseInsensitive(materialData, "createAssetReference", out var createAssetProp) && 
+                    createAssetProp.GetBoolean())
+            {
+                assetRefData = new AssetReferenceData();
+                
+                if (TryGetPropertyCaseInsensitive(materialData, "assetFilename", out var filenameProp))
+                    assetRefData.Filename = filenameProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(materialData, "assetDescription", out var descProp))
+                    assetRefData.Description = descProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(materialData, "assetFiletype", out var typeProp))
+                    assetRefData.Filetype = typeProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(materialData, "assetSrc", out var srcProp))
+                    assetRefData.Src = srcProp.GetString();
+                
+                if (TryGetPropertyCaseInsensitive(materialData, "assetUrl", out var urlProp))
+                    assetRefData.URL = urlProp.GetString();
+            }
+
+            // Validate required fields - need either filename or src/url
+            if (assetRefData != null && 
+                string.IsNullOrEmpty(assetRefData.Filename) && 
+                string.IsNullOrEmpty(assetRefData.Src) && 
+                string.IsNullOrEmpty(assetRefData.URL))
+            {
+                _logger.LogWarning("Asset reference data missing required filename, src, or url");
+                return null;
+            }
+
+            return assetRefData;
+        }
+
+        // NEW: Create asset reference record (no actual file upload)
+        
+        // NEW: Create material instance with asset ID set
+        private Material CreateMaterialWithAssetId(JsonElement materialData, string materialType, string assetId)
+        {
+            // Parse the basic material first
+            var material = ParseMaterialFromJson(materialData);
+            if (material == null)
+            {
+                throw new ArgumentException("Failed to parse material from JSON");
+            }
+
+            // Set the asset ID for asset-supporting materials
+            switch (material)
+            {
+                case VideoMaterial video:
+                    video.AssetId = assetId;
+                    break;
+                case ImageMaterial image:
+                    image.AssetId = assetId;
+                    break;
+                case PDFMaterial pdf:
+                    pdf.AssetId = assetId;
+                    break;
+                case UnityDemoMaterial unity:
+                    unity.AssetId = assetId;
+                    break;
+                case DefaultMaterial defaultMat:
+                    defaultMat.AssetId = assetId;
+                    break;
+                default:
+                    _logger.LogWarning("Material type {MaterialType} does not support assets, ignoring asset assignment", 
+                        material.GetType().Name);
+                    break;
+            }
+
+            return material;
+        }
+
+        // NEW: Helper to extract file type from filename or URL
+        private string GetFiletypeFromFilename(string? filenameOrUrl)
+        {
+            if (string.IsNullOrEmpty(filenameOrUrl))
+                return "unknown";
+            
+            // Extract filename from URL if needed
+            var filename = filenameOrUrl;
+            if (Uri.TryCreate(filenameOrUrl, UriKind.Absolute, out var uri))
+            {
+                filename = Path.GetFileName(uri.LocalPath);
+            }
+            
+            var extension = Path.GetExtension(filename)?.ToLowerInvariant();
+            return extension?.TrimStart('.') ?? "unknown";
+        }
         [HttpPost("detail")]
+        // NEW: Data class for asset reference creation
         public async Task<ActionResult<Material>> PostMaterialDetailed(string tenantName, [FromBody] JsonElement materialData)
         {
             try
             {
                 // Parse the incoming JSON to determine material type
                 var materialType = GetMaterialTypeFromJson(materialData);
-                
-                _logger.LogInformation("🔍 Creating detailed material of type: {MaterialType} for tenant: {TenantName}", 
+
+                _logger.LogInformation("Creating detailed material of type: {MaterialType} for tenant: {TenantName}",
                     materialType, tenantName);
 
                 // Delegate to the appropriate specialized method based on material type
@@ -506,7 +887,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         {
             try
             {
-                _logger.LogInformation("🔧 Creating workflow material from JSON");
+                _logger.LogInformation(" Creating workflow material from JSON");
                 
                 // Parse the workflow material properties
                 var workflow = new WorkflowMaterial();
@@ -536,7 +917,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                     }
                 }
                 
-                _logger.LogInformation("📋 Parsed workflow: {Name} with {StepCount} steps", workflow.Name, steps.Count);
+                _logger.LogInformation("Parsed workflow: {Name} with {StepCount} steps", workflow.Name, steps.Count);
                 
                 // Use the service method directly instead of the controller method
                 var createdMaterial = await _materialService.CreateWorkflowWithStepsAsync(workflow, steps);
@@ -627,7 +1008,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         {
             try
             {
-                _logger.LogInformation("📋 Creating checklist material from JSON");
+                _logger.LogInformation("Creating checklist material from JSON");
                 
                 // Parse the checklist material properties
                 var checklist = new ChecklistMaterial();
@@ -770,7 +1151,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         }
         private Material? ParseMaterialFromJson(JsonElement jsonElement)
         {
-            _logger.LogInformation("🔍 Parsing material JSON: {Json}", jsonElement.ToString());
+            _logger.LogInformation("Parsing material JSON: {Json}", jsonElement.ToString());
 
             // Get the discriminator/type from the JSON (case-insensitive)
             string? discriminator = null;
@@ -862,7 +1243,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
 
         private void PopulateTypeSpecificProperties(Material material, JsonElement jsonElement)
         {
-            _logger.LogInformation("🔧 Populating type-specific properties for {MaterialType}", material.GetType().Name);
+            _logger.LogInformation(" Populating type-specific properties for {MaterialType}", material.GetType().Name);
 
             switch (material)
             {
