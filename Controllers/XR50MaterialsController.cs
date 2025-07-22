@@ -515,7 +515,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 
                 if (shouldCreateAsset)
                 {
-                    _logger.LogInformation("📁 Asset creation detected (file: {HasFile}, assetData: {HasAssetData})", 
+                    _logger.LogInformation("Asset creation detected (file: {HasFile}, assetData: {HasAssetData})", 
                         materialaAssetData.File != null, jsonAssetData.HasValue);
                     return await CreateMaterialWithAsset(tenantName, jsonMaterialData, materialType, materialaAssetData.File, jsonAssetData);
                 }
@@ -586,7 +586,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                     {
                         // File upload scenario - use assetData for metadata if provided
                         createdAsset = await CreateAssetFromFile(tenantName, assetFile, assetData);
-                        _logger.LogInformation("✅ Created asset from file upload {AssetId} ({Filename})", 
+                        _logger.LogInformation("Created asset from file upload {AssetId} ({Filename})", 
                             createdAsset.Id, createdAsset.Filename);
                     }
                     else if (assetData.HasValue)
@@ -599,7 +599,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                         }
                         
                         createdAsset = await _assetService.CreateAssetReference(tenantName, assetRefData);
-                        _logger.LogInformation("✅ Created asset reference from assetData {AssetId} ({Filename})", 
+                        _logger.LogInformation("Created asset reference from assetData {AssetId} ({Filename})", 
                             createdAsset.Id, createdAsset.Filename);
                     }
                     else
@@ -612,7 +612,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                         }
                         
                         createdAsset = await _assetService.CreateAssetReference(tenantName, assetRefData);
-                        _logger.LogInformation("✅ Created asset reference from materialData {AssetId} ({Filename})", 
+                        _logger.LogInformation("Created asset reference from materialData {AssetId} ({Filename})", 
                             createdAsset.Id, createdAsset.Filename);
                     }
                 }
@@ -626,10 +626,10 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 Material material;
                 try
                 {
-                    material = CreateMaterialWithAssetId(materialData, materialType, createdAsset.Id.ToString());
+                    material = CreateMaterialWithAssetId(materialData, materialType, createdAsset.Id);
                     var createdMaterial = await _materialService.CreateMaterialAsync(material);
                     
-                    _logger.LogInformation("✅ Created material {MaterialId} ({Name}) with asset {AssetId}", 
+                    _logger.LogInformation("Created material {MaterialId} ({Name}) with asset {AssetId}", 
                         createdMaterial.Id, createdMaterial.Name, createdAsset.Id);
 
                     return CreatedAtAction(nameof(GetMaterial),
@@ -785,7 +785,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         // NEW: Create asset reference record (no actual file upload)
         
         // NEW: Create material instance with asset ID set
-        private Material CreateMaterialWithAssetId(JsonElement materialData, string materialType, string assetId)
+        private Material CreateMaterialWithAssetId(JsonElement materialData, string materialType, int assetId)
         {
             // Parse the basic material first
             var material = ParseMaterialFromJson(materialData);
@@ -922,7 +922,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 // Use the service method directly instead of the controller method
                 var createdMaterial = await _materialService.CreateWorkflowWithStepsAsync(workflow, steps);
                 
-                _logger.LogInformation("✅ Created workflow material {Name} with ID {Id}", 
+                _logger.LogInformation("Created workflow material {Name} with ID {Id}", 
                     createdMaterial.Name, createdMaterial.Id);
                 
                 return CreatedAtAction(nameof(GetMaterial),
@@ -952,7 +952,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                     video.Description = descProp.GetString();
                 
                 if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var assetIdProp))
-                    video.AssetId = assetIdProp.GetString();
+                    video.AssetId = assetIdProp.GetInt32();
                 
                 if (TryGetPropertyCaseInsensitive(jsonElement, "videoPath", out var pathProp))
                     video.VideoPath = pathProp.GetString();
@@ -990,7 +990,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 // Use the service method directly instead of the controller method
                 var createdMaterial = await _materialService.CreateVideoWithTimestampsAsync(video, timestamps);
                 
-                _logger.LogInformation("✅ Created video material {Name} with ID {Id}", 
+                _logger.LogInformation("Created video material {Name} with ID {Id}", 
                     createdMaterial.Name, createdMaterial.Id);
                 
                 return CreatedAtAction(nameof(GetMaterial),
@@ -1038,12 +1038,12 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                     }
                 }
                 
-                _logger.LogInformation("✅ Parsed checklist: {Name} with {EntryCount} entries", checklist.Name, entries.Count);
+                _logger.LogInformation("Parsed checklist: {Name} with {EntryCount} entries", checklist.Name, entries.Count);
                 
                 // Use the service method directly instead of the controller method
                 var createdMaterial = await _materialService.CreateChecklistWithEntriesAsync(checklist, entries);
                 
-                _logger.LogInformation("✅ Created checklist material {Name} with ID {Id}", 
+                _logger.LogInformation("Created checklist material {Name} with ID {Id}", 
                     createdMaterial.Name, createdMaterial.Id);
                 
                 return CreatedAtAction(nameof(GetMaterial),
@@ -1105,7 +1105,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 // For questionnaires, we can use the existing service method directly
                 var createdMaterial = await _materialService.CreateQuestionnaireMaterialWithEntriesAsync(questionnaire, entries);
                 
-                _logger.LogInformation("✅ Created questionnaire material {Name} with ID {Id}", 
+                _logger.LogInformation("Created questionnaire material {Name} with ID {Id}", 
                     createdMaterial.Name, createdMaterial.Id);
                 
                 return CreatedAtAction(nameof(GetMaterial),
@@ -1136,7 +1136,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 // Use the basic creation method (not the complete one)
                 var createdMaterial = await _materialService.CreateMaterialAsync(material);
                 
-                _logger.LogInformation("✅ Created basic material {Name} with ID {Id}", 
+                _logger.LogInformation("Created basic material {Name} with ID {Id}", 
                     createdMaterial.Name, createdMaterial.Id);
                 
                 return CreatedAtAction(nameof(GetMaterial),
@@ -1285,7 +1285,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                         }
                         
                         workflow.WorkflowSteps = steps;
-                        _logger.LogInformation("✅ Added {Count} workflow steps", steps.Count);
+                        _logger.LogInformation("Added {Count} workflow steps", steps.Count);
                     }
                     else
                     {
@@ -1319,7 +1319,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                             }
                         }
                         checklist.ChecklistEntries = entries;
-                        _logger.LogInformation("✅ Added {Count} checklist entries", entries.Count);
+                        _logger.LogInformation("Added {Count} checklist entries", entries.Count);
                     }
                     break;
 
@@ -1347,12 +1347,12 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                             }
                         }
                         video.VideoTimestamps = timestamps;
-                        _logger.LogInformation("✅ Added {Count} video timestamps", timestamps.Count);
+                        _logger.LogInformation("Added {Count} video timestamps", timestamps.Count);
                     }
                     
                     // Video-specific properties
                     if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var videoAssetId))
-                        video.AssetId = videoAssetId.GetString();
+                        video.AssetId = videoAssetId.GetInt32();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "videoPath", out var videoPath))
                         video.VideoPath = videoPath.GetString();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "videoDuration", out var duration))
@@ -1370,7 +1370,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
 
                 case UnityDemoMaterial unity:
                     if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var unityAssetId))
-                        unity.AssetId = unityAssetId.GetString();
+                        unity.AssetId = unityAssetId.GetInt32();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "unityVersion", out var version))
                         unity.UnityVersion = version.GetString();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "unityBuildTarget", out var buildTarget))
@@ -1381,12 +1381,12 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
 
                 case DefaultMaterial defaultMat:
                     if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var defaultAssetId))
-                        defaultMat.AssetId = defaultAssetId.GetString();
+                        defaultMat.AssetId = defaultAssetId.GetInt32();
                     break;
 
                 case ImageMaterial image:
                     if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var imageAssetId))
-                        image.AssetId = imageAssetId.GetString();
+                        image.AssetId = imageAssetId.GetInt32();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "imagePath", out var imagePath))
                         image.ImagePath = imagePath.GetString();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "imageWidth", out var width))
@@ -1399,7 +1399,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
 
                 case PDFMaterial pdf:
                     if (TryGetPropertyCaseInsensitive(jsonElement, "assetId", out var pdfAssetId))
-                        pdf.AssetId = pdfAssetId.GetString();
+                        pdf.AssetId = pdfAssetId.GetInt32();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "pdfPath", out var pdfPath))
                         pdf.PdfPath = pdfPath.GetString();
                     if (TryGetPropertyCaseInsensitive(jsonElement, "pdfPageCount", out var pageCount))
@@ -1898,7 +1898,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
 
         // GET: api/{tenantName}/materials/by-asset/asset123
         [HttpGet("by-asset/{assetId}")]
-        public async Task<ActionResult<IEnumerable<Material>>> GetMaterialsByAsset(string tenantName, string assetId)
+        public async Task<ActionResult<IEnumerable<Material>>> GetMaterialsByAsset(string tenantName, int assetId)
         {
             _logger.LogInformation("Getting materials for asset {AssetId} in tenant: {TenantName}",
                 assetId, tenantName);
@@ -1933,7 +1933,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
 
         // POST: api/{tenantName}/materials/5/assign-asset/asset123
         [HttpPost("{materialId}/assign-asset/{assetId}")]
-        public async Task<IActionResult> AssignAssetToMaterial(string tenantName, int materialId, string assetId)
+        public async Task<IActionResult> AssignAssetToMaterial(string tenantName, int materialId, int assetId)
         {
             _logger.LogInformation("Assigning asset {AssetId} to material {MaterialId} for tenant: {TenantName}",
                 assetId, materialId, tenantName);

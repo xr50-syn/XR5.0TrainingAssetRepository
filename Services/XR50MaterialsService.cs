@@ -66,7 +66,7 @@ namespace XR50TrainingAssetRepo.Services
         Task<MQTT_TemplateMaterial> UpdateMQTTTemplateAsync(int templateId, string messageType, string messageText);
         
         // Unity Demo Material Specific
-        Task<UnityDemoMaterial> UpdateUnityDemoConfigAsync(int unityId, string? version = null, string? buildTarget = null, string? sceneName = null, string? assetId = null);
+        Task<UnityDemoMaterial> UpdateUnityDemoConfigAsync(int unityId, string? version = null, string? buildTarget = null, string? sceneName = null, int? assetId = null);
         
         // Complex Material Creation (One-shot creation with child entities)
         Task<WorkflowMaterial> CreateWorkflowWithStepsAsync(WorkflowMaterial workflow, IEnumerable<WorkflowStep>? initialSteps = null);
@@ -74,10 +74,10 @@ namespace XR50TrainingAssetRepo.Services
         Task<ChecklistMaterial> CreateChecklistWithEntriesAsync(ChecklistMaterial checklist, IEnumerable<ChecklistEntry>? initialEntries = null);
         
         // Direct Asset Relationships (Many-to-One, only for certain material types)
-        Task<IEnumerable<Material>> GetMaterialsByAssetIdAsync(string assetId);
-        Task<bool> AssignAssetToMaterialAsync(int materialId, string assetId);
+        Task<IEnumerable<Material>> GetMaterialsByAssetIdAsync(int assetId);
+        Task<bool> AssignAssetToMaterialAsync(int materialId, int assetId);
         Task<bool> RemoveAssetFromMaterialAsync(int materialId);
-        Task<string?> GetMaterialAssetIdAsync(int materialId);
+        Task<int?> GetMaterialAssetIdAsync(int materialId);
         
         // Polymorphic Relationships via MaterialRelationships Table
         Task<MaterialRelationship> CreateRelationshipAsync(MaterialRelationship relationship);
@@ -203,7 +203,7 @@ namespace XR50TrainingAssetRepo.Services
                             
                             // Save all steps at once
                             await context.SaveChangesAsync();
-                            _logger.LogInformation("✅ Successfully added {Count} workflow steps to material {Id}", 
+                            _logger.LogInformation("Successfully added {Count} workflow steps to material {Id}", 
                                 workflow.WorkflowSteps.Count, material.Id);
                         }
                         else
@@ -232,7 +232,7 @@ namespace XR50TrainingAssetRepo.Services
                             }
                             
                             await context.SaveChangesAsync();
-                            _logger.LogInformation("✅ Successfully added {Count} checklist entries to material {Id}", 
+                            _logger.LogInformation("Successfully added {Count} checklist entries to material {Id}", 
                                 checklist.ChecklistEntries.Count, material.Id);
                         }
                         break;
@@ -258,7 +258,7 @@ namespace XR50TrainingAssetRepo.Services
                             }
                             
                             await context.SaveChangesAsync();
-                            _logger.LogInformation("✅ Successfully added {Count} video timestamps to material {Id}", 
+                            _logger.LogInformation("Successfully added {Count} video timestamps to material {Id}", 
                                 video.VideoTimestamps.Count, material.Id);
                         }
                         break;
@@ -283,7 +283,7 @@ namespace XR50TrainingAssetRepo.Services
                             }
                             
                             await context.SaveChangesAsync();
-                            _logger.LogInformation("✅ Successfully added {Count} questionnaire entries to material {Id}", 
+                            _logger.LogInformation("Successfully added {Count} questionnaire entries to material {Id}", 
                                 questionnaire.QuestionnaireEntries.Count, material.Id);
                         }
                         break;
@@ -296,7 +296,7 @@ namespace XR50TrainingAssetRepo.Services
                 // Commit the transaction only if everything succeeded
                 await transaction.CommitAsync();
                 
-                _logger.LogInformation("✅ Completed creation of material {Id} ({Name}) - Transaction committed", material.Id, material.Name);
+                _logger.LogInformation("Completed creation of material {Id} ({Name}) - Transaction committed", material.Id, material.Name);
                 return material;
             }
             catch (Exception ex)
@@ -1201,7 +1201,7 @@ namespace XR50TrainingAssetRepo.Services
 
         #region Unity Demo Material Specific
 
-        public async Task<UnityDemoMaterial> UpdateUnityDemoConfigAsync(int unityId, string? version = null, string? buildTarget = null, string? sceneName = null, string? assetId = null)
+        public async Task<UnityDemoMaterial> UpdateUnityDemoConfigAsync(int unityId, string? version = null, string? buildTarget = null, string? sceneName = null, int? assetId = null)
         {
             using var context = _dbContextFactory.CreateDbContext();
 
@@ -1369,7 +1369,7 @@ namespace XR50TrainingAssetRepo.Services
 
         #region Direct Asset Relationships
 
-        public async Task<IEnumerable<Material>> GetMaterialsByAssetIdAsync(string assetId)
+        public async Task<IEnumerable<Material>> GetMaterialsByAssetIdAsync(int assetId)
         {
             using var context = _dbContextFactory.CreateDbContext();
 
@@ -1383,7 +1383,7 @@ namespace XR50TrainingAssetRepo.Services
                 .ToListAsync();
         }
 
-        public async Task<bool> AssignAssetToMaterialAsync(int materialId, string assetId)
+        public async Task<bool> AssignAssetToMaterialAsync(int materialId, int assetId)
         {
             using var context = _dbContextFactory.CreateDbContext();
 
@@ -1416,31 +1416,31 @@ namespace XR50TrainingAssetRepo.Services
             return success;
         }
 
-        private bool AssignAssetToVideoMaterial(VideoMaterial video, string assetId)
+        private bool AssignAssetToVideoMaterial(VideoMaterial video, int assetId)
         {
             video.AssetId = assetId;
             return true;
         }
 
-        private bool AssignAssetToImageMaterial(ImageMaterial image, string assetId)
+        private bool AssignAssetToImageMaterial(ImageMaterial image, int assetId)
         {
             image.AssetId = assetId;
             return true;
         }
 
-        private bool AssignAssetToPDFMaterial(PDFMaterial pdf, string assetId)
+        private bool AssignAssetToPDFMaterial(PDFMaterial pdf, int assetId)
         {
             pdf.AssetId = assetId;
             return true;
         }
 
-        private bool AssignAssetToUnityMaterial(UnityDemoMaterial unity, string assetId)
+        private bool AssignAssetToUnityMaterial(UnityDemoMaterial unity, int assetId)
         {
             unity.AssetId = assetId;
             return true;
         }
 
-        private bool AssignAssetToDefaultMaterial(DefaultMaterial defaultMat, string assetId)
+        private bool AssignAssetToDefaultMaterial(DefaultMaterial defaultMat, int assetId)
         {
             defaultMat.AssetId = assetId;
             return true;
@@ -1508,7 +1508,7 @@ namespace XR50TrainingAssetRepo.Services
             return true;
         }
 
-        public async Task<string?> GetMaterialAssetIdAsync(int materialId)
+        public async Task<int?> GetMaterialAssetIdAsync(int materialId)
         {
             using var context = _dbContextFactory.CreateDbContext();
 

@@ -83,7 +83,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 context.Users.Add(user);
                 await context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Created user {UserName} in database for tenant: {TenantName}",
+                _logger.LogInformation("Created user {UserName} in database for tenant: {TenantName}",
                     user.UserName, tenantName);
 
                 // 2. Create user in OwnCloud (if using OwnCloud storage)
@@ -96,7 +96,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
                         if (owncloudCreated)
                         {
-                            _logger.LogInformation("✅ Created user {UserName} in OwnCloud for tenant: {TenantName}",
+                            _logger.LogInformation("Created user {UserName} in OwnCloud for tenant: {TenantName}",
                                 user.UserName, tenantName);
                         }
                         else
@@ -137,7 +137,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 context.Entry(user).State = EntityState.Modified;
                 await context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Updated user {UserName} in database for tenant: {TenantName}", userName, tenantName);
+                _logger.LogInformation("Updated user {UserName} in database for tenant: {TenantName}", userName, tenantName);
 
                 // 2. Update in OwnCloud (if using OwnCloud storage)
                 if (_storageService.GetStorageType() == "OwnCloud")
@@ -149,7 +149,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
                         if (owncloudUpdated)
                         {
-                            _logger.LogInformation("✅ Updated user {UserName} in OwnCloud for tenant: {TenantName}",
+                            _logger.LogInformation("Updated user {UserName} in OwnCloud for tenant: {TenantName}",
                                 userName, tenantName);
                         }
                         else
@@ -195,7 +195,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
                     if (owncloudDeleted)
                     {
-                        _logger.LogInformation("✅ Deleted user {UserName} from OwnCloud for tenant: {TenantName}",
+                        _logger.LogInformation("Deleted user {UserName} from OwnCloud for tenant: {TenantName}",
                             userName, tenantName);
                     }
                     else
@@ -217,7 +217,7 @@ namespace XR50TrainingAssetRepo.Controllers
                 context.Users.Remove(user);
                 await context.SaveChangesAsync();
 
-                _logger.LogInformation("✅ Deleted user {UserName} from database for tenant: {TenantName}", userName, tenantName);
+                _logger.LogInformation("Deleted user {UserName} from database for tenant: {TenantName}", userName, tenantName);
 
                 return NoContent();
             }

@@ -51,7 +51,7 @@ namespace XR50TrainingAssetRepo.Tests
             {
                 Name = "Test Video",
                 Description = "Test Description",
-                AssetId = "test-asset-123"
+                AssetId = 123
             };
 
             // Act
@@ -92,16 +92,16 @@ namespace XR50TrainingAssetRepo.Tests
             // Test creating all existing material types
             var materials = new List<Material>
             {
-                new VideoMaterial { Name = "Video", AssetId = "video-1" },
-                new ImageMaterial { Name = "Image", AssetId = "image-1" },
-                new PDFMaterial { Name = "PDF", AssetId = "pdf-1" },
+                new VideoMaterial { Name = "Video", AssetId = 12345 },
+                new ImageMaterial { Name = "Image", AssetId = 123456 },
+                new PDFMaterial { Name = "PDF", AssetId = 1234 },
                 new ChecklistMaterial { Name = "Checklist" },
                 new WorkflowMaterial { Name = "Workflow" },
                 new ChatbotMaterial { Name = "Chatbot", ChatbotModel = "gpt-4" },
                 new QuestionnaireMaterial { Name = "Quiz", PassingScore = 80.0m },
-                new UnityDemoMaterial { Name = "Unity Demo", AssetId = "unity-1" },
+                new UnityDemoMaterial { Name = "Unity Demo", AssetId = 12 },
                 new MQTT_TemplateMaterial { Name = "MQTT", message_type = "sensor_data" },
-                new DefaultMaterial { Name = "Default", AssetId = "default-1" }
+                new DefaultMaterial { Name = "Default", AssetId = 111 }
             };
 
             // Create all materials
@@ -374,7 +374,7 @@ namespace XR50TrainingAssetRepo.Tests
             var videoMaterial = new VideoMaterial 
             { 
                 Name = "Introduction Video", 
-                AssetId = "video-asset-123" 
+                AssetId = 15 
             };
             var checklistMaterial = new ChecklistMaterial 
             { 

@@ -58,7 +58,7 @@ namespace XR50TrainingAssetRepo.Models
     public class ImageMaterial : Material
     {
         // Image-specific properties stored in Materials table
-        public string? AssetId { get; set; }
+        public int? AssetId { get; set; }
         public string? ImagePath { get; set; }
         public int? ImageWidth { get; set; }
         public int? ImageHeight { get; set; }
@@ -73,7 +73,7 @@ namespace XR50TrainingAssetRepo.Models
     public class VideoMaterial : Material
     {
         // Video-specific properties stored in Materials table
-        public string? AssetId { get; set; }
+        public int? AssetId { get; set; }
         public string? VideoPath { get; set; }
         public int? VideoDuration { get; set; }  // Duration in seconds
         public string? VideoResolution { get; set; }  // e.g., "1920x1080"
@@ -115,7 +115,7 @@ namespace XR50TrainingAssetRepo.Models
     public class PDFMaterial : Material
     {
         // PDF-specific properties stored in Materials table
-        public string? AssetId { get; set; }
+        public int? AssetId { get; set; }
         public string? PdfPath { get; set; }
         public int? PdfPageCount { get; set; }
         public long? PdfFileSize { get; set; }  // File size in bytes
@@ -129,7 +129,7 @@ namespace XR50TrainingAssetRepo.Models
     public class UnityDemoMaterial : Material
     {
         // Unity-specific properties stored in Materials table
-        public string? AssetId { get; set; }
+        public int? AssetId { get; set; }
         public string? UnityVersion { get; set; }
         public string? UnityBuildTarget { get; set; }  // e.g., "WebGL", "Windows", "Android"
         public string? UnitySceneName { get; set; }
@@ -173,7 +173,7 @@ namespace XR50TrainingAssetRepo.Models
     public class DefaultMaterial : Material
     {
         // Generic material with asset support
-        public string? AssetId { get; set; }
+        public int? AssetId { get; set; }
         
         public DefaultMaterial()
         {

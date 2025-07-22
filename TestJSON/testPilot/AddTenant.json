@@ -5,7 +5,7 @@
   "storageType": "OwnCloud",
   "ownCloudConfig": {
     "tenantDirectory": "mduino",
-    "endpoint": "http://owncloud:8080"
+    "endpoint": "http://192.168.190.33:8080"
   },
   "owner": {
     "userName": "pilot5_tech_lead",

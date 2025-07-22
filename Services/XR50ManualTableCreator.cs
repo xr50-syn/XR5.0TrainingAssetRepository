@@ -287,7 +287,7 @@ namespace XR50TrainingAssetRepo.Services
             `message_text` text DEFAULT NULL,
             
             -- Asset-based materials (Video, Image, Unity, Default, PDF)
-            `AssetId` varchar(255) DEFAULT NULL,
+            `AssetId` int DEFAULT NULL,
             
             -- Video-specific columns
             `VideoPath` varchar(500) DEFAULT NULL,

@@ -270,7 +270,7 @@ namespace XR50TrainingAssetRepo.Services
                 return new List<Material>();
             }
 
-            return await _materialService.GetMaterialsByAssetIdAsync(assetId.ToString());
+            return await _materialService.GetMaterialsByAssetIdAsync(assetId);
         }
 
         public async Task<int> GetAssetUsageCountAsync(int assetId)

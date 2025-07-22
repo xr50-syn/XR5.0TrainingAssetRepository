@@ -81,7 +81,7 @@ namespace XR50TrainingAssetRepo.Models.DTOs
         public string MaterialType { get; set; } = "Default"; // Video, Image, Checklist, etc.
 
         // Type-specific properties (only set what's needed based on MaterialType)
-        public string? AssetId { get; set; }
+        public int? AssetId { get; set; }
         public string? VideoPath { get; set; }
         public int? VideoDuration { get; set; }
         public string? VideoResolution { get; set; }
@@ -120,7 +120,7 @@ namespace XR50TrainingAssetRepo.Models.DTOs
         public DateTime? Updated_at { get; set; }
 
         // Asset information (if applicable)
-        public string? AssetId { get; set; }
+        public int? AssetId { get; set; }
 
         // Type-specific properties (populated based on material type)
         public Dictionary<string, object?> TypeSpecificProperties { get; set; } = new();
