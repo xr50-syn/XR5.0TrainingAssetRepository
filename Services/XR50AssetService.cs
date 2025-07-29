@@ -124,10 +124,10 @@ namespace XR50TrainingAssetRepo.Services
             {
                 // Upload file to storage first
                 using var stream = file.OpenReadStream();
-                var uploadResult = await _storageService.UploadFileAsync(tenantName, asset.Filename, stream, file.ContentType);
+                var uploadUrl = await _storageService.UploadFileAsync(tenantName, asset.Filename, file);
                 
                 // Update asset with storage URL
-                asset.Src = uploadResult;
+                asset.Src = uploadUrl;
                 
                 // Save to database
                 context.Assets.Add(asset);
@@ -318,7 +318,7 @@ namespace XR50TrainingAssetRepo.Services
 
                 // Upload file to storage
                 using var stream = file.OpenReadStream();
-                var uploadResult = await _storageService.UploadFileAsync(tenantName, filename, stream, file.ContentType);
+                var uploadResult = await _storageService.UploadFileAsync(tenantName, filename, file);
 
                 // Create asset record
                 var asset = new Asset

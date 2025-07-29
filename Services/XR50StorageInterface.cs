@@ -13,7 +13,7 @@ namespace XR50TrainingAssetRepo.Services
         Task<bool> TenantStorageExistsAsync(string tenantName);
 
         // File Operations
-        Task<string> UploadFileAsync(string tenantName, string fileName, Stream fileStream, string contentType = "application/octet-stream");
+        Task<string> UploadFileAsync(string tenantName, string fileName, IFormFile file);
         Task<Stream> DownloadFileAsync(string tenantName, string fileName);
         Task<string> GetDownloadUrlAsync(string tenantName, string fileName, TimeSpan? expiration = null);
         Task<bool> DeleteFileAsync(string tenantName, string fileName);

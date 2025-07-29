@@ -141,13 +141,18 @@ namespace XR50TrainingAssetRepo.Services
             using var connection = new MySqlConnection(baseConnectionString);
             await connection.OpenAsync();
 
-            // Ensure the registry table exists in central database
+            // FIXED: CREATE TABLE with S3 columns
             var createRegistryTableCommand = new MySqlCommand(@"
                 CREATE TABLE IF NOT EXISTS `XR50TenantRegistry` (
                     `TenantName` varchar(100) NOT NULL PRIMARY KEY,
                     `TenantGroup` varchar(100) NULL,
                     `Description` varchar(500) NULL,
+                    `StorageType` varchar(50) NOT NULL DEFAULT 'OwnCloud',
                     `TenantDirectory` varchar(500) NULL,
+                    `S3BucketName` varchar(255) NULL,
+                    `S3BucketRegion` varchar(50) NULL,
+                    `S3BucketArn` varchar(255) NULL,
+                    `StorageEndpoint` varchar(255) NULL,
                     `OwnerName` varchar(255) NULL,
                     `DatabaseName` varchar(100) NOT NULL,
                     `CreatedAt` datetime NOT NULL,
@@ -155,34 +160,57 @@ namespace XR50TrainingAssetRepo.Services
                 )", connection);
             await createRegistryTableCommand.ExecuteNonQueryAsync();
 
-            // Insert tenant metadata
+            // FIXED: INSERT with S3 fields
             var insertCommand = new MySqlCommand(@"
                 INSERT INTO `XR50TenantRegistry` 
-                    (`TenantName`, `TenantGroup`, `Description`, `TenantDirectory`, `OwnerName`, `DatabaseName`, `CreatedAt`, `IsActive`)
+                    (`TenantName`, `TenantGroup`, `Description`, `StorageType`, `TenantDirectory`, 
+                    `S3BucketName`, `S3BucketRegion`, `S3BucketArn`, `StorageEndpoint`, 
+                    `OwnerName`, `DatabaseName`, `CreatedAt`, `IsActive`)
                 VALUES 
-                    (@tenantName, @tenantGroup, @description, @tenantDirectory, @ownerName, @databaseName, @createdAt, 1)
+                    (@tenantName, @tenantGroup, @description, @storageType, @tenantDirectory,
+                    @s3BucketName, @s3BucketRegion, @s3BucketArn, @storageEndpoint,
+                    @ownerName, @databaseName, @createdAt, 1)
                 ON DUPLICATE KEY UPDATE
                     `TenantGroup` = @tenantGroup,
                     `Description` = @description,
+                    `StorageType` = @storageType,
                     `TenantDirectory` = @tenantDirectory,
+                    `S3BucketName` = @s3BucketName,
+                    `S3BucketRegion` = @s3BucketRegion,
+                    `S3BucketArn` = @s3BucketArn,
+                    `StorageEndpoint` = @storageEndpoint,
                     `OwnerName` = @ownerName,
                     `DatabaseName` = @databaseName", connection);
 
+            // FIXED: Parameters with S3 fields
             insertCommand.Parameters.AddWithValue("@tenantName", tenant.TenantName ?? "");
             insertCommand.Parameters.AddWithValue("@tenantGroup", tenant.TenantGroup ?? "");
             insertCommand.Parameters.AddWithValue("@description", tenant.Description ?? "");
-            insertCommand.Parameters.AddWithValue("@tenantDirectory", tenant.TenantDirectory ?? "");
-            insertCommand.Parameters.AddWithValue("@ownerName", tenant.Owner.UserName ?? "");
+            insertCommand.Parameters.AddWithValue("@storageType", tenant.StorageType ?? "OwnCloud");
+            insertCommand.Parameters.AddWithValue("@tenantDirectory", tenant.TenantDirectory ?? (object)DBNull.Value);
+            insertCommand.Parameters.AddWithValue("@s3BucketName", tenant.S3BucketName ?? (object)DBNull.Value);
+            insertCommand.Parameters.AddWithValue("@s3BucketRegion", tenant.S3BucketRegion ?? (object)DBNull.Value);
+            insertCommand.Parameters.AddWithValue("@s3BucketArn", tenant.S3BucketArn ?? (object)DBNull.Value);
+            insertCommand.Parameters.AddWithValue("@storageEndpoint", tenant.StorageEndpoint ?? (object)DBNull.Value);
+            
+            // Handle owner name properly
+            string ownerName = "";
+            if (tenant.Owner != null && !string.IsNullOrEmpty(tenant.Owner.UserName))
+            {
+                ownerName = tenant.Owner.UserName;
+                await CreateOwnerUserInTenantDatabase(tenant.Owner, tenantDbName);
+            }
+            else if (!string.IsNullOrEmpty(tenant.OwnerName))
+            {
+                ownerName = tenant.OwnerName;
+                await CreateOwnerUserInTenantDatabase(tenant.Owner, tenantDbName);
+            }
+            insertCommand.Parameters.AddWithValue("@ownerName", ownerName);
+            
             insertCommand.Parameters.AddWithValue("@databaseName", tenantDbName);
             insertCommand.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
 
             await insertCommand.ExecuteNonQueryAsync();
-
-            // Store owner user in the tenant database (if owner info provided)
-            if (tenant.Owner != null)
-            {
-                await CreateOwnerUserInTenantDatabase(tenant.Owner, tenantDbName);
-            }
         }
 
         private async Task CreateOwnerUserInTenantDatabase(User owner, string tenantDbName)

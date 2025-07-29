@@ -101,7 +101,7 @@ namespace XR50TrainingAssetRepo.Controllers
                         }
                         else
                         {
-                            _logger.LogWarning("❌ Failed to create user {UserName} in OwnCloud for tenant: {TenantName}",
+                            _logger.LogWarning(" Failed to create user {UserName} in OwnCloud for tenant: {TenantName}",
                                 user.UserName, tenantName);
                             // For research prototype, don't fail the entire operation
                         }
@@ -154,7 +154,7 @@ namespace XR50TrainingAssetRepo.Controllers
                         }
                         else
                         {
-                            _logger.LogWarning("❌ Failed to update user {UserName} in OwnCloud for tenant: {TenantName}",
+                            _logger.LogWarning(" Failed to update user {UserName} in OwnCloud for tenant: {TenantName}",
                                 userName, tenantName);
                         }
                     }
@@ -200,7 +200,7 @@ namespace XR50TrainingAssetRepo.Controllers
                     }
                     else
                     {
-                        _logger.LogWarning("❌ Failed to delete user {UserName} from OwnCloud for tenant: {TenantName}",
+                        _logger.LogWarning(" Failed to delete user {UserName} from OwnCloud for tenant: {TenantName}",
                             userName, tenantName);
                         // Continue with database deletion anyway
                     }

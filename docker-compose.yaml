@@ -51,7 +51,8 @@ services:
       dockerfile: Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      
+      StorageType: ${STORAGE_TYPE:-OwnCloud}
+      STORAGE_TYPE: ${STORAGE_TYPE}
       # Database Configuration
       XR50_REPO_DB_USER: ${XR50_REPO_DB_USER}
       XR50_REPO_DB_PASSWORD: ${XR50_REPO_DB_PASSWORD}
@@ -59,8 +60,6 @@ services:
       ConnectionStrings__DefaultConnection: server=mariadb;port=3306;database=${XR50_REPO_DB_NAME};user=${XR50_REPO_DB_USER};password=${XR50_REPO_DB_PASSWORD};
       BaseDatabaseName: ${XR50_REPO_DB_NAME}
       
-      # Storage Configuration - determines which storage to use
-      Storage__Type: ${STORAGE_TYPE:-OwnCloud}  # "S3", "OwnCloud", "MinIO"
       
       # S3 Configuration (used when STORAGE_TYPE=S3)
       S3Settings__ServiceUrl: ${AWS_HOST:-}
@@ -68,7 +67,7 @@ services:
       S3Settings__SecretKey: ${AWS_SECRET_ACCESS_KEY:-}
       S3Settings__Region: ${AWS_REGION:-eu-west-1}
       S3Settings__BaseBucketPrefix: ${S3_BASE_BUCKET_PREFIX:-xr50}
-      S3Settings__ForcePathStyle: ${S3_FORCE_PATH_STYLE:-false}
+      S3Settings__ForcePathStyle: ${S3_FORCE_PATH_STYLE:-true}
       
       # MinIO Configuration (used when STORAGE_TYPE=MinIO)
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}

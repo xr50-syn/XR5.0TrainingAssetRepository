@@ -304,7 +304,7 @@ namespace XR50TrainingAssetRepo.Services
                 // Rollback the transaction on any error
                 await transaction.RollbackAsync();
                 
-                _logger.LogError(ex, "❌ Failed to create material {Name} - Transaction rolled back", material.Name);
+                _logger.LogError(ex, " Failed to create material {Name} - Transaction rolled back", material.Name);
                 throw;
             }
         }

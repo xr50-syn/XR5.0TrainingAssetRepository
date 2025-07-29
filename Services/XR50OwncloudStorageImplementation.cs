@@ -7,18 +7,18 @@ namespace XR50TrainingAssetRepo.Services
 {
     public class OwnCloudStorageServiceImplementation : IStorageService
     {
-        private readonly IXR50TenantManagementService _tenantService;
+        private readonly IXR50TenantManagementService _tenantManagementService;
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly ILogger<OwnCloudStorageServiceImplementation> _logger;
 
         public OwnCloudStorageServiceImplementation(
-            IXR50TenantManagementService tenantService,
+            IXR50TenantManagementService tenantManagementService,
             IConfiguration configuration,
             HttpClient httpClient,
             ILogger<OwnCloudStorageServiceImplementation> logger)
         {
-            _tenantService = tenantService;
+            _tenantManagementService = tenantManagementService;
             _configuration = configuration;
             _httpClient = httpClient;
             _logger = logger;
@@ -108,45 +108,64 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        public async Task<string> UploadFileAsync(string tenantName, string fileName, Stream fileStream, string contentType = "application/octet-stream")
+        // In OwnCloudStorageServiceImplementation.cs
+
+        public async Task<string> UploadFileAsync(string tenantName, string fileName, IFormFile file)
         {
             try
             {
-                _logger.LogInformation("Uploading file to OwnCloud: {TenantName}/{FileName}", tenantName, fileName);
+                _logger.LogInformation("Uploading file to OwnCloud: {TenantName}/{FileName}, Size: {Size} bytes", 
+                    tenantName, fileName, file.Length);
 
-                // Fetch tenant information to get owner credentials
+                // Get tenant info to determine directory and credentials
                 var tenant = await GetTenantWithOwner(tenantName);
-                var ownerUser = tenant.Owner;
-                // Create temp file for upload
-                string tempFileName = Path.GetTempFileName();
 
-                try
+                if (tenant == null || !tenant.IsOwnCloudStorage())
                 {
-                    using (var fileWriteStream = File.Create(tempFileName))
-                    {
-                        await fileStream.CopyToAsync(fileWriteStream);
-                    }
-
-                    // FIXED: Pass tenant owner credentials
-                    string dirl = System.Web.HttpUtility.UrlEncode(tenant.TenantDirectory); // Only encode directory
-                    var success = await ExecuteWebDAVAsUser("PUT", $"{dirl}/{fileName}", tempFileName, ownerUser);
-
-                    if (success)
-                    {
-                        var url = $"/owncloud/{tenantName}/{fileName}";
-                        _logger.LogInformation("Successfully uploaded file to OwnCloud: {Url}", url);
-                        return url;
-                    }
-
-                    throw new InvalidOperationException("File upload failed");
+                    throw new InvalidOperationException($"Tenant '{tenantName}' not found or not configured for OwnCloud storage");
                 }
-                finally
+
+                // Construct WebDAV URL
+                var webdavBase = _configuration.GetValue<string>("TenantSettings:BaseWebDAV");
+                var tenantDirectory = tenant.TenantDirectory;
+                var fileUrl = $"{webdavBase}/{tenantDirectory}/{fileName}";
+                var ownerUser = tenant.Owner;
+                // Get credentials (could be tenant owner or admin)
+                var username = tenant.Owner?.UserName ?? _configuration.GetValue<string>("TenantSettings:Admin");
+                var password = tenant.Owner?.Password ?? _configuration.GetValue<string>("TenantSettings:Password");
+
+                // Create clean byte array from IFormFile
+                byte[] fileBytes;
+                using (var sourceStream = file.OpenReadStream())
                 {
-                    // Clean up temp file
-                    if (File.Exists(tempFileName))
-                    {
-                        File.Delete(tempFileName);
-                    }
+                    using var ms = new MemoryStream();
+                    await sourceStream.CopyToAsync(ms);
+                    fileBytes = ms.ToArray();
+                }
+
+                // Create WebDAV PUT request
+                var request = new HttpRequestMessage(HttpMethod.Put, fileUrl);
+                request.Content = new ByteArrayContent(fileBytes);
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+                
+                // Add basic authentication
+                var authBytes = Encoding.UTF8.GetBytes($"{username}:{password}");
+                var base64Auth = Convert.ToBase64String(authBytes);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", base64Auth);
+
+                // Send the request
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var owncloudUrl = $"owncloud://{tenantDirectory}/{fileName}";
+                    _logger.LogInformation("Successfully uploaded file to OwnCloud: {Url}", owncloudUrl);
+                    return owncloudUrl;
+                }
+                else
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new InvalidOperationException($"OwnCloud upload failed with status {response.StatusCode}: {errorContent}");
                 }
             }
             catch (Exception ex)
@@ -155,7 +174,6 @@ namespace XR50TrainingAssetRepo.Services
                 throw;
             }
         }
-
         public async Task<Stream> DownloadFileAsync(string tenantName, string fileName)
         {
             try
@@ -447,13 +465,13 @@ namespace XR50TrainingAssetRepo.Services
 
         private async Task<XR50Tenant> GetTenantWithOwner(string tenantName)
         {
-            var tenant = await _tenantService.GetTenantAsync(tenantName);
+            var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
             
             // Try to fetch owner explicitly if not populated
             if (tenant?.Owner == null && !string.IsNullOrEmpty(tenant?.OwnerName) && !string.IsNullOrEmpty(tenant?.TenantSchema))
             {
                 _logger.LogWarning("Tenant owner not populated, fetching explicitly for tenant: {TenantName}", tenantName);
-                tenant.Owner = await _tenantService.GetOwnerUserAsync(tenant.OwnerName, tenant.TenantSchema);
+                tenant.Owner = await _tenantManagementService.GetOwnerUserAsync(tenant.OwnerName, tenant.TenantSchema);
             }
 
             if (tenant?.Owner == null)

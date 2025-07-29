@@ -92,8 +92,12 @@ builder.Services.Configure<KestrelServerOptions>(options =>
         options.ClientCertificateMode = ClientCertificateMode.RequireCertificate);
 });*/
 //builder.Services.AddSwaggerGen();
-var storageType = builder.Configuration.GetValue<string>("Storage:Type") ?? "OwnCloud";
-
+var storageType = builder.Configuration.GetValue<string>("Storage__Type") ?? 
+                  Environment.GetEnvironmentVariable("STORAGE_TYPE") ?? 
+                  "OwnCloud";
+Console.WriteLine($"🔧 Detected storage type: {storageType}");
+Console.WriteLine($"🔧 Environment STORAGE_TYPE: {Environment.GetEnvironmentVariable("STORAGE_TYPE")}");
+Console.WriteLine($"🔧 Config Storage__Type: {builder.Configuration.GetValue<string>("Storage__Type")}");
 if (storageType.Equals("S3", StringComparison.OrdinalIgnoreCase))
 {
     // Configure S3 Storage
@@ -109,7 +113,10 @@ if (storageType.Equals("S3", StringComparison.OrdinalIgnoreCase))
             ServiceURL = s3Settings["ServiceUrl"],
             ForcePathStyle = bool.Parse(s3Settings["ForcePathStyle"] ?? "true"),
             UseHttp = s3Settings["ServiceUrl"]?.StartsWith("http://") == true,
-            RegionEndpoint = RegionEndpoint.GetBySystemName(s3Settings["Region"] ?? "us-east-1")
+            RegionEndpoint = RegionEndpoint.GetBySystemName(s3Settings["Region"] ?? "us-east-1"),
+            UseAccelerateEndpoint = false,
+            UseDualstackEndpoint = false,
+            DisableLogging = false
         };
 
         // For custom S3-compatible endpoints

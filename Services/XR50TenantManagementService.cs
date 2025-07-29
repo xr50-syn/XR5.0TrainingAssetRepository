@@ -52,32 +52,38 @@ namespace XR50TrainingAssetRepo.Services
             _migrationService = migrationService;
             _logger = logger;
             }
-
         public async Task<IEnumerable<XR50Tenant>> GetAllTenantsAsync()
         {
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
 
-            //  Auto-create registry table if it doesn't exist
+            // FIXED: CREATE TABLE with S3 columns (same as above)
             var createTableSql = @"
                 CREATE TABLE IF NOT EXISTS `XR50TenantRegistry` (
-                `TenantName` varchar(100) NOT NULL PRIMARY KEY,
-                `TenantGroup` varchar(100) NULL,
-                `Description` varchar(500) NULL,
-                `TenantDirectory` varchar(500) NULL,
-                `OwnerName` varchar(255) NULL,
-                `DatabaseName` varchar(100) NOT NULL,
-                `CreatedAt` datetime NOT NULL,
-                `IsActive` boolean NOT NULL DEFAULT 1
-            )";
+                    `TenantName` varchar(100) NOT NULL PRIMARY KEY,
+                    `TenantGroup` varchar(100) NULL,
+                    `Description` varchar(500) NULL,
+                    `StorageType` varchar(50) NOT NULL DEFAULT 'OwnCloud',
+                    `TenantDirectory` varchar(500) NULL,
+                    `S3BucketName` varchar(255) NULL,
+                    `S3BucketRegion` varchar(50) NULL,
+                    `S3BucketArn` varchar(255) NULL,
+                    `StorageEndpoint` varchar(255) NULL,
+                    `OwnerName` varchar(255) NULL,
+                    `DatabaseName` varchar(100) NOT NULL,
+                    `CreatedAt` datetime NOT NULL,
+                    `IsActive` boolean NOT NULL DEFAULT 1
+                )";
 
             using var createCommand = new MySqlCommand(createTableSql, connection);
             await createCommand.ExecuteNonQueryAsync();
 
+            // FIXED: SELECT with S3 fields
             var sql = @"
-                SELECT TenantName, TenantGroup, Description, TenantDirectory, OwnerName, DatabaseName,
-                       CreatedAt, IsActive
+                SELECT TenantName, TenantGroup, Description, StorageType, TenantDirectory,
+                    S3BucketName, S3BucketRegion, S3BucketArn, StorageEndpoint,
+                    OwnerName, DatabaseName, CreatedAt, IsActive
                 FROM XR50TenantRegistry 
                 WHERE IsActive = 1 
                 ORDER BY CreatedAt DESC";
@@ -88,19 +94,28 @@ namespace XR50TrainingAssetRepo.Services
             var results = new List<XR50Tenant>();
             while (await reader.ReadAsync())
             {
+                // FIXED: Map S3 fields from database
                 results.Add(new XR50Tenant
                 {
-                    TenantName = reader["TenantName"]?.ToString(),
+                    TenantName = reader["TenantName"]?.ToString() ?? "",
                     TenantGroup = reader["TenantGroup"]?.ToString(),
                     Description = reader["Description"]?.ToString(),
+                    StorageType = reader["StorageType"]?.ToString() ?? "OwnCloud",
                     TenantDirectory = reader["TenantDirectory"]?.ToString(),
+                    S3BucketName = reader["S3BucketName"]?.ToString(),
+                    S3BucketRegion = reader["S3BucketRegion"]?.ToString(),
+                    S3BucketArn = reader["S3BucketArn"]?.ToString(),
+                    StorageEndpoint = reader["StorageEndpoint"]?.ToString(),
                     OwnerName = reader["OwnerName"]?.ToString(),
-                    TenantSchema = reader["DatabaseName"]?.ToString()
+                    TenantSchema = reader["DatabaseName"]?.ToString(),
+                    CreatedAt = reader["CreatedAt"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedAt"]) : DateTime.UtcNow
                 });
             }
 
             return results;
         }
+
+        // ===== FIX 3: XR50TenantManagementService.GetTenantAsync =====
 
         public async Task<XR50Tenant> GetTenantAsync(string tenantName)
         {
@@ -108,39 +123,40 @@ namespace XR50TrainingAssetRepo.Services
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
             
+            // FIXED: SELECT with S3 fields
             var sql = @"
-                SELECT TenantName, TenantGroup, Description, TenantDirectory, OwnerName, DatabaseName,
-                    CreatedAt, IsActive
+                SELECT TenantName, TenantGroup, Description, StorageType, TenantDirectory,
+                    S3BucketName, S3BucketRegion, S3BucketArn, StorageEndpoint,
+                    OwnerName, DatabaseName, CreatedAt, IsActive
                 FROM XR50TenantRegistry 
                 WHERE TenantName = @tenantName AND IsActive = 1";
-            
+
             using var command = new MySqlCommand(sql, connection);
             command.Parameters.AddWithValue("@tenantName", tenantName);
             
             using var reader = await command.ExecuteReaderAsync();
             
-            if (!await reader.ReadAsync()) return null;
-            
-            var tenant = new XR50Tenant
+            if (await reader.ReadAsync())
             {
-                TenantName = reader["TenantName"]?.ToString(),
-                TenantGroup = reader["TenantGroup"]?.ToString(),
-                Description = reader["Description"]?.ToString(),
-                TenantDirectory = reader["TenantDirectory"]?.ToString(),
-                OwnerName = reader["OwnerName"]?.ToString(),
-                TenantSchema = reader["DatabaseName"]?.ToString()
-            };
-
-            // Close the reader before making another database call
-            reader.Close();
-
-            // Now fetch the owner user data from the tenant database
-            if (!string.IsNullOrEmpty(tenant.OwnerName) && !string.IsNullOrEmpty(tenant.TenantSchema))
-            {
-                tenant.Owner = await GetOwnerUserAsync(tenant.OwnerName, tenant.TenantSchema);
+                // FIXED: Map S3 fields from database
+                return new XR50Tenant
+                {
+                    TenantName = reader["TenantName"]?.ToString() ?? "",
+                    TenantGroup = reader["TenantGroup"]?.ToString(),
+                    Description = reader["Description"]?.ToString(),
+                    StorageType = reader["StorageType"]?.ToString() ?? "OwnCloud",
+                    TenantDirectory = reader["TenantDirectory"]?.ToString(),
+                    S3BucketName = reader["S3BucketName"]?.ToString(),
+                    S3BucketRegion = reader["S3BucketRegion"]?.ToString(),
+                    S3BucketArn = reader["S3BucketArn"]?.ToString(),
+                    StorageEndpoint = reader["StorageEndpoint"]?.ToString(),
+                    OwnerName = reader["OwnerName"]?.ToString(),
+                    TenantSchema = reader["DatabaseName"]?.ToString(),
+                    CreatedAt = reader["CreatedAt"] != DBNull.Value ? Convert.ToDateTime(reader["CreatedAt"]) : DateTime.UtcNow
+                };
             }
 
-            return tenant;
+            throw new ArgumentException($"Tenant '{tenantName}' not found");
         }
 
         public async Task<User> GetOwnerUserAsync(string ownerName, string tenantDatabaseName)
@@ -213,11 +229,17 @@ namespace XR50TrainingAssetRepo.Services
             using var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
 
+            // FIXED: UPDATE with S3 fields
             var sql = @"
                 UPDATE XR50TenantRegistry 
                 SET TenantGroup = @tenantGroup,
                     Description = @description,
+                    StorageType = @storageType,
                     TenantDirectory = @tenantDirectory,
+                    S3BucketName = @s3BucketName,
+                    S3BucketRegion = @s3BucketRegion,
+                    S3BucketArn = @s3BucketArn,
+                    StorageEndpoint = @storageEndpoint,
                     OwnerName = @ownerName
                 WHERE TenantName = @tenantName AND IsActive = 1";
 
@@ -225,8 +247,13 @@ namespace XR50TrainingAssetRepo.Services
             command.Parameters.AddWithValue("@tenantName", tenantName);
             command.Parameters.AddWithValue("@tenantGroup", tenant.TenantGroup ?? "");
             command.Parameters.AddWithValue("@description", tenant.Description ?? "");
-            command.Parameters.AddWithValue("@tenantDirectory", tenant.TenantDirectory ?? "");
-            command.Parameters.AddWithValue("@ownerName", tenant.Owner.UserName ?? "");
+            command.Parameters.AddWithValue("@storageType", tenant.StorageType ?? "OwnCloud");
+            command.Parameters.AddWithValue("@tenantDirectory", tenant.TenantDirectory ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@s3BucketName", tenant.S3BucketName ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@s3BucketRegion", tenant.S3BucketRegion ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@s3BucketArn", tenant.S3BucketArn ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@storageEndpoint", tenant.StorageEndpoint ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@ownerName", tenant.Owner?.UserName ?? tenant.OwnerName ?? "");
 
             await command.ExecuteNonQueryAsync();
 
@@ -277,7 +304,7 @@ namespace XR50TrainingAssetRepo.Services
                 using var command = new MySqlCommand(sql, connection);
                 command.Parameters.AddWithValue("@tenantName", tenantName);
                 await command.ExecuteNonQueryAsync();
-                await DeleteTenantStorageAsync(tenantName);
+                //await DeleteTenantStorageAsync(tenantName);
                 _logger.LogInformation("Completely deleted tenant {TenantName} (database and registry entry)", tenantName);
             }
             catch (Exception ex)
@@ -287,6 +314,14 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
         public async Task CreateTenantStorageAsync(XR50Tenant tenant) {
+
+            // Check storage type and only do OwnCloud operations for OwnCloud tenants
+            if (!tenant.IsOwnCloudStorage())
+            {
+                _logger.LogInformation("Tenant {TenantName} uses {StorageType} storage, skipping OwnCloud user/group creation", 
+                    tenant.TenantName, tenant.StorageType);
+                return; // Skip all OwnCloud operations for non-OwnCloud tenants
+            }
             var values = new List<KeyValuePair<string, string>>();
             values.Add(new KeyValuePair<string, string>("groupid", tenant.TenantGroup));
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
@@ -363,7 +398,7 @@ namespace XR50TrainingAssetRepo.Services
                 Console.WriteLine($"Did not find Tenant with name: {tenantName}");
                 return;
             }
-            User adminUser = tenant.Owner;
+            User adminUser = await GetOwnerUserAsync(tenant.OwnerName,tenant.TenantSchema);
             var values = new List<KeyValuePair<string, string>>();
             FormUrlEncodedContent messageContent = new FormUrlEncodedContent(values);
             string username = _configuration.GetValue<string>("TenantSettings:Admin");

@@ -532,7 +532,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating detailed material with asset for tenant: {TenantName}", tenantName);
+                _logger.LogError(ex, " Error creating detailed material with asset for tenant: {TenantName}", tenantName);
                 return StatusCode(500, $"Error creating material: {ex.Message}");
             }
         }
@@ -656,7 +656,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error in CreateMaterialWithAsset");
+                _logger.LogError(ex, " Error in CreateMaterialWithAsset");
                 return StatusCode(500, $"Error creating material with asset: {ex.Message}");
             }
         }
@@ -861,7 +861,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating detailed material for tenant: {TenantName}", tenantName);
+                _logger.LogError(ex, " Error creating detailed material for tenant: {TenantName}", tenantName);
                 return StatusCode(500, $"Error creating material: {ex.Message}");
             }
         }
@@ -931,7 +931,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating workflow from JSON");
+                _logger.LogError(ex, " Error creating workflow from JSON");
                 throw;
             }
         }
@@ -999,7 +999,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating video from JSON");
+                _logger.LogError(ex, " Error creating video from JSON");
                 throw;
             }
         }
@@ -1052,7 +1052,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating checklist from JSON");
+                _logger.LogError(ex, " Error creating checklist from JSON");
                 throw;
             }
         }
@@ -1114,7 +1114,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating questionnaire from JSON");
+                _logger.LogError(ex, " Error creating questionnaire from JSON");
                 throw;
             }
         }
@@ -1145,7 +1145,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error creating basic material from JSON");
+                _logger.LogError(ex, " Error creating basic material from JSON");
                 throw;
             }
         }
