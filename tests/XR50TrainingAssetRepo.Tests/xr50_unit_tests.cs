@@ -277,7 +277,7 @@ namespace XR50TrainingAssetRepo.Tests
             _mockLogger = new Mock<ILogger<TrainingProgramService>>();
             
             _mockDbContextFactory.Setup(x => x.CreateDbContext()).Returns(_context);
-            _trainingProgramService = new TrainingProgramService(_mockDbContextFactory.Object, _mockLogger.Object);
+            _trainingProgramService = new TrainingProgramService( _mockDbContextFactory.Object, _mockLogger.Object);
         }
 
         [Fact]

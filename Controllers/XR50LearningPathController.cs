@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using XR50TrainingAssetRepo.Models;
+using XR50TrainingAssetRepo.Models.DTOs;
 using XR50TrainingAssetRepo.Data;
 using XR50TrainingAssetRepo.Services;
 
@@ -186,12 +187,12 @@ namespace XR50TrainingAssetRepo.Controllers
         /// </summary>
         [HttpGet("{learningPathId}/materials")]
         public async Task<ActionResult<IEnumerable<Material>>> GetLearningPathMaterials(
-            string tenantName, 
+            string tenantName,
             int learningPathId,
             [FromQuery] bool includeOrder = true,
             [FromQuery] string? relationshipType = null)
         {
-            _logger.LogInformation("📚 Getting materials for learning path {LearningPathId} for tenant: {TenantName}", 
+            _logger.LogInformation("📚 Getting materials for learning path {LearningPathId} for tenant: {TenantName}",
                 learningPathId, tenantName);
 
             // Verify learning path exists
@@ -203,7 +204,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             var materials = await _materialService.GetMaterialsByLearningPathAsync(learningPathId, includeOrder);
 
-            _logger.LogInformation("Found {Count} materials for learning path {LearningPathId} for tenant: {TenantName}", 
+            _logger.LogInformation("Found {Count} materials for learning path {LearningPathId} for tenant: {TenantName}",
                 materials.Count(), learningPathId, tenantName);
 
             return Ok(materials);
@@ -300,42 +301,225 @@ namespace XR50TrainingAssetRepo.Controllers
         /// <summary>
         /// Bulk assign materials to this learning path
         /// </summary>
-      /*  [HttpPost("{learningPathId}/bulk-assign-materials")]
-        public async Task<ActionResult<BulkAssignmentResult>> BulkAssignMaterialsToLearningPath(
+        /*  [HttpPost("{learningPathId}/bulk-assign-materials")]
+          public async Task<ActionResult<BulkAssignmentResult>> BulkAssignMaterialsToLearningPath(
+              string tenantName,
+              int learningPathId,
+              [FromBody] IEnumerable<BulkMaterialAssignment> assignments)
+          {
+              _logger.LogInformation("Bulk assigning {Count} materials to learning path {LearningPathId} for tenant: {TenantName}",
+                  assignments.Count(), learningPathId, tenantName);
+
+              var result = new BulkAssignmentResult();
+
+              foreach (var assignment in assignments)
+              {
+                  try
+                  {
+                      var relationshipId = await _materialService.AssignMaterialToLearningPathAsync(
+                          assignment.MaterialId,
+                          learningPathId,
+                          assignment.RelationshipType ?? "contains",
+                          assignment.DisplayOrder);
+
+                      result.SuccessfulAssignments++;
+                  }
+                  catch (Exception ex)
+                  {
+                      result.FailedAssignments++;
+                      result.Errors.Add($"Error assigning material {assignment.MaterialId}: {ex.Message}");
+                  }
+              }
+
+              _logger.LogInformation("Bulk assignment complete: {Success} successful, {Failed} failed for learning path {LearningPathId} for tenant: {TenantName}",
+                  result.SuccessfulAssignments, result.FailedAssignments, learningPathId, tenantName);
+
+              return Ok(result);
+          }*/
+
+        #endregion
+        /// <summary>
+        /// Create a complete learning path with materials in one request
+        /// </summary>
+        [HttpPost("detail")]
+        public async Task<ActionResult<CreateLearningPathWithMaterialsResponse>> CreateCompleteLearningPath(
+            string tenantName, 
+            [FromBody] CreateLearningPathWithMaterialsRequest request)
+        {
+            _logger.LogInformation("Creating complete learning path: {Name} with {MaterialCount} materials for tenant: {TenantName}",
+                request.LearningPathName, request.Materials.Count + (request.MaterialAssignments?.Count ?? 0), tenantName);
+
+            try
+            {
+                var result = await _learningPathService.CreateLearningPathWithMaterialsAsync(request);
+
+                _logger.LogInformation("Successfully created complete learning path {Id} with {MaterialCount} materials",
+                    result.Id, result.MaterialCount);
+
+                return CreatedAtAction(
+                    nameof(GetCompleteLearningPath),
+                    new { tenantName, id = result.Id },
+                    result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid request for creating complete learning path: {Name}", request.LearningPathName);
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create complete learning path: {Name}", request.LearningPathName);
+                return StatusCode(500, new { Error = "Failed to create learning path", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get a complete learning path with all materials and training programs
+        /// </summary>
+        [HttpGet("{id}/detail")]
+        public async Task<ActionResult<CompleteLearningPathResponse>> GetCompleteLearningPath(
+            string tenantName, 
+            int id)
+        {
+            _logger.LogInformation("Getting complete learning path {Id} for tenant: {TenantName}", id, tenantName);
+
+            var result = await _learningPathService.GetCompleteLearningPathAsync(id);
+
+            if (result == null)
+            {
+                _logger.LogWarning("Learning path {Id} not found in tenant: {TenantName}", id, tenantName);
+                return NotFound();
+            }
+
+            _logger.LogInformation("Retrieved complete learning path {Id}: {MaterialCount} materials, {ProgramCount} training programs",
+                id, result.Summary.TotalMaterials, result.Summary.TotalTrainingPrograms);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get all learning paths with complete information
+        /// </summary>
+        [HttpGet("detail")]
+        public async Task<ActionResult<IEnumerable<CompleteLearningPathResponse>>> GetAllCompleteLearningPaths(
+            string tenantName)
+        {
+            _logger.LogInformation("Getting all complete learning paths for tenant: {TenantName}", tenantName);
+
+            var results = await _learningPathService.GetAllCompleteLearningPathsAsync();
+
+            _logger.LogInformation("Retrieved {Count} complete learning paths for tenant: {TenantName}",
+                results.Count(), tenantName);
+
+            return Ok(results);
+        }
+
+        #region Bulk Material Assignment Endpoints
+
+        /// <summary>
+        /// Assign multiple materials to a learning path in one request
+        /// </summary>
+        [HttpPost("{learningPathId}/assign-materials")]
+        public async Task<ActionResult<object>> AssignMultipleMaterialsToLearningPath(
             string tenantName,
             int learningPathId,
-            [FromBody] IEnumerable<BulkMaterialAssignment> assignments)
+            [FromBody] BulkMaterialAssignmentRequest request)
         {
-            _logger.LogInformation("Bulk assigning {Count} materials to learning path {LearningPathId} for tenant: {TenantName}",
-                assignments.Count(), learningPathId, tenantName);
+            _logger.LogInformation("Assigning {Count} materials to learning path {LearningPathId} for tenant: {TenantName}",
+                request.Materials.Count, learningPathId, tenantName);
 
-            var result = new BulkAssignmentResult();
+            // Verify learning path exists
+            var learningPath = await _learningPathService.GetLearningPathAsync(learningPathId);
+            if (learningPath == null)
+            {
+                return NotFound($"Learning path {learningPathId} not found");
+            }
 
-            foreach (var assignment in assignments)
+            var results = new List<MaterialAssignmentResult>();
+
+            foreach (var materialAssignment in request.Materials)
             {
                 try
                 {
                     var relationshipId = await _materialService.AssignMaterialToLearningPathAsync(
-                        assignment.MaterialId,
-                        learningPathId,
-                        assignment.RelationshipType ?? "contains",
-                        assignment.DisplayOrder);
+                        materialAssignment.MaterialId, 
+                        learningPathId, 
+                        materialAssignment.RelationshipType ?? "contains", 
+                        materialAssignment.DisplayOrder);
 
-                    result.SuccessfulAssignments++;
+                    results.Add(new MaterialAssignmentResult
+                    {
+                        MaterialId = materialAssignment.MaterialId,
+                        Success = true,
+                        RelationshipId = relationshipId,
+                        RelationshipType = materialAssignment.RelationshipType ?? "contains",
+                        DisplayOrder = materialAssignment.DisplayOrder,
+                        Message = "Successfully assigned"
+                    });
+
+                    _logger.LogInformation("Successfully assigned material {MaterialId} to learning path {LearningPathId} (Relationship: {RelationshipId})",
+                        materialAssignment.MaterialId, learningPathId, relationshipId);
+                }
+                catch (ArgumentException ex)
+                {
+                    results.Add(new MaterialAssignmentResult
+                    {
+                        MaterialId = materialAssignment.MaterialId,
+                        Success = false,
+                        Message = ex.Message
+                    });
+
+                    _logger.LogWarning(ex, "Failed to assign material {MaterialId} to learning path {LearningPathId}",
+                        materialAssignment.MaterialId, learningPathId);
                 }
                 catch (Exception ex)
                 {
-                    result.FailedAssignments++;
-                    result.Errors.Add($"Error assigning material {assignment.MaterialId}: {ex.Message}");
+                    results.Add(new MaterialAssignmentResult
+                    {
+                        MaterialId = materialAssignment.MaterialId,
+                        Success = false,
+                        Message = $"Unexpected error: {ex.Message}"
+                    });
+
+                    _logger.LogError(ex, "Unexpected error assigning material {MaterialId} to learning path {LearningPathId}",
+                        materialAssignment.MaterialId, learningPathId);
                 }
             }
 
-            _logger.LogInformation("Bulk assignment complete: {Success} successful, {Failed} failed for learning path {LearningPathId} for tenant: {TenantName}",
-                result.SuccessfulAssignments, result.FailedAssignments, learningPathId, tenantName);
+            var successCount = results.Count(r => r.Success);
+            var failureCount = results.Count(r => !r.Success);
 
-            return Ok(result);
-        }*/
+            _logger.LogInformation("Bulk assignment completed for learning path {LearningPathId}: {SuccessCount} successful, {FailureCount} failed",
+                learningPathId, successCount, failureCount);
+
+            return Ok(new
+            {
+                Message = $"Bulk assignment completed: {successCount} successful, {failureCount} failed",
+                LearningPathId = learningPathId,
+                TotalRequested = request.Materials.Count,
+                SuccessCount = successCount,
+                FailureCount = failureCount,
+                Results = results
+            });
+        }
 
         #endregion
     }
+
+    // Supporting DTOs for bulk operations
+    public class BulkMaterialAssignmentRequest
+    {
+        public List<MaterialAssignmentRequest> Materials { get; set; } = new();
+    }
+
+    public class MaterialAssignmentResult
+    {
+        public int MaterialId { get; set; }
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public int? RelationshipId { get; set; }
+        public string? RelationshipType { get; set; }
+        public int? DisplayOrder { get; set; }
+    }
+
 }

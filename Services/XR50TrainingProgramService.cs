@@ -24,13 +24,16 @@ namespace XR50TrainingAssetRepo.Services
 
     public class TrainingProgramService : ITrainingProgramService
     {
+       // private readonly IMaterialService _materialService;
         private readonly IXR50TenantDbContextFactory _dbContextFactory;
         private readonly ILogger<TrainingProgramService> _logger;
 
         public TrainingProgramService(
+         //   IMaterialService materialService,
             IXR50TenantDbContextFactory dbContextFactory,
             ILogger<TrainingProgramService> logger)
         {
+        //    _materialService = materialService;
             _dbContextFactory = dbContextFactory;
             _logger = logger;
         }
@@ -416,19 +419,17 @@ namespace XR50TrainingAssetRepo.Services
 
                 // 2. Create new materials if specified
                 var createdMaterials = new List<int>();
-                if (request.MaterialsToCreate != null && request.MaterialsToCreate.Any())
+             /*   if (request.MaterialsToCreate != null && request.MaterialsToCreate.Any())
                 {
                     foreach (var materialRequest in request.MaterialsToCreate)
                     {
-                        var material = CreateMaterialFromRequest(materialRequest);
-                        context.Materials.Add(material);
-                        await context.SaveChangesAsync(); // Save to get ID
-                        
+                            // Don't create inline - use the MaterialService that works!
+                        var material = await _materialService.CreateMaterialAsync(materialRequest);
                         createdMaterials.Add(material.Id);
                         _logger.LogInformation("Created material: {Name} with ID: {Id}", material.Name, material.Id);
                     }
                 }
-
+*/
                 // 3. Combine existing material IDs with newly created ones
                 var allMaterials = request.Materials.Concat(createdMaterials).Distinct().ToList();
 
@@ -476,7 +477,90 @@ namespace XR50TrainingAssetRepo.Services
                 throw;
             }
         }
+       /* private Material MapRequestToMaterial(MaterialCreationRequest request)
+        {
+            Material material = request.MaterialType.ToLower() switch
+            {
+                "checklist" => new ChecklistMaterial
+                {
+                    ChecklistEntries = MapChecklistEntries(request.Entries)
+                },
+                "workflow" => new WorkflowMaterial
+                {
+                    WorkflowSteps = MapWorkflowSteps(request.Steps)
+                },
+                "video" => new VideoMaterial
+                {
+                    AssetId = request.AssetId,
+                    VideoPath = request.VideoPath,
+                    VideoDuration = request.VideoDuration,
+                    VideoResolution = request.VideoResolution,
+                    VideoTimestamps = MapVideoTimestamps(request.Timestamps)
+                },
+                "questionnaire" => new QuestionnaireMaterial
+                {
+                    QuestionnaireEntries = MapQuestionnaireEntries(request.Questions)
+                },
+                "image" => new ImageMaterial
+                {
+                    AssetId = request.AssetId,
+                    ImagePath = request.ImagePath
+                },
+                "chatbot" => new ChatbotMaterial
+                {
+                    ChatbotConfig = request.ChatbotConfig
+                },
+                "mqtt_template" => new MQTT_TemplateMaterial
+                {
+                    message_type = request.MessageType,
+                    message_text = request.MessageText
+                },
+                "pdf" => new PDFMaterial 
+                { 
+                    AssetId = request.AssetId 
+                },
+                "unitydemo" => new UnityDemoMaterial 
+                { 
+                    AssetId = request.AssetId 
+                },
+                _ => new DefaultMaterial 
+                { 
+                    AssetId = request.AssetId 
+                }
+            };
 
+            // Set common properties
+            material.Name = request.Name;
+            material.Description = request.Description;
+            material.Created_at = DateTime.UtcNow;
+            material.Updated_at = DateTime.UtcNow;
+
+            return material;
+        }
+
+        // Helper methods for complex types
+        private List<ChecklistEntry> MapChecklistEntries(List<ChecklistEntryRequest>? entries)
+        {
+            if (entries == null) return new List<ChecklistEntry>();
+            
+            return entries.Select(e => new ChecklistEntry
+            {
+                Text = e.Text,
+                Description = e.Description
+            }).ToList();
+        }
+
+        private List<WorkflowStep> MapWorkflowSteps(List<WorkflowStepRequest>? steps)
+        {
+            if (steps == null) return new List<WorkflowStep>();
+            
+            return steps.Select(s => new WorkflowStep
+            {
+                Title = s.Title,
+                Content = s.Content
+            }).ToList();
+        }
+*/
         /// <summary>
         /// Get a complete training program with all materials and learning paths
         /// </summary>

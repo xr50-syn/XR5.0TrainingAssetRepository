@@ -158,7 +158,7 @@ namespace XR50TrainingAssetRepo.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var owncloudUrl = $"owncloud://{tenantDirectory}/{fileName}";
+                    var owncloudUrl = fileUrl;
                     _logger.LogInformation("Successfully uploaded file to OwnCloud: {Url}", owncloudUrl);
                     return owncloudUrl;
                 }

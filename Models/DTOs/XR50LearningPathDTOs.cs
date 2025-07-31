@@ -1,0 +1,97 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace XR50TrainingAssetRepo.Models.DTOs
+{
+    public class CreateLearningPathWithMaterialsRequest
+    {
+        [Required]
+        [StringLength(255)]
+        public string LearningPathName { get; set; } = "";
+        
+        [StringLength(1000)]
+        public string? Description { get; set; }
+        
+        [Required]
+        public List<int> Materials { get; set; } = new();
+        
+        // Optional: Display order and relationship type for materials
+        public List<MaterialAssignmentRequest>? MaterialAssignments { get; set; }
+        
+        // Optional: Training Program IDs to assign this learning path to
+        public List<int>? TrainingPrograms { get; set; }
+    }
+
+    public class MaterialAssignmentRequest
+    {
+        public int MaterialId { get; set; }
+        public string RelationshipType { get; set; } = "contains";
+        public int? DisplayOrder { get; set; }
+    }
+    
+    public class CreateLearningPathWithMaterialsResponse
+    {
+        public int Id { get; set; }
+        public string LearningPathName { get; set; } = "";
+        public string? Description { get; set; }
+        public string? CreatedAt { get; set; }
+        public int MaterialCount { get; set; }
+        public int TrainingProgramCount { get; set; }
+        public List<AssignedMaterialDetails> AssignedMaterials { get; set; } = new();
+        public List<AssignedTrainingProgram> AssignedTrainingPrograms { get; set; } = new();
+    }
+    
+    public class AssignedMaterialDetails
+    {
+        public int MaterialId { get; set; }
+        public string? MaterialName { get; set; }
+        public string? MaterialType { get; set; }
+        public bool AssignmentSuccessful { get; set; }
+        public string? AssignmentNote { get; set; }
+        public string RelationshipType { get; set; } = "contains";
+        public int? DisplayOrder { get; set; }
+        public int? RelationshipId { get; set; }
+    }
+    
+    public class AssignedTrainingProgram
+    {
+        public int TrainingProgramId { get; set; }
+        public string? TrainingProgramName { get; set; }
+        public bool AssignmentSuccessful { get; set; }
+        public string? AssignmentNote { get; set; }
+    }
+
+    public class CompleteLearningPathResponse
+    {
+        public int Id { get; set; }
+        public string LearningPathName { get; set; } = "";
+        public string? Description { get; set; }
+        public string? CreatedAt { get; set; }
+        public string? UpdatedAt { get; set; }
+
+        // Complete material information
+        public List<MaterialResponse> Materials { get; set; } = new();
+
+        // Complete training program information
+        public List<TrainingProgramResponse> TrainingPrograms { get; set; } = new();
+
+        // Summary information
+        public LearningPathSummary Summary { get; set; } = new();
+    }
+
+    public class TrainingProgramResponse
+    {
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public DateTime? Created_at { get; set; }
+    }
+
+    public class LearningPathSummary
+    {
+        public int TotalMaterials { get; set; }
+        public int TotalTrainingPrograms { get; set; }
+        public Dictionary<string, int> MaterialsByType { get; set; } = new();
+        public DateTime? LastModified { get; set; }
+        public DateTime? Created { get; set; }
+    }
+}

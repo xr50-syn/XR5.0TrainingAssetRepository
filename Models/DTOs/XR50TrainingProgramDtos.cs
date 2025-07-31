@@ -71,7 +71,7 @@ namespace XR50TrainingAssetRepo.Models.DTOs
         public List<int> LearningPaths { get; set; } = new();
 
         // Optional: Materials with full data (for creation + assignment in one go)
-        public List<MaterialCreationRequest>? MaterialsToCreate { get; set; }
+       // public List<MaterialCreationRequest>? MaterialsToCreate { get; set; }
     }
 
     public class MaterialCreationRequest
@@ -89,8 +89,40 @@ namespace XR50TrainingAssetRepo.Models.DTOs
         public string? ChatbotConfig { get; set; }
         public string? MessageType { get; set; }
         public string? MessageText { get; set; }
+
+        public List<ChecklistEntryDto>? Entries { get; set; }
+        public List<WorkflowStepDto>? Steps { get; set; }
+        public List<QuestionnaireEntryDto>? Questions { get; set; }
+        public List<VideoTimestampDto>? Timestamps { get; set; }
+    }
+    public class ChecklistEntryDto
+    {
+        public string Text { get; set; } = "";
+        public string? Description { get; set; }
     }
 
+    public class WorkflowStepDto
+    {
+        public string Title { get; set; } = "";
+        public string? Content { get; set; }
+    }
+
+    public class QuestionnaireEntryDto
+    {
+        public string Question { get; set; } = "";
+        public string? QuestionType { get; set; }
+        public List<string>? Options { get; set; }
+        public string? CorrectAnswer { get; set; }
+        public bool Required { get; set; } = true;
+    }
+
+    public class VideoTimestampDto
+    {
+        public string Title { get; set; } = "";
+        public string Time { get; set; } = "";
+        public string? Description { get; set; }
+        public string? AnnotationType { get; set; }
+    }
     public class CompleteTrainingProgramResponse
     {
         public int Id { get; set; }

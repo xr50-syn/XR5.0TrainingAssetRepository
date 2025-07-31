@@ -127,7 +127,7 @@ namespace XR50TrainingAssetRepo.Services
                 var uploadUrl = await _storageService.UploadFileAsync(tenantName, asset.Filename, file);
                 
                 // Update asset with storage URL
-                asset.Src = uploadUrl;
+                asset.URL = uploadUrl;
                 
                 // Save to database
                 context.Assets.Add(asset);

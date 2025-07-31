@@ -1,8 +1,1 @@
-{
-  "name": "MDUINO Technical Manual",
-  "description": "Complete technical documentation including specifications, API reference, and troubleshooting guide",
-  "type": "PDF",
-  "pdfPath": "/docs/mduino_manual_v2.1.pdf",
-  "pdfPageCount": 45,
-  "pdfFileSize": 2847362
-}
+{   "name": "MDUINO Schematic",   "description": "",   "type": "Image" }

@@ -214,13 +214,13 @@ namespace XR50TrainingAssetRepo.Controllers
         /// <summary>
         /// Create a complete training program with materials and learning paths in one request
         /// </summary>
-        [HttpPost("complete")]
+        [HttpPost("detail")]
         public async Task<ActionResult<CompleteTrainingProgramResponse>> CreateCompleteTrainingProgram(
             string tenantName, 
             [FromBody] CompleteTrainingProgramRequest request)
         {
             _logger.LogInformation("Creating complete training program: {Name} with {MaterialCount} materials for tenant: {TenantName}",
-                request.Name, request.Materials.Count + (request.MaterialsToCreate?.Count ?? 0), tenantName);
+                request.Name, request.Materials.Count, tenantName);
 
             try
             {
@@ -244,7 +244,7 @@ namespace XR50TrainingAssetRepo.Controllers
         /// <summary>
         /// Get a complete training program with all materials and learning paths
         /// </summary>
-        [HttpGet("{id}/complete")]
+        [HttpGet("{id}/detail")]
         public async Task<ActionResult<CompleteTrainingProgramResponse>> GetCompleteTrainingProgram(
             string tenantName, 
             int id)
@@ -268,7 +268,7 @@ namespace XR50TrainingAssetRepo.Controllers
         /// <summary>
         /// Get all training programs with complete information
         /// </summary>
-        [HttpGet("complete")]
+        [HttpGet("detail")]
         public async Task<ActionResult<IEnumerable<CompleteTrainingProgramResponse>>> GetAllCompleteTrainingPrograms(
             string tenantName)
         {
