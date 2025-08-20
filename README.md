@@ -61,7 +61,6 @@ STORAGE_TYPE=S3
 AWS_ACCESS_KEY_ID=your_access_key_here
 AWS_SECRET_ACCESS_KEY=your_secret_key_here
 AWS_REGION=eu-west-1
-S3_BASE_BUCKET_PREFIX=xr50
 
 # Database Configuration
 XR50_REPO_DB_USER=xr50admin
