@@ -28,9 +28,9 @@ namespace XR50TrainingAssetRepo.Controllers
             _logger = logger;
         }
 
-        /// <summary>
+       
         /// Diagnose a specific tenant's database health
-        /// </summary>
+        
         [HttpGet("diagnose/{tenantName}")]
         public async Task<ActionResult<TenantDiagnosticResult>> DiagnoseTenant(string tenantName)
         {
@@ -46,9 +46,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Repair a tenant's database
-        /// </summary>
+        
         [HttpPost("repair/{tenantName}")]
         public async Task<ActionResult> RepairTenant(string tenantName)
         {
@@ -72,9 +72,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Test tenant database connection
-        /// </summary>
+        
         [HttpGet("test-connection/{tenantName}")]
         public async Task<ActionResult> TestConnection(string tenantName)
         {
@@ -95,9 +95,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get all tenant databases
-        /// </summary>
+        
         [HttpGet("databases")]
         public async Task<ActionResult<List<string>>> GetAllTenantDatabases()
         {
@@ -113,9 +113,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Create a test tenant for debugging
-        /// </summary>
+        
         [HttpPost("create-test-tenant/{tenantName}")]
         public async Task<ActionResult> CreateTestTenant(string tenantName)
         {
@@ -148,9 +148,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Force recreate a tenant database
-        /// </summary>
+        
         [HttpPost("force-recreate/{tenantName}")]
         public async Task<ActionResult> ForceRecreateTenant(string tenantName)
         {
@@ -185,9 +185,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Manually create tables in tenant database
-        /// </summary>
+        
         [HttpPost("create-tables/{tenantName}")]
         public async Task<ActionResult> CreateTablesManually(string tenantName)
         {
@@ -219,9 +219,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Completely rebuild tenant database (drop and recreate all tables)
-        /// </summary>
+        
         [HttpPost("rebuild/{tenantName}")]
         public async Task<ActionResult> RebuildTenantDatabase(string tenantName)
         {
@@ -250,9 +250,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get existing tables in tenant database
-        /// </summary>
+        
         [HttpGet("tables/{tenantName}")]
         public async Task<ActionResult<List<string>>> GetTenantTables(string tenantName)
         {
@@ -272,9 +272,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Completely delete tenant database (WARNING: This will delete all data!)
-        /// </summary>
+        
         [HttpDelete("delete-database/{tenantName}")]
         public async Task<ActionResult> DeleteTenantDatabase(string tenantName)
         {
@@ -303,9 +303,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Completely delete tenant (database AND registry entry) - WARNING: PERMANENT!
-        /// </summary>
+        
         [HttpDelete("delete-completely/{tenantName}")]
         public async Task<ActionResult> DeleteTenantCompletely(string tenantName)
         {
@@ -327,9 +327,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get all tenants with their health status
-        /// </summary>
+        
         [HttpGet("health-check")]
         public async Task<ActionResult> GetTenantsHealthCheck()
         {

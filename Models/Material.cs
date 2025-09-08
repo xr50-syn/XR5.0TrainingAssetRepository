@@ -45,7 +45,7 @@ namespace XR50TrainingAssetRepo.Models
 
     public class ChecklistMaterial : Material
     {
-        // Uses separate ChecklistEntries table (no new columns in Materials table)
+
         public List<ChecklistEntry> ChecklistEntries { get; set; }
         
         public ChecklistMaterial()
@@ -57,7 +57,7 @@ namespace XR50TrainingAssetRepo.Models
 
     public class ImageMaterial : Material
     {
-        // Image-specific properties stored in Materials table
+
         public int? AssetId { get; set; }
         public string? ImagePath { get; set; }
         public int? ImageWidth { get; set; }
@@ -72,13 +72,13 @@ namespace XR50TrainingAssetRepo.Models
 
     public class VideoMaterial : Material
     {
-        // Video-specific properties stored in Materials table
+
         public int? AssetId { get; set; }
         public string? VideoPath { get; set; }
-        public int? VideoDuration { get; set; }  // Duration in seconds
-        public string? VideoResolution { get; set; }  // e.g., "1920x1080"
+        public int? VideoDuration { get; set; }  
+        public string? VideoResolution { get; set; }  
         
-        // Uses separate VideoTimestamps table
+
         public List<VideoTimestamp> VideoTimestamps { get; set; }
         
         public VideoMaterial()
@@ -90,7 +90,6 @@ namespace XR50TrainingAssetRepo.Models
 
     public class WorkflowMaterial : Material
     {
-        // Uses separate WorkflowSteps table (no new columns in Materials table)
         public List<WorkflowStep> WorkflowSteps { get; set; }
         
         public WorkflowMaterial()
@@ -114,11 +113,11 @@ namespace XR50TrainingAssetRepo.Models
 
     public class PDFMaterial : Material
     {
-        // PDF-specific properties stored in Materials table
+
         public int? AssetId { get; set; }
         public string? PdfPath { get; set; }
         public int? PdfPageCount { get; set; }
-        public long? PdfFileSize { get; set; }  // File size in bytes
+        public long? PdfFileSize { get; set; }
         
         public PDFMaterial()
         {
@@ -128,10 +127,9 @@ namespace XR50TrainingAssetRepo.Models
 
     public class UnityDemoMaterial : Material
     {
-        // Unity-specific properties stored in Materials table
         public int? AssetId { get; set; }
         public string? UnityVersion { get; set; }
-        public string? UnityBuildTarget { get; set; }  // e.g., "WebGL", "Windows", "Android"
+        public string? UnityBuildTarget { get; set; }  
         public string? UnitySceneName { get; set; }
         
         public UnityDemoMaterial()
@@ -142,10 +140,10 @@ namespace XR50TrainingAssetRepo.Models
 
     public class ChatbotMaterial : Material
     {
-        // Chatbot-specific properties stored in Materials table
-        public string? ChatbotConfig { get; set; }  // JSON configuration
-        public string? ChatbotModel { get; set; }   // e.g., "gpt-4", "claude-3"
-        public string? ChatbotPrompt { get; set; }  // System prompt
+
+        public string? ChatbotConfig { get; set; }  
+        public string? ChatbotModel { get; set; }   
+        public string? ChatbotPrompt { get; set; } 
         
         public ChatbotMaterial()
         {
@@ -155,12 +153,10 @@ namespace XR50TrainingAssetRepo.Models
 
     public class QuestionnaireMaterial : Material
     {
-        // Questionnaire-specific properties stored in Materials table
-        public string? QuestionnaireConfig { get; set; }  // JSON configuration
-        public string? QuestionnaireType { get; set; }    // e.g., "multiple_choice", "essay", "mixed"
-        public decimal? PassingScore { get; set; }        // Percentage needed to pass
+        public string? QuestionnaireConfig { get; set; }  
+        public string? QuestionnaireType { get; set; }    
+        public decimal? PassingScore { get; set; }       
         
-        // Could also use separate QuestionnaireEntries table if needed
         public List<QuestionnaireEntry> QuestionnaireEntries { get; set; }
         
         public QuestionnaireMaterial()
@@ -188,11 +184,11 @@ namespace XR50TrainingAssetRepo.Models
         
         public int MaterialId { get; set; }
         public string RelatedEntityId { get; set; }
-        public string RelatedEntityType { get; set; }  // "Asset", "Material", etc.
-        public string? RelationshipType { get; set; }  // "Contains", "References", etc.
+        public string RelatedEntityType { get; set; }  
+        public string? RelationshipType { get; set; }  
         public int? DisplayOrder { get; set; }
         
-        // Navigation property to Material
+  
         public virtual Material Material { get; set; }
     }
 }

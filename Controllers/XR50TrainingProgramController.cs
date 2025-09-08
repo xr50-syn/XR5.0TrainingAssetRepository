@@ -29,7 +29,6 @@ namespace XR50TrainingAssetRepo.Controllers
             _logger = logger;
         }
 
-        // POST: api/{tenantName}/trainingprograms
         [HttpPost]
         public async Task<ActionResult<CreateTrainingProgramWithMaterialsResponse>> PostTrainingProgram(
             string tenantName, 
@@ -99,8 +98,6 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return NoContent();
         }
-
-        // DELETE: api/{tenantName}/trainingprograms/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTrainingProgram(string tenantName, int id)
         {
@@ -117,11 +114,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return NoContent();
         }
-   #region Material Assignment Endpoints
 
-        /// <summary>
-        /// Get all materials assigned to this training program
-        /// </summary>
         [HttpGet("{trainingProgramId}/materials")]
         public async Task<ActionResult<IEnumerable<Material>>> GetTrainingProgramMaterials(
             string tenantName,
@@ -146,9 +139,6 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(materials);
         }
 
-        /// <summary>
-        /// Assign a material to this training program
-        /// </summary>
         [HttpPost("{trainingProgramId}/assign-material/{materialId}")]
         public async Task<ActionResult<object>> AssignMaterialToTrainingProgram(
             string tenantName,
@@ -209,11 +199,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Ok(new { Message = "Material successfully removed from training program" });
         }
-        #region Complete Training Program Endpoints
 
-        /// <summary>
-        /// Create a complete training program with materials and learning paths in one request
-        /// </summary>
         [HttpPost("detail")]
         public async Task<ActionResult<CompleteTrainingProgramResponse>> CreateCompleteTrainingProgram(
             string tenantName, 
@@ -241,9 +227,6 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
-        /// Get a complete training program with all materials and learning paths
-        /// </summary>
         [HttpGet("{id}/detail")]
         public async Task<ActionResult<CompleteTrainingProgramResponse>> GetCompleteTrainingProgram(
             string tenantName, 
@@ -264,10 +247,6 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Ok(result);
         }
-
-        /// <summary>
-        /// Get all training programs with complete information
-        /// </summary>
         [HttpGet("detail")]
         public async Task<ActionResult<IEnumerable<CompleteTrainingProgramResponse>>> GetAllCompleteTrainingPrograms(
             string tenantName)
@@ -282,27 +261,19 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(results);
         }
 
-        #endregion
-
-        // Update the existing GET method to return complete data by default
         [HttpGet("{id}")]
         public async Task<ActionResult<CompleteTrainingProgramResponse>> GetTrainingProgram(string tenantName, int id)
         {
-            // Redirect to complete endpoint for consistency
             return await GetCompleteTrainingProgram(tenantName, id);
         }
 
-        // Update the existing GET all method to return complete data by default  
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CompleteTrainingProgramResponse>>> GetTrainingPrograms(string tenantName)
         {
-            // Redirect to complete endpoint for consistency
+            
             return await GetAllCompleteTrainingPrograms(tenantName);
         }
 
-        /// <summary>
-        /// Bulk assign materials to this training program
-        /// </summary>
         /*[HttpPost("{trainingProgramId}/bulk-assign-materials")]
         public async Task<ActionResult<BulkAssignmentResult>> BulkAssignMaterialsToTrainingProgram(
             string tenantName,
@@ -338,6 +309,5 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(result);
         }*/
 
-        #endregion
     }
 }

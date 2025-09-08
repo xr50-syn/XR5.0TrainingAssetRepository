@@ -34,7 +34,6 @@ namespace XR50TrainingAssetRepo.Controllers
             _logger = logger;
         }
 
-        #region Basic Asset Operations
 
         // GET: api/{tenantName}/assets
         [HttpGet]
@@ -143,10 +142,6 @@ namespace XR50TrainingAssetRepo.Controllers
             return NoContent();
         }
 
-        #endregion
-
-        #region Asset Search and Filtering
-
         // GET: api/{tenantName}/assets/search?searchTerm=video&filetype=mp4
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<Asset>>> SearchAssets(
@@ -192,10 +187,6 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(assets);
         }
 
-        #endregion
-
-        #region Asset Relationships
-
         // GET: api/{tenantName}/assets/5/materials
         [HttpGet("{id}/materials")]
         public async Task<ActionResult<IEnumerable<Material>>> GetAssetMaterials(string tenantName, int id)
@@ -214,7 +205,7 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("{id}/usage-count")]
         public async Task<ActionResult<object>> GetAssetUsageCount(string tenantName, int id)
         {
-            _logger.LogInformation("📊 Getting usage count for asset {Id} for tenant: {TenantName}", id, tenantName);
+            _logger.LogInformation("Getting usage count for asset {Id} for tenant: {TenantName}", id, tenantName);
 
             var count = await _assetService.GetAssetUsageCountAsync(id);
 
@@ -223,11 +214,6 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Ok(new { AssetId = id, UsageCount = count });
         }
-
-        #endregion
-
-        #region File Management (Placeholder Endpoints)
-
         // GET: api/{tenantName}/assets/5/download
         [HttpGet("{id}/download")]
         public async Task<IActionResult> DownloadAsset(string tenantName, int id)
@@ -239,14 +225,8 @@ namespace XR50TrainingAssetRepo.Controllers
                 var downloadUrl = await _assetService.GetAssetDownloadUrlAsync(id);
 
                 // TODO: Implement actual file download from OwnCloud/S3
-                _logger.LogInformation("TODO: Redirect to download URL: {DownloadUrl}", downloadUrl);
-
-                return Ok(new
-                {
-                    Message = "TODO: Implement file download",
-                    DownloadUrl = downloadUrl,
-                    Note = "This is a placeholder - implement with OwnCloud/S3"
-                });
+                
+                return Ok();
             }
             catch (ArgumentException ex)
             {
@@ -316,15 +296,11 @@ namespace XR50TrainingAssetRepo.Controllers
             });
         }
 
-        #endregion
-
-        #region Asset Statistics
-
-        // GET: api/{tenantName}/assets/statistics
+       /* // GET: api/{tenantName}/assets/statistics
         [HttpGet("statistics")]
         public async Task<ActionResult<AssetStatistics>> GetAssetStatistics(string tenantName)
         {
-            _logger.LogInformation("📊 Getting asset statistics for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting asset statistics for tenant: {TenantName}", tenantName);
 
             var statistics = await _assetService.GetAssetStatisticsAsync();
 
@@ -333,10 +309,6 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Ok(statistics);
         }
-
-        #endregion
-
-        #region Utility Endpoints
 
         // GET: api/{tenantName}/assets/filetypes
         [HttpGet("filetypes")]
@@ -375,13 +347,8 @@ namespace XR50TrainingAssetRepo.Controllers
                 ExistingMatches = existingAssets.Count()
             });
         }
+*/
 
-        #endregion
-         #region Simple Share Management
-
-        /// <summary>
-        /// Create a share for an asset with the tenant group
-        /// </summary>
         [HttpPost("{assetId}/share")]
         public async Task<ActionResult<Share>> CreateShare(string tenantName, string assetId)
         {
@@ -413,10 +380,8 @@ namespace XR50TrainingAssetRepo.Controllers
                 return StatusCode(500, new { Error = "Failed to create share", Details = ex.Message });
             }
         }
-
-        /// <summary>
         /// Get all shares for an asset
-        /// </summary>
+        
         [HttpGet("{assetId}/shares")]
         public async Task<ActionResult<IEnumerable<Share>>> GetAssetShares(string tenantName, string assetId)
         {
@@ -437,9 +402,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get all shares for the tenant
-        /// </summary>
+        
         [HttpGet("shares")]
         public async Task<ActionResult<IEnumerable<Share>>> GetTenantShares(string tenantName)
         {
@@ -460,9 +425,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get a specific share by ID
-        /// </summary>
+        
         [HttpGet("shares/{shareId}")]
         public async Task<ActionResult<Share>> GetShare(string tenantName, string shareId)
         {
@@ -488,9 +453,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Delete a share
-        /// </summary>
+        
         [HttpDelete("shares/{shareId}")]
         public async Task<IActionResult> DeleteShare(string tenantName, string shareId)
         {
@@ -516,9 +481,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get the share URL for an asset
-        /// </summary>
+        
         [HttpGet("{assetId}/share-url")]
         public async Task<ActionResult<object>> GetAssetShareUrl(string tenantName, string assetId)
         {
@@ -541,6 +506,6 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        #endregion
+
     }
 }

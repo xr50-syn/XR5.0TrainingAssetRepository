@@ -414,9 +414,9 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Helper method to assign a material to a learning path
-        /// </summary>
+        
         private async Task AssignMaterialToLearningPath(
             XR50TrainingContext context,
             int learningPathId,
@@ -472,9 +472,9 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Get a complete learning path with all materials and training programs
-        /// </summary>
+        
         public async Task<CompleteLearningPathResponse?> GetCompleteLearningPathAsync(int id)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -521,9 +521,9 @@ namespace XR50TrainingAssetRepo.Services
             };
         }
 
-        /// <summary>
+       
         /// Get all learning paths with complete information
-        /// </summary>
+        
         public async Task<IEnumerable<CompleteLearningPathResponse>> GetAllCompleteLearningPathsAsync()
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -547,9 +547,9 @@ namespace XR50TrainingAssetRepo.Services
             return results;
         }
 
-        /// <summary>
+       
         /// Helper method to get materials for a learning path
-        /// </summary>
+        
         private async Task<List<MaterialResponse>> GetMaterialsForLearningPath(XR50TrainingContext context, int learningPathId)
         {
             // Query MaterialRelationships to get materials assigned to this learning path
@@ -580,9 +580,9 @@ namespace XR50TrainingAssetRepo.Services
             }).ToList();
         }
 
-        /// <summary>
+       
         /// Helper method to get material type string
-        /// </summary>
+        
         private string GetMaterialTypeString(int typeId)
         {
             // This should match the Type enum from Material.cs

@@ -24,9 +24,9 @@ namespace XR50TrainingAssetRepo.Controllers
             _logger = logger;
         }
 
-        /// <summary>
+       
         /// Get all tenants
-        /// </summary>
+        
         [HttpGet]
         public async Task<ActionResult<TenantResponse[]>> GetTenants()
         {
@@ -46,9 +46,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Create a new tenant with pre-provisioned infrastructure
-        /// </summary>
+        
         [HttpPost]
         public async Task<ActionResult<TenantResponse>> CreateTenant([FromBody] CreateTenantRequest request)
         {
@@ -161,9 +161,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get a specific tenant by name
-        /// </summary>
+        
         [HttpGet("{tenantName}")]
         public async Task<ActionResult<TenantResponse>> GetTenant(string tenantName)
         {
@@ -188,9 +188,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Delete a tenant (soft delete - marks as inactive)
-        /// </summary>
+        
         [HttpDelete("{tenantName}")]
         public async Task<ActionResult> DeleteTenant(string tenantName)
         {
@@ -215,9 +215,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Validate tenant storage configuration
-        /// </summary>
+        
         [HttpGet("{tenantName}/validate-storage")]
         public async Task<ActionResult<object>> ValidateTenantStorage(string tenantName)
         {
@@ -279,15 +279,15 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get storage statistics for a tenant
-        /// </summary>
+        
         [HttpGet("{tenantName}/storage-stats")]
         public async Task<ActionResult<object>> GetTenantStorageStats(string tenantName)
         {
             try
             {
-                _logger.LogInformation("📊 Getting storage statistics for tenant: {TenantName}", tenantName);
+                _logger.LogInformation("Getting storage statistics for tenant: {TenantName}", tenantName);
                 
                 var tenant = await _tenantManagementService.GetTenantAsync(tenantName);
                 if (tenant == null)
@@ -334,9 +334,9 @@ namespace XR50TrainingAssetRepo.Controllers
                 return StatusCode(500, new { Error = "Failed to get storage statistics", Details = ex.Message });
             }
         }
-        /// <summary>
+       
         /// Get example request for creating tenants with different storage types
-        /// </summary>
+        
         [HttpGet("examples/create-requests")]
         public ActionResult<object> GetCreateExamples()
         {

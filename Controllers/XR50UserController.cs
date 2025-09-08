@@ -228,11 +228,8 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        #region OwnCloud Integration Methods
-
-        /// <summary>
         /// Create user in OwnCloud using the same logic as tenant creation
-        /// </summary>
+        
         private async Task<bool> CreateUserInOwnCloudAsync(User user, string groupName)
         {
             try
@@ -291,9 +288,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Update user in OwnCloud (OwnCloud API supports user updates)
-        /// </summary>
+        
         private async Task<bool> UpdateUserInOwnCloudAsync(User user, string groupName)
         {
             try
@@ -348,9 +345,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Delete user from OwnCloud
-        /// </summary>
+        
         private async Task<bool> DeleteUserFromOwnCloudAsync(string userName)
         {
             try
@@ -395,9 +392,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Add basic authentication header for OwnCloud API requests
-        /// </summary>
+        
         private void AddBasicAuthHeader(HttpRequestMessage request)
         {
             var username = _configuration.GetValue<string>("TenantSettings:Admin");
@@ -410,7 +407,6 @@ namespace XR50TrainingAssetRepo.Controllers
                 "Basic", base64EncodedAuthenticationString);
         }
 
-        #endregion
         private async Task<bool> UserExistsAsync(string userName)
         {
             using var context = _dbContextFactory.CreateDbContext();

@@ -294,9 +294,9 @@ namespace XR50TrainingAssetRepo.Services
 
         #region Simple Material Assignment (ProgramMaterial Junction Table)
 
-        /// <summary>
+       
         /// Assign a material to training program using simple junction table
-        /// </summary>
+        
         public async Task<bool> AssignMaterialToTrainingProgramAsync(int trainingProgramId, int materialId)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -344,9 +344,9 @@ namespace XR50TrainingAssetRepo.Services
             return true;
         }
 
-        /// <summary>
+       
         /// Remove a material from training program using simple junction table
-        /// </summary>
+        
         public async Task<bool> RemoveMaterialFromTrainingProgramAsync(int trainingProgramId, int materialId)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -370,9 +370,9 @@ namespace XR50TrainingAssetRepo.Services
             return true;
         }
 
-        /// <summary>
+       
         /// Get all materials assigned to training program via simple junction table
-        /// </summary>
+        
         public async Task<IEnumerable<Material>> GetMaterialsByTrainingProgramAsync(int trainingProgramId)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -392,9 +392,9 @@ namespace XR50TrainingAssetRepo.Services
         #endregion
         #region Complete Training Program Operations
 
-        /// <summary>
+       
         /// Create a complete training program with materials and learning paths in one transaction
-        /// </summary>
+        
         public async Task<CompleteTrainingProgramResponse> CreateCompleteTrainingProgramAsync(CompleteTrainingProgramRequest request)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -561,9 +561,9 @@ namespace XR50TrainingAssetRepo.Services
             }).ToList();
         }
 */
-        /// <summary>
+       
         /// Get a complete training program with all materials and learning paths
-        /// </summary>
+        
         public async Task<CompleteTrainingProgramResponse?> GetCompleteTrainingProgramAsync(int id)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -622,9 +622,9 @@ namespace XR50TrainingAssetRepo.Services
             };
         }
 
-        /// <summary>
+       
         /// Get all training programs with complete information
-        /// </summary>
+        
         public async Task<IEnumerable<CompleteTrainingProgramResponse>> GetAllCompleteTrainingProgramsAsync()
         {
             using var context = _dbContextFactory.CreateDbContext();

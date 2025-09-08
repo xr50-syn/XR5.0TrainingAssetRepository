@@ -40,8 +40,6 @@ namespace XR50TrainingAssetRepo.Controllers
             _logger = logger;
         }
 
-        #region Base Material Operations
-
         // GET: api/{tenantName}/materials
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Material>>> GetMaterials(string tenantName)
@@ -72,10 +70,10 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return material;
         }
-        /// <summary>
+       
 /// Get complete material details with all type-specific properties and child entities
 /// This replaces the need to call different endpoints for different material types
-/// </summary>
+
 [HttpGet("{id}/detail")]
 public async Task<ActionResult<object>> GetCompleteMaterialDetails(string tenantName, int id)
 {
@@ -358,9 +356,9 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
         }
 
-        /// <summary>
+       
         /// Get materials by type with complete details (bulk operation)
-        /// </summary>
+        
         [HttpGet("type/{materialType}/complete")]
         public async Task<ActionResult<object[]>> GetCompleteMaterialsByType(string materialType)
         {
@@ -1477,10 +1475,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return NoContent();
         }
 
-        #endregion
-
-        #region Material Type-Specific Endpoints
-
         // GET: api/{tenantName}/materials/videos
         [HttpGet("videos")]
         public async Task<ActionResult<IEnumerable<VideoMaterial>>> GetVideoMaterials(string tenantName)
@@ -1607,10 +1601,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return Ok(unityDemos);
         }
 
-        #endregion
-
-        #region Complex Material Creation Endpoints (One-shot creation with child entities)
-
         // POST: api/{tenantName}/materials/workflow-complete
         [HttpPost("workflow-complete")]
         public async Task<ActionResult<WorkflowMaterial>> CreateCompleteWorkflow(
@@ -1689,10 +1679,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
         }
 
-        #endregion
-
-        #region Video Material Management
-
         // GET: api/{tenantName}/materials/videos/5/with-timestamps
         [HttpGet("videos/{id}/with-timestamps")]
         public async Task<ActionResult<VideoMaterial>> GetVideoWithTimestamps(string tenantName, int id)
@@ -1756,9 +1742,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return NoContent();
         }
 
-        #endregion
-
-        #region Checklist Material Management
 
         // GET: api/{tenantName}/materials/checklists/5/with-entries
         [HttpGet("checklists/{id}/with-entries")]
@@ -1824,9 +1807,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return NoContent();
         }
 
-        #endregion
-
-        #region Workflow Material Management
 
         // GET: api/{tenantName}/materials/workflows/5/with-steps
         [HttpGet("workflows/{id}/with-steps")]
@@ -1891,10 +1871,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
 
             return NoContent();
         }
-
-        #endregion
-
-        #region Asset Relationships
 
         // GET: api/{tenantName}/materials/by-asset/asset123
         [HttpGet("by-asset/{assetId}")]
@@ -1971,10 +1947,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return Ok(new { Message = "Asset successfully removed from material" });
         }
 
-        #endregion
-
-        #region Polymorphic Relationships Management
-
         // GET: api/{tenantName}/materials/5/relationships
         [HttpGet("{materialId}/relationships")]
         public async Task<ActionResult<IEnumerable<MaterialRelationship>>> GetMaterialRelationships(string tenantName, int materialId)
@@ -2032,15 +2004,12 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return Ok(new { Message = "Material successfully removed from learning path" });
         }
 
-        #endregion
-
-        #region Material Type Summary Endpoint
 
         // GET: api/{tenantName}/materials/summary
         [HttpGet("summary")]
         public async Task<ActionResult<MaterialTypeSummary>> GetMaterialTypeSummary(string tenantName)
         {
-            _logger.LogInformation("📊 Getting material type summary for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting material type summary for tenant: {TenantName}", tenantName);
 
             try
             {
@@ -2071,12 +2040,8 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             }
         }
 
-        #endregion
-        #region Material Relationship Query Endpoints
-
-        /// <summary>
         /// Get all learning paths that contain this material
-        /// </summary>
+        
         [HttpGet("{materialId}/learning-paths")]
         public async Task<ActionResult<IEnumerable<LearningPath>>> GetMaterialLearningPaths(
             string tenantName,
@@ -2105,9 +2070,9 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return Ok(learningPaths);
         }
 
-        /// <summary>
+       
         /// Get all training programs that contain this material
-        /// </summary>
+        
       /*  [HttpGet("{materialId}/training-programs")]
         public async Task<ActionResult<IEnumerable<TrainingProgram>>> GetMaterialTrainingPrograms(
             string tenantName,
@@ -2124,9 +2089,9 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             return Ok(programs);
         }*/
 
-        /// <summary>
+       
         /// Get all relationships for this material
-        /// </summary>
+        
         [HttpGet("{materialId}/all-relationships")]
         public async Task<ActionResult<object>> GetMaterialAllRelationships(
             string tenantName,
@@ -2152,8 +2117,6 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                 RelationshipTypes = groupedRelationships.Keys.ToList()
             });
         }
-
-        #endregion
         private System.Type GetSystemTypeFromMaterialType(MaterialType materialType)
         {
             return materialType switch
@@ -2188,7 +2151,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             public List<string> Errors { get; set; } = new();
             public List<string> Warnings { get; set; } = new();
 
-            #region Request DTOs for Complex Creation
+    
         }
         public class CompleteWorkflowRequest
         {
@@ -2223,5 +2186,5 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             public int Total { get; set; }
         }
 
-        #endregion
+
     }

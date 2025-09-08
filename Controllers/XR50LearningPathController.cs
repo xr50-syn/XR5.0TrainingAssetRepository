@@ -180,11 +180,7 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Ok(new { Message = "Learning path successfully removed from training program" });
         }
-        #region Material Assignment Endpoints
 
-        /// <summary>
-        /// Get all materials assigned to this learning path
-        /// </summary>
         [HttpGet("{learningPathId}/materials")]
         public async Task<ActionResult<IEnumerable<Material>>> GetLearningPathMaterials(
             string tenantName,
@@ -210,9 +206,6 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(materials);
         }
 
-        /// <summary>
-        /// Assign a material to this learning path
-        /// </summary>
         [HttpPost("{learningPathId}/assign-material/{materialId}")]
         public async Task<ActionResult<object>> AssignMaterialToLearningPath(
             string tenantName,
@@ -248,9 +241,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Remove a material from this learning path
-        /// </summary>
+        
         [HttpDelete("{learningPathId}/remove-material/{materialId}")]
         public async Task<IActionResult> RemoveMaterialFromLearningPath(
             string tenantName,
@@ -273,9 +266,9 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(new { Message = "Material successfully removed from learning path" });
         }
 
-        /// <summary>
+       
         /// Reorder materials within this learning path
-        /// </summary>
+        
         [HttpPut("{learningPathId}/reorder-materials")]
         public async Task<IActionResult> ReorderLearningPathMaterials(
             string tenantName,
@@ -298,9 +291,9 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(new { Message = "Materials successfully reordered" });
         }
 
-        /// <summary>
+       
         /// Bulk assign materials to this learning path
-        /// </summary>
+        
         /*  [HttpPost("{learningPathId}/bulk-assign-materials")]
           public async Task<ActionResult<BulkAssignmentResult>> BulkAssignMaterialsToLearningPath(
               string tenantName,
@@ -337,10 +330,6 @@ namespace XR50TrainingAssetRepo.Controllers
               return Ok(result);
           }*/
 
-        #endregion
-        /// <summary>
-        /// Create a complete learning path with materials in one request
-        /// </summary>
         [HttpPost("detail")]
         public async Task<ActionResult<CreateLearningPathWithMaterialsResponse>> CreateCompleteLearningPath(
             string tenantName, 
@@ -373,9 +362,9 @@ namespace XR50TrainingAssetRepo.Controllers
             }
         }
 
-        /// <summary>
+       
         /// Get a complete learning path with all materials and training programs
-        /// </summary>
+        
         [HttpGet("{id}/detail")]
         public async Task<ActionResult<CompleteLearningPathResponse>> GetCompleteLearningPath(
             string tenantName, 
@@ -397,9 +386,6 @@ namespace XR50TrainingAssetRepo.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Get all learning paths with complete information
-        /// </summary>
         [HttpGet("detail")]
         public async Task<ActionResult<IEnumerable<CompleteLearningPathResponse>>> GetAllCompleteLearningPaths(
             string tenantName)
@@ -413,12 +399,6 @@ namespace XR50TrainingAssetRepo.Controllers
 
             return Ok(results);
         }
-
-        #region Bulk Material Assignment Endpoints
-
-        /// <summary>
-        /// Assign multiple materials to a learning path in one request
-        /// </summary>
         [HttpPost("{learningPathId}/assign-materials")]
         public async Task<ActionResult<object>> AssignMultipleMaterialsToLearningPath(
             string tenantName,
@@ -503,7 +483,6 @@ namespace XR50TrainingAssetRepo.Controllers
             });
         }
 
-        #endregion
     }
 
     // Supporting DTOs for bulk operations

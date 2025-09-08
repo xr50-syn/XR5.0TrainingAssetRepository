@@ -7,7 +7,7 @@ namespace XR50TrainingAssetRepo.Services
     public interface IXR50TenantDbContextFactory
     {
         XR50TrainingContext CreateDbContext();
-        XR50TrainingContext CreateAdminDbContext(); // For admin operations
+        XR50TrainingContext CreateAdminDbContext();
     }
 
     public class XR50TenantDbContextFactory : IXR50TenantDbContextFactory
@@ -88,14 +88,11 @@ namespace XR50TrainingAssetRepo.Services
             var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
             var baseDatabaseName = _configuration["BaseDatabaseName"] ?? "magical_library";
 
-            // For admin operations (tenant management), use base database
             if (tenantName == "default" || string.IsNullOrEmpty(tenantName))
             {
-                _logger.LogInformation("🔄 Using default database for tenant: {TenantName}", tenantName);
+                _logger.LogInformation("Using default database for tenant: {TenantName}", tenantName);
                 return baseConnectionString;
             }
-
-            // For tenant operations, switch to tenant database
             var tenantDatabase = _tenantService.GetTenantSchema(tenantName);
             var tenantConnectionString = baseConnectionString.Replace($"database={baseDatabaseName}", $"database={tenantDatabase}", StringComparison.OrdinalIgnoreCase);
 

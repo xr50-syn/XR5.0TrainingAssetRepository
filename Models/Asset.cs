@@ -22,14 +22,6 @@ namespace XR50TrainingAssetRepo.Models
             ShareId= Guid.NewGuid().ToString();
         }
     }
-    public class TenantDirectory {
-        public string? TenantName {get;set;}
-        [Key]
-        public string? TenantPath {get;set;}
-        public TenantDirectory() {
-
-        }
-    }
 
 
     public class Asset

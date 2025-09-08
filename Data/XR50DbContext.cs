@@ -4,7 +4,6 @@ using XR50TrainingAssetRepo.Services;
 
 namespace XR50TrainingAssetRepo.Data
 {
-    // XR50 Training Context with Dynamic Tenant Database Switching
     public class XR50TrainingContext : DbContext
     {
         private readonly IXR50TenantService? _tenantService;
@@ -20,14 +19,13 @@ namespace XR50TrainingAssetRepo.Data
             _configuration = configuration;
         }
 
-        // Constructor for migrations and direct instantiation
+
         public XR50TrainingContext(DbContextOptions<XR50TrainingContext> options) 
             : base(options)
         {
-            // For migrations - services will be null
+        
         }
 
-        // All your existing DbSets
         public DbSet<XR50Tenant> Tenants { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<TrainingProgram> TrainingPrograms { get; set; } = null!;
@@ -70,7 +68,7 @@ namespace XR50TrainingAssetRepo.Data
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error configuring DbContext: {ex.Message}");
-                    // If anything fails, don't configure here - let the main registration handle it
+            
                 }
             }
         }
@@ -84,14 +82,12 @@ namespace XR50TrainingAssetRepo.Data
                 var baseConnectionString = _configuration.GetConnectionString("DefaultConnection");
                 var baseDatabaseName = _configuration["BaseDatabaseName"] ?? "magical_library";
                 
-                // For admin operations (tenant management), use base database
                 if (tenantName == "default" || string.IsNullOrEmpty(tenantName))
                 {
-                    Console.WriteLine($"🔄 Using default database for tenant: {tenantName}");
+                    Console.WriteLine($"Using default database for tenant: {tenantName}");
                     return baseConnectionString ?? string.Empty;
                 }
                 
-                // For tenant operations, switch to tenant database
                 var tenantDatabase = _tenantService?.GetTenantSchema(tenantName) ?? tenantName;
                 var tenantConnectionString = baseConnectionString?.Replace($"database={baseDatabaseName}", $"database={tenantDatabase}", StringComparison.OrdinalIgnoreCase) ?? string.Empty;
                 
@@ -108,7 +104,7 @@ namespace XR50TrainingAssetRepo.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure TPH inheritance for Material hierarchy
+
             modelBuilder.Entity<Material>()
                 .HasDiscriminator<string>("Discriminator")
                 .HasValue<Material>("Material")
@@ -132,7 +128,6 @@ namespace XR50TrainingAssetRepo.Data
                 .Property(m => m.message_text)
                 .HasColumnName("message_text");
 
-            // Configure properties for VideoMaterial
             modelBuilder.Entity<VideoMaterial>()
                 .Property(m => m.AssetId)
                 .HasColumnName("AssetId");
@@ -146,7 +141,7 @@ namespace XR50TrainingAssetRepo.Data
                 .Property(m => m.VideoResolution)
                 .HasColumnName("VideoResolution");
 
-            // Configure properties for ImageMaterial
+
             modelBuilder.Entity<ImageMaterial>()
                 .Property(m => m.AssetId)
                 .HasColumnName("AssetId");
@@ -163,7 +158,6 @@ namespace XR50TrainingAssetRepo.Data
                 .Property(m => m.ImageFormat)
                 .HasColumnName("ImageFormat");
 
-            // Configure properties for PDFMaterial
             modelBuilder.Entity<PDFMaterial>()
                 .Property(m => m.AssetId)
                 .HasColumnName("AssetId");
@@ -177,7 +171,6 @@ namespace XR50TrainingAssetRepo.Data
                 .Property(m => m.PdfFileSize)
                 .HasColumnName("PdfFileSize");
 
-            // Configure properties for ChatbotMaterial
             modelBuilder.Entity<ChatbotMaterial>()
                 .Property(m => m.ChatbotConfig)
                 .HasColumnName("ChatbotConfig");
@@ -188,7 +181,6 @@ namespace XR50TrainingAssetRepo.Data
                 .Property(m => m.ChatbotPrompt)
                 .HasColumnName("ChatbotPrompt");
 
-            // Configure properties for QuestionnaireMaterial
             modelBuilder.Entity<QuestionnaireMaterial>()
                 .Property(m => m.QuestionnaireConfig)
                 .HasColumnName("QuestionnaireConfig");
@@ -199,7 +191,6 @@ namespace XR50TrainingAssetRepo.Data
                 .Property(m => m.PassingScore)
                 .HasColumnName("PassingScore");
 
-            // Configure properties for UnityDemoMaterial
             modelBuilder.Entity<UnityDemoMaterial>()
                 .Property(m => m.AssetId)
                 .HasColumnName("AssetId");
@@ -213,12 +204,11 @@ namespace XR50TrainingAssetRepo.Data
                 .Property(m => m.UnitySceneName)
                 .HasColumnName("UnitySceneName");
                 
-            // Configure AssetId for DefaultMaterial
+
             modelBuilder.Entity<DefaultMaterial>()
                 .Property(m => m.AssetId)
                 .HasColumnName("AssetId");
 
-            // Configure relationships for child entities (separate tables)
             modelBuilder.Entity<QuestionnaireMaterial>()
                 .HasMany(q => q.QuestionnaireEntries)
                 .WithOne()
@@ -242,7 +232,6 @@ namespace XR50TrainingAssetRepo.Data
                 .HasForeignKey("WorkflowMaterialId")
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Configure composite primary keys for junction tables
             modelBuilder.Entity<ProgramMaterial>()
                 .HasKey(pm => new { pm.TrainingProgramId, pm.MaterialId });
 
@@ -255,18 +244,16 @@ namespace XR50TrainingAssetRepo.Data
             modelBuilder.Entity<TenantAdmin>()
                 .HasKey(ta => new { ta.TenantName, ta.UserName });
 
-            // MaterialRelationship has its own GUID primary key
             modelBuilder.Entity<MaterialRelationship>()
                 .HasKey(mr => mr.Id);
 
-            // Add indexes for performance
+            //INDEXES: 
             modelBuilder.Entity<MaterialRelationship>()
                 .HasIndex(mr => mr.MaterialId);
             
             modelBuilder.Entity<MaterialRelationship>()
                 .HasIndex(mr => new { mr.RelatedEntityId, mr.RelatedEntityType });
 
-            // Add foreign key properties to child tables
             modelBuilder.Entity<VideoTimestamp>()
                 .Property<int?>("VideoMaterialId");
             
@@ -277,7 +264,7 @@ namespace XR50TrainingAssetRepo.Data
                 .Property<int?>("WorkflowMaterialId");
 }
 
-        // Keep your existing SaveChanges override
+        
         public override int SaveChanges()
         {
             UpdateAuditFields();
@@ -298,7 +285,6 @@ namespace XR50TrainingAssetRepo.Data
             {
                 var entity = entityEntry.Entity;
                 
-                // Handle Material entities (which have Created_at and Updated_at properties)
                 if (entity is Material material)
                 {
                     material.Updated_at = DateTime.UtcNow;
@@ -307,42 +293,18 @@ namespace XR50TrainingAssetRepo.Data
                     {
                         material.Created_at = DateTime.UtcNow;
                     }
-                    continue; // Skip shadow property logic for Materials
+                    continue; 
                 }
                 
-                // Handle TrainingProgram entities (which have Created_at property)
                 if (entity is TrainingProgram program)
                 {
                     if (entityEntry.State == EntityState.Added && string.IsNullOrEmpty(program.Created_at))
                     {
                         program.Created_at = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
                     }
-                    continue; // Skip shadow property logic for TrainingPrograms
+                    continue; 
                 }
                 
-                // For entities that still use shadow properties (if any)
-                try
-                {
-                    // Check if the entity has shadow properties before trying to update them
-                    var entityType = entityEntry.Metadata;
-                    var updatedDateProperty = entityType.FindProperty("UpdatedDate");
-                    var createdDateProperty = entityType.FindProperty("CreatedDate");
-                    
-                    if (updatedDateProperty != null)
-                    {
-                        entityEntry.Property("UpdatedDate").CurrentValue = DateTime.UtcNow;
-                    }
-
-                    if (createdDateProperty != null && entityEntry.State == EntityState.Added)
-                    {
-                        entityEntry.Property("CreatedDate").CurrentValue = DateTime.UtcNow;
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    // Entity doesn't have shadow properties - this is expected for most entities now
-                    // We can safely ignore this or add specific logging if needed
-                }
             }
         
         }

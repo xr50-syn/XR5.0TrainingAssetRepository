@@ -14,10 +14,8 @@ namespace XR50TrainingAssetRepo.Models.DTOs
         [Required]
         public List<int> Materials { get; set; } = new();
         
-        // Optional: Display order and relationship type for materials
         public List<MaterialAssignmentRequest>? MaterialAssignments { get; set; }
         
-        // Optional: Training Program IDs to assign this learning path to
         public List<int>? TrainingPrograms { get; set; }
     }
 
@@ -68,13 +66,11 @@ namespace XR50TrainingAssetRepo.Models.DTOs
         public string? CreatedAt { get; set; }
         public string? UpdatedAt { get; set; }
 
-        // Complete material information
         public List<MaterialResponse> Materials { get; set; } = new();
 
-        // Complete training program information
         public List<TrainingProgramResponse> TrainingPrograms { get; set; } = new();
 
-        // Summary information
+
         public LearningPathSummary Summary { get; set; } = new();
     }
 

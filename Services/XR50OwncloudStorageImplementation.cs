@@ -423,10 +423,10 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Execute WebDAV command using admin credentials
         /// Used for: Directory creation, user setup, administrative operations
-        /// </summary>
+        
         private async Task<bool> ExecuteWebDAVAsAdmin(string method, string path, string filePath = null)
         {
             try
@@ -538,9 +538,9 @@ namespace XR50TrainingAssetRepo.Services
 
         #region Share Management
 
-        /// <summary>
+       
         /// Create a share in OwnCloud and return the share URL
-        /// </summary>
+        
         public async Task<string> CreateShareAsync(string tenantName, XR50Tenant tenant, Asset asset)
         {
             try
@@ -591,9 +591,9 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Delete a share from OwnCloud
-        /// </summary>
+        
         public async Task<bool> DeleteShareAsync(string tenantName, string shareId)
         {
             try
@@ -638,9 +638,9 @@ namespace XR50TrainingAssetRepo.Services
 
         #region Helper Methods
 
-        /// <summary>
+       
         /// Parse the share URL from OwnCloud XML response
-        /// </summary>
+        
         private string ParseShareUrlFromResponse(string xmlResponse)
         {
             try
@@ -684,9 +684,9 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Add basic authentication header for OwnCloud requests
-        /// </summary>
+        
         private void AddBasicAuthHeader(HttpRequestMessage request, User user)
         {
             if (user != null)
@@ -699,9 +699,9 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Add basic authentication header with username/password
-        /// </summary>
+        
         private void AddBasicAuthHeader(HttpRequestMessage request, string username, string password)
         {
             var authenticationString = $"{username}:{password}";

@@ -39,8 +39,6 @@ namespace XR50TrainingAssetRepo.Services
         Task<IEnumerable<Share>> GetAssetSharesAsync(string tenantName, string assetId);
         Task<IEnumerable<Share>> GetTenantSharesAsync(string tenantName);
         Task<string> GetAssetShareUrlAsync(string tenantName, string assetId);
-        // Asset Statistics
-        Task<AssetStatistics> GetAssetStatisticsAsync();
     }
 
     public class AssetService : IAssetService
@@ -67,8 +65,6 @@ namespace XR50TrainingAssetRepo.Services
             _storageService = storageService;
             _logger = logger;
         }
-
-        #region Basic Asset Operations
 
         public async Task<IEnumerable<Asset>> GetAllAssetsAsync()
         {
@@ -227,10 +223,6 @@ namespace XR50TrainingAssetRepo.Services
             return await context.Assets.AnyAsync(a => a.Id == id);
         }
 
-        #endregion
-
-        #region Asset Search and Filtering
-
         public async Task<IEnumerable<Asset>> GetAssetsByFiletypeAsync(string filetype)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -258,10 +250,6 @@ namespace XR50TrainingAssetRepo.Services
                 .ToListAsync();
         }
 
-        #endregion
-
-        #region Asset Relationships
-
         public async Task<IEnumerable<Material>> GetMaterialsUsingAssetAsync(int assetId)
         {
             var asset = await GetAssetAsync(assetId);
@@ -278,10 +266,6 @@ namespace XR50TrainingAssetRepo.Services
             var materials = await GetMaterialsUsingAssetAsync(assetId);
             return materials.Count();
         }
-
-        #endregion
-
-        #region File Management
 
         public async Task<string> GetAssetDownloadUrlAsync(int assetId)
         {
@@ -413,11 +397,8 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        #endregion
 
-        #region Asset Statistics
-
-        public async Task<AssetStatistics> GetAssetStatisticsAsync()
+       /* public async Task<AssetStatistics> GetAssetStatisticsAsync()
         {
             using var context = _dbContextFactory.CreateDbContext();
 
@@ -450,13 +431,7 @@ namespace XR50TrainingAssetRepo.Services
 
             return statistics;
         }
-
-        #endregion
-        #region Share Management (Database Operations)
-
-        /// <summary>
-        /// Create a share record in the database and delegate to storage service
-        /// </summary>
+*/
         public async Task<Share> CreateShareAsync(string tenantName, string assetId)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -505,9 +480,9 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Delete a share from both database and storage
-        /// </summary>
+        
         public async Task<bool> DeleteShareAsync(string tenantName, string shareId)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -540,9 +515,9 @@ namespace XR50TrainingAssetRepo.Services
             }
         }
 
-        /// <summary>
+       
         /// Get shares for an asset
-        /// </summary>
+        
         public async Task<IEnumerable<Share>> GetAssetSharesAsync(string tenantName, string assetId)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -552,9 +527,9 @@ namespace XR50TrainingAssetRepo.Services
                 .ToListAsync();
         }
 
-        /// <summary>
+       
         /// Get all shares for a tenant
-        /// </summary>
+        
         public async Task<IEnumerable<Share>> GetTenantSharesAsync(string tenantName)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -562,9 +537,9 @@ namespace XR50TrainingAssetRepo.Services
             return await context.Shares.ToListAsync();
         }
 
-        /// <summary>
+       
         /// Get the share URL for an asset
-        /// </summary>
+        
         public async Task<string> GetAssetShareUrlAsync(string tenantName, string assetId)
         {
             using var context = _dbContextFactory.CreateDbContext();
@@ -573,13 +548,6 @@ namespace XR50TrainingAssetRepo.Services
             return asset?.URL ?? string.Empty;
         }
 
-        #endregion
-
-        #region Helper Methods
-
-        /// <summary>
-        /// Create a share record in the database
-        /// </summary>
         private async Task<Share> CreateShareRecord(XR50TrainingContext context, string assetId, string target)
         {
             var share = new Share
@@ -594,8 +562,6 @@ namespace XR50TrainingAssetRepo.Services
             
             return share;
         }
-
-        #endregion
 
         private string GetFiletypeFromFilename(string filename)
         {
@@ -636,7 +602,6 @@ namespace XR50TrainingAssetRepo.Services
         }    
     }
 
-    #region Asset DTOs and Models
 
     public class AssetStatistics
     {
@@ -661,5 +626,4 @@ namespace XR50TrainingAssetRepo.Services
         public int? Take { get; set; }
     }
     
-    #endregion
 }

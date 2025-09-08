@@ -2,9 +2,9 @@ using XR50TrainingAssetRepo.Models;
 
 namespace XR50TrainingAssetRepo.Services
 {
-    /// <summary>
+   
     /// Storage abstraction interface that works with both S3 and OwnCloud
-    /// </summary>
+    
     public interface IStorageService
     {
         // Tenant Storage Management

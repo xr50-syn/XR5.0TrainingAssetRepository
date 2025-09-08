@@ -491,7 +491,7 @@ curl -f -X POST "$BASE_URL/api/$TENANT/trainingprograms/$PROGRAM_ID/assign-mater
 echo "Assigned material to training program"
 
 # Test 5: Data Retrieval
-echo "📊 Testing data retrieval..."
+echo "Testing data retrieval..."
 
 curl -f "$BASE_URL/api/$TENANT/trainingprograms/$PROGRAM_ID/materials" | \
   grep -q "$MATERIAL_ID" || (echo "Material not found in program" && exit 1)
