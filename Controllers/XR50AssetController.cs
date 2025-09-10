@@ -218,7 +218,7 @@ namespace XR50TrainingAssetRepo.Controllers
         [HttpGet("{id}/download")]
         public async Task<IActionResult> DownloadAsset(string tenantName, int id)
         {
-            _logger.LogInformation("⬇️ Download request for asset {Id} for tenant: {TenantName}", id, tenantName);
+            _logger.LogInformation("Download request for asset {Id} for tenant: {TenantName}", id, tenantName);
 
             try
             {

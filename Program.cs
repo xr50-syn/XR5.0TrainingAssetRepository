@@ -95,9 +95,9 @@ builder.Services.Configure<KestrelServerOptions>(options =>
 var storageType = builder.Configuration.GetValue<string>("Storage__Type") ?? 
                   Environment.GetEnvironmentVariable("STORAGE_TYPE") ?? 
                   "OwnCloud";
-Console.WriteLine($"🔧 Detected storage type: {storageType}");
-Console.WriteLine($"🔧 Environment STORAGE_TYPE: {Environment.GetEnvironmentVariable("STORAGE_TYPE")}");
-Console.WriteLine($"🔧 Config Storage__Type: {builder.Configuration.GetValue<string>("Storage__Type")}");
+Console.WriteLine($"Detected storage type: {storageType}");
+Console.WriteLine($"Environment STORAGE_TYPE: {Environment.GetEnvironmentVariable("STORAGE_TYPE")}");
+Console.WriteLine($"Config Storage__Type: {builder.Configuration.GetValue<string>("Storage__Type")}");
 if (storageType.Equals("S3", StringComparison.OrdinalIgnoreCase))
 {
     // Configure S3 Storage

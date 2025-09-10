@@ -1098,7 +1098,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
                     }
                 }
                 
-                _logger.LogInformation("🎯 Parsed questionnaire: {Name} with {EntryCount} entries", questionnaire.Name, entries.Count);
+                _logger.LogInformation("Parsed questionnaire: {Name} with {EntryCount} entries", questionnaire.Name, entries.Count);
                 
                 // For questionnaires, we can use the existing service method directly
                 var createdMaterial = await _materialService.CreateQuestionnaireMaterialWithEntriesAsync(questionnaire, entries);
@@ -1507,7 +1507,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         [HttpGet("workflows")]
         public async Task<ActionResult<IEnumerable<WorkflowMaterial>>> GetWorkflowMaterials(string tenantName)
         {
-            _logger.LogInformation("⚙️ Getting workflow materials for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting workflow materials for tenant: {TenantName}", tenantName);
 
             var workflows = await _materialService.GetAllWorkflowMaterialsAsync();
 
@@ -1521,7 +1521,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         [HttpGet("images")]
         public async Task<ActionResult<IEnumerable<ImageMaterial>>> GetImageMaterials(string tenantName)
         {
-            _logger.LogInformation("🖼️ Getting image materials for tenant: {TenantName}", tenantName);
+            _logger.LogInformation("Getting image materials for tenant: {TenantName}", tenantName);
 
             var images = await _materialService.GetAllImageMaterialsAsync();
 
@@ -1607,7 +1607,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
             string tenantName,
             [FromBody] CompleteWorkflowRequest request)
         {
-            _logger.LogInformation("⚙️ Creating complete workflow {Name} with {StepCount} steps for tenant: {TenantName}",
+            _logger.LogInformation("Creating complete workflow {Name} with {StepCount} steps for tenant: {TenantName}",
                 request.Workflow.Name, request.Steps?.Count ?? 0, tenantName);
 
             try
@@ -1704,7 +1704,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         [HttpPost("videos/{videoId}/timestamps")]
         public async Task<ActionResult<VideoMaterial>> AddTimestampToVideo(string tenantName, int videoId, VideoTimestamp timestamp)
         {
-            _logger.LogInformation("⏱️ Adding timestamp '{Title}' to video {VideoId} for tenant: {TenantName}",
+            _logger.LogInformation("Adding timestamp '{Title}' to video {VideoId} for tenant: {TenantName}",
                 timestamp.Title, videoId, tenantName);
 
             try
@@ -1768,7 +1768,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         [HttpPost("checklists/{checklistId}/entries")]
         public async Task<ActionResult<ChecklistMaterial>> AddEntryToChecklist(string tenantName, int checklistId, ChecklistEntry entry)
         {
-            _logger.LogInformation("✔️ Adding entry '{Text}' to checklist {ChecklistId} for tenant: {TenantName}",
+            _logger.LogInformation("Adding entry '{Text}' to checklist {ChecklistId} for tenant: {TenantName}",
                 entry.Text, checklistId, tenantName);
 
             try
@@ -1812,7 +1812,7 @@ private async Task<object?> GetBasicMaterialDetails(int materialId)
         [HttpGet("workflows/{id}/with-steps")]
         public async Task<ActionResult<WorkflowMaterial>> GetWorkflowWithSteps(string tenantName, int id)
         {
-            _logger.LogInformation("⚙️ Getting workflow material {Id} with steps for tenant: {TenantName}",
+            _logger.LogInformation("Getting workflow material {Id} with steps for tenant: {TenantName}",
                 id, tenantName);
 
             var workflow = await _materialService.GetWorkflowMaterialWithStepsAsync(id);

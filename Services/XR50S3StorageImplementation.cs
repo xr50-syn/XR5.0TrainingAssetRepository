@@ -32,7 +32,7 @@ namespace XR50TrainingAssetRepo.Services
         private async Task<string> GetTenantBucketName(string tenantName, XR50Tenant? tenant = null){
             if (tenant == null)
             {
-                _logger.LogInformation("🔍 DEBUG: Fetching tenant info for: {TenantName}", tenantName);
+                _logger.LogInformation("DEBUG: Fetching tenant info for: {TenantName}", tenantName);
                 tenant = await _tenantManagementService.GetTenantAsync(tenantName);
 
                 // Comprehensive debug logging
@@ -177,11 +177,7 @@ namespace XR50TrainingAssetRepo.Services
                     BucketName = bucketName,
                     Key = key,
                     InputStream = uploadStream,
-                    ContentType = file.ContentType ?? "application/octet-stream",
-                    Headers = 
-                    {
-                        ["x-amz-content-sha256"] = "UNSIGNED-PAYLOAD"
-                    }
+                    ContentType = file.ContentType ?? "application/octet-stream"
                 };
                   
                 var response = await _s3Client.PutObjectAsync(request);

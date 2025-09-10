@@ -54,7 +54,7 @@ namespace XR50TrainingAssetRepo.Controllers
         {
             try
             {
-                _logger.LogInformation("🏗️ Creating tenant: {TenantName} with {StorageType} storage", 
+                _logger.LogInformation("Creating tenant: {TenantName} with {StorageType} storage", 
                     request.TenantName, request.StorageType);
 
                 // Validate the request
