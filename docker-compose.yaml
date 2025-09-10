@@ -35,7 +35,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s  # 🔧 Added: Give MariaDB more time to initialize
+      start_period: 30s  # Added: Give MariaDB more time to initialize
     volumes:
       - repodb_mysql:/var/lib/mysql
       - ./db-init-scripts:/docker-entrypoint-initdb.d/
@@ -92,7 +92,7 @@ services:
       - "7069:7069"
     volumes:
       - db_migrations:/App/Migrations
-    # 🔧 Added: Health check for training-repo
+    # Added: Health check for training-repo
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5286/health"] # Adjust endpoint as needed
       interval: 30s
@@ -112,7 +112,7 @@ services:
     restart: always
     ports:
       - 8080:8080
-    # 🔧 FIXED: Wait for health checks instead of just service start
+    # FIXED: Wait for health checks instead of just service start
     depends_on:
       owncloud_mariadb:
         condition: service_healthy
@@ -136,7 +136,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s  # 🔧 Added: Give OwnCloud more time to initialize
+      start_period: 60s  # Added: Give OwnCloud more time to initialize
     volumes:
       - owncloud_files:/mnt/data
     profiles:
@@ -158,7 +158,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s  # 🔧 Added: Give MariaDB more time to initialize
+      start_period: 30s  # Added: Give MariaDB more time to initialize
     volumes:
       - owncloud_mysql:/var/lib/mysql
     profiles:
@@ -174,7 +174,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s  # 🔧 Added: Give Redis time to start
+      start_period: 10s  # Added: Give Redis time to start
     volumes:
       - owncloud_redis:/data
     profiles:
@@ -193,7 +193,7 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
-    # 🔧 Added: Health check for MinIO
+    # Added: Health check for MinIO
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
