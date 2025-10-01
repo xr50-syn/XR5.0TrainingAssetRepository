@@ -96,12 +96,12 @@ ASPNETCORE_ENVIRONMENT=Development
 
 #### Production with S3:
 ```bash
-docker-compose --profile prod up -d
+docker-compose --profile prod up --build
 ```
 
 #### Lab with OwnCloud:
 ```bash
-docker-compose --profile lab up -d
+docker-compose --profile lab up --build
 ```
 
 
